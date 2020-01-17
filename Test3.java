@@ -11,7 +11,8 @@ import java.util.regex.*;
 
 public class Test3
 {
-    private static String line;
+    private static String line = "";
+    private static String source_code = "";
 
     public static void main(String[] args)
     {
@@ -20,6 +21,9 @@ public class Test3
        String filename = in.nextLine();
        System.out.println("Opening " + filename);
 
+       //just finding out where to put example source file
+       System.out.println(System.getProperty("user.dir"));
+
        try
        {
            FileReader fileReader = new FileReader(filename);
@@ -27,6 +31,7 @@ public class Test3
 
            while((line = bufferedReader.readLine()) != null)
            {
+               source_code += line;
                System.out.println(line);
            }
            bufferedReader.close();
@@ -45,7 +50,7 @@ public class Test3
        }
 
         Pattern pattern = Pattern.compile("[\\w]+|[\\W]|.+"); // Splits by words,characters
-        Matcher matcher = pattern.matcher(line);
+        Matcher matcher = pattern.matcher(source_code);
 
         while (matcher.find()) {
             System.out.println(matcher.group(0));
