@@ -68,7 +68,7 @@ public class Tokenizer
             file + "'");
         }
 
-        Pattern pattern = Pattern.compile("#.+>|>>=?|<<=?|\\|\\||&&|[|\\^&%<>!-+*\\/=]?=|--|\\+\\+|\".+\"|[\\w]+|[\\W]|.+");
+        Pattern pattern = Pattern.compile("#.+>|>>=?|<<=?|\\|\\||&&|[|\\^&%<>!\\-+*\\/=]?=|--|\\+\\+|\".+\"|[\\w]+|[\\W]|.+");
         Matcher matcher = pattern.matcher(source);
 
         while (matcher.find()) {
