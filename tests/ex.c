@@ -1,4 +1,11 @@
 #include <stdio.h>
+#include <stdlib.h>
+
+struct TestStruct {
+    int i;
+    int j;
+    int k;
+};
 
 int __func(int a, int b)
 {
@@ -6,6 +13,7 @@ int __func(int a, int b)
 }
 
 int main() {
+        struct TestStruct* ts = malloc(sizeof(struct TestStruct));
         //this is a comment test
         /*
             another comment
@@ -21,7 +29,12 @@ int main() {
         i += 1;
         i<<=3;
         i|=2;
+        i >>= 1;
+
+        ts -> i = 3;
+
         /*check this also, multiline comment on one line*/
-        printf("Hello, World! %d\n", i++);
+        printf("Hello, World!            %d\n", ts->i);
+        free(ts);
         return 0;
 }
