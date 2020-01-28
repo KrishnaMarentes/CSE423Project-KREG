@@ -74,7 +74,7 @@ public class Tokenizer
 
         source = remove_comments(source);
 
-        Pattern pattern = Pattern.compile("#.+>|->|>>=?|<<=?|\\|\\||&&|[|^&%<>!\\-+*/=]?=|--|\\+\\+|\".+\"|[\\w]+|[\\W]|.+");
+        Pattern pattern = Pattern.compile("#.+>|->|>>=?|<<=?|\\|\\||&&|[|^&%<>!\\-+*/=]?=|--|\\+\\+|\".+\"|\\d+\\.\\d+|[\\w]+|[\\W]|.+");
         Matcher matcher = pattern.matcher(source);
 
         while (matcher.find()) {
