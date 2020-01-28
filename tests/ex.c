@@ -21,6 +21,8 @@ int main() {
             just checking
             probably won't work
         */
+
+        float f = 4455.21342;
         int arr_ex[3];
         arr_ex[0] = 10;
         arr_ex[1] = 0x1;
