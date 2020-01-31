@@ -6,14 +6,14 @@ varDeclaration -> typeSpecifier var DecList ;
 scopedVarDeclaration -> scopedTypeSpecifier varDeclList ;
 varDeclList -> varDeclList, varDeclInitialize OR varDeclInitialize
 varDeclInitialize -> varDeclId OR varDeclId : simpleExpression
-varDeclId -> ID OR ID [ NUMCONST ]
+varDeclId -> ID
 scopedTypeSpecifier -> static typeSpecifier OR typeSpecifier
 typeSpecifier -> int OR bool OR char
 
-funDeclaration -> typeSpecifier ID ( params ) statement OR ID ( params ) statement
+funDeclaration -> typeSpecifier ID ( params ) statement
 params -> params , parameter OR parameter
 parameter -> typeSpecifier paramId
-paramId -> ID OR ID [ ]
+paramId -> ID
 
 statement -> expressionStmt OR compoundStmt OR selectionStmt OR iterationStmt OR returnStmt OR breakStmt OR gotoStmt
 expressionStmt -> expression ; OR ;
@@ -25,8 +25,9 @@ selectionStmt -> if simpleExpression then statement elsifList OR if simpleExpres
 iterationStmt -> while simpleExpression do statement
 returnStmt -> return ; OR return expression ;
 breakStmt -> break ;
-gotoStmt -> goto label ;
-label -> ID :
+gotoStmt -> goto labelId ;
+label -> labelId :
+labelId -> ID
 
 expression -> mutable = expression OR mutable += expression OR mutable -= expression OR mutable *= expression OR mutable /= expression OR mutable ++ OR mutable -- OR simpleExpression
 simpleExpression -> simpleExpression | andExpression OR andExpression
