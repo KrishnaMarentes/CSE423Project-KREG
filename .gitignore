@@ -1,1 +1,4 @@
 *.class
+*.interp
+*.tokens
+kregGrammar*.java
