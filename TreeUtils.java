@@ -14,18 +14,19 @@ public class TreeUtils {
 
     private TreeUtils() {}
 
-    /**
-     * Pretty print out a whole tree. {@link #getNodeText} is used on the node payloads to get the text
-     * for the nodes. (Derived from Trees.toStringTree(....))
-     */
     public static String toPrettyTree(final Tree t, final List<String> ruleNames) {
         level = 0;
         return process(t, ruleNames).replaceAll("(?m)^\\s+$", "").replaceAll("\\r?\\n\\r?\\n", Eol);
     }
 
     private static String process(final Tree t, final List<String> ruleNames) {
-        if (t.getChildCount() == 0) return Utils.escapeWhitespace(Trees.getNodeText(t, ruleNames), false);
+
+        if (t.getChildCount() == 0) {
+            return Utils.escapeWhitespace(Trees.getNodeText(t, ruleNames), false);
+        }
+
         StringBuilder sb = new StringBuilder();
+
         sb.append(lead(level));
         level++;
         String s = Utils.escapeWhitespace(Trees.getNodeText(t, ruleNames), false);
