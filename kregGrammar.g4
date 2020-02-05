@@ -1,15 +1,35 @@
 grammar kregGrammar;
 
 start :
-    expression EOF
+    asmnt EOF
 ;
 
-expression
+addexpression
     :
     |   INT
-    |   expression (PLUS | MINUS) expression
+    |   ID
+    |   addexpression PLUS addexpression
     ;
 
+asmnt
+    :
+    |  ID ASSIGN INT
+    |  ID ASSIGN WORD
+    |  ID ASSIGN addexpression
+    ;
+
+
+ASSIGN  :   '=';
 PLUS    :   '+';
 MINUS   :   '-';
-INT     :   '0'..'9'+;
+STAR    :   '*';
+DIVIDE  :   '/';
+
+SEMICOLN:   ';';
+
+
+INT     :   [0-9]+;
+LETTER  :   [a-zA-Z];
+WORD    :   LETTER+;
+ID      :   LETTER (LETTER | INT | '_')*;
+STRING  :   '"' (WORD | INT)* '"'; //HMMM
