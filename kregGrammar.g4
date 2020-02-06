@@ -35,9 +35,9 @@ SEMICOLN:   ';';
 
 
 INT     :   [0-9]+;
-LETTER  :   [a-zA-Z];
-WORD    :   LETTER+;
 ID      :   LETTER (LETTER | INT | '_')*;
+fragment WORD    :   LETTER+;
+fragment LETTER  :   [a-zA-Z];
 STRING  :   '"' (WORD | INT)* '"'; //HMMM
 
 // break already a parser rule?
