@@ -18,6 +18,10 @@ asmnt
     |  ID ASSIGN addexpression
 ;
 
+unaryOperator
+    :   '&' | '*' | '+' | '-' | '~' | '!'
+;
+
 
 ASSIGN  :   '=';
 PLUS    :   '+';
