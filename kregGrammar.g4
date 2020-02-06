@@ -13,13 +13,15 @@ addexpression
 
 asmnt
     :
-    |  ID ASSIGN INT
-    |  ID ASSIGN WORD
-    |  ID ASSIGN addexpression
+    |  ID assignmentOperator INT
+    |  ID assignmentOperator WORD
+    |  ID assignmentOperator addexpression
 ;
 
 
-ASSIGN  :   '=';
+assignmentOperator
+    :   '=' | '*=' | '/=' | '%=' | '+=' | '-=' | '<<=' | '>>=' | '&=' | '^=' | '|='
+    ;
 PLUS    :   '+';
 MINUS   :   '-';
 STAR    :   '*';
