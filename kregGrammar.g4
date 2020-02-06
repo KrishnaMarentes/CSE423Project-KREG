@@ -18,6 +18,10 @@ asmnt
     |  ID assignmentOperator addexpression
 ;
 
+unaryOperator
+    :   '&' | '*' | '+' | '-' | '~' | '!'
+;
+
 
 assignmentOperator
     :   '=' | '*=' | '/=' | '%=' | '+=' | '-=' | '<<=' | '>>=' | '&=' | '^=' | '|='
