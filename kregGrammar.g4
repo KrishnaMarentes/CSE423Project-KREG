@@ -4,22 +4,73 @@ start :
     asmnt EOF
 ;
 
-addexpression
-    :
-    |   INT
-    |   ID
-    |   addexpression PLUS addexpression
-;
+primaryExpression
+    :   Identifier
+    |   Constant
+    |   StringLiteral+
+    |   '(' expression ')'
+    ;
 
-asmnt
+postfixExpression
+    :   primaryExpression
+    |   primaryExpression '[' expression ']'
+    |   primaryExpression '(' argumentExpressionList? ')'
+    |   primaryExpression '++'
+    |   primaryExpression '--'
+    ;
+
+argumentExpressionList
+    :   assignmentExpression
+    |   argumentExpressionList ',' assignmentExpression
+    ;
+
+unaryExpression
     :
-    |  ID assignmentOperator INT
-    |  ID assignmentOperator WORD
-    |  ID assignmentOperator addexpression
-;
+    |   '++' unaryExpression
+    |   '--' unaryExpression
+    ;
 
 unaryOperator
     :   '&' | '*' | '+' | '-' | '~' | '!'
+    ;
+
+castExpression
+    :
+    |   unaryExpression
+    |   DigitSequence // for
+    ;
+
+multiplicativeExpression
+    :   castExpression
+    |   multiplicativeExpression '*' castExpression
+    |   multiplicativeExpression '/' castExpression
+    |   multiplicativeExpression '%' castExpression
+    ;
+
+additiveExpression
+    :   multiplicativeExpression
+    |   additiveExpression '+' multiplicativeExpression
+    |   additiveExpression '-' multiplicativeExpression
+    ;
+
+shiftExpression
+    :   additiveExpression
+    |   shiftExpression '<<' additiveExpression
+    |   shiftExpression '>>' additiveExpression
+    ;
+
+relationalExpression
+    :   shiftExpression
+    |   relationalExpression '<' shiftExpression
+    |   relationalExpression '>' shiftExpression
+    |   relationalExpression '<=' shiftExpression
+    |   relationalExpression '>=' shiftExpression
+    ;
+
+equalityExpression
+    :   relationalExpression
+    |   equalityExpression '==' relationalExpression
+    |   equalityExpression '!=' relationalExpression
     ;
 
 assignmentOperator
@@ -35,8 +86,6 @@ DIVIDE  :   '/';
 
 SEMICOLN:   ';';
 
-
-INT     :   [0-9]+;
 ID      :   LETTER (LETTER | INT | '_')*;
 fragment WORD    :   LETTER+;
 fragment LETTER  :   [a-zA-Z];
@@ -52,6 +101,7 @@ program
 
 declarationList
     :
+
     |   declarationList declaration
     |   declaration
     ;
