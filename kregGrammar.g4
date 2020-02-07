@@ -4,95 +4,6 @@ start :
     program EOF
 ;
 
-/*
-primaryExpression
-    :   Identifier
-    |   Constant
-    |   StringLiteral+
-    |   '(' expression ')'
-    ;
-
-postfixExpression
-    :   primaryExpression
-    |   primaryExpression '[' expression ']'
-    |   primaryExpression '(' argumentExpressionList? ')'
-    |   primaryExpression '++'
-    |   primaryExpression '--'
-    ;
-
-argumentExpressionList
-    :   assignmentExpression
-    |   argumentExpressionList ',' assignmentExpression
-    ;
-
-unaryExpression
-    :
-    |   '++' unaryExpression
-    |   '--' unaryExpression
-    ;
-
-unaryOperator
-    :   '&' | '*' | '+' | '-' | '~' | '!'
-    ;
-
-castExpression
-    :
-    |   unaryExpression
-    |   DigitSequence // for
-    ;
-
-multiplicativeExpression
-    :   castExpression
-    |   multiplicativeExpression '*' castExpression
-    |   multiplicativeExpression '/' castExpression
-    |   multiplicativeExpression '%' castExpression
-    ;
-
-additiveExpression
-    :   multiplicativeExpression
-    |   additiveExpression '+' multiplicativeExpression
-    |   additiveExpression '-' multiplicativeExpression
-    ;
-
-shiftExpression
-    :   additiveExpression
-    |   shiftExpression '<<' additiveExpression
-    |   shiftExpression '>>' additiveExpression
-    ;
-
-relationalExpression
-    :   shiftExpression
-    |   relationalExpression '<' shiftExpression
-    |   relationalExpression '>' shiftExpression
-    |   relationalExpression '<=' shiftExpression
-    |   relationalExpression '>=' shiftExpression
-    ;
-
-equalityExpression
-    :   relationalExpression
-    |   equalityExpression '==' relationalExpression
-    |   equalityExpression '!=' relationalExpression
-    ;
-
-assignmentOperator
-    :   '=' | '*=' | '/=' | '%=' | '+=' | '-=' | '<<=' | '>>=' | '&=' | '^=' | '|='
-    ;
-
-PLUS    :   '+';
-MINUS   :   '-';
-STAR    :   '*';
-DIVIDE  :   '/';
-
-SEMICOLN:   ';';
-
-ID      :   LETTER (LETTER | INT | '_')*;
-fragment WORD    :   LETTER+;
-fragment LETTER  :   [a-zA-Z];
-STRING  :   '"' (WORD | INT)* '"'; //HMMM
-
-// break already a parser rule?
-*/
-
 program
     : declarationList
     ;
@@ -121,8 +32,8 @@ varDeclList
     ;
 
 varDeclInitialize
-    : varDeclId
-    | varDeclId '=' simpleExpression
+    : varDeclId SEMICOLN
+    | varDeclId '=' simpleExpression SEMICOLN
     ;
 
 varDeclId
@@ -139,12 +50,13 @@ typeSpecifier
     ;
 
 funDeclaration
-    : typeSpecifier ID '(' params ')' statement
+    : typeSpecifier ID LPAREN params RPAREN statement
     ;
 
 params
     : params ',' parameter
     | parameter
+    |
     ;
 
 parameter
@@ -292,13 +204,13 @@ mutable
     ;
 
 immutable
-    : '(' expression ')'
+    : LPAREN expression RPAREN
     | call
     | constant
     ;
 
 call
-    : ID '(' args ')'
+    : ID LPAREN args RPAREN
     ;
 
 args
@@ -312,7 +224,7 @@ argList
     ;
 
 constant
-    : NUMCONST
+    : INT
     | CHARCONST
     | STRINGCONST
     ;
@@ -321,14 +233,44 @@ SEMICOLN
     :   ';'
     ;
 
+LPAREN
+    : '('
+    ;
+
+RPAREN
+    : ')'
+    ;
+
 ID
     :   LETTER (LETTER | INT | '_')*
     ;
 
 fragment LETTER
-    :   [a-zA-Z]
+    :  [a-zA-Z]
     ;
 
 fragment INT
     : [0-9]+
+    ;
+
+Whitespace
+    :   [ \t]+
+        -> skip
+    ;
+
+Newline
+    :   (   '\r' '\n'?
+        |   '\n'
+        )
+        -> skip
+    ;
+
+BlockComment
+    :   '/*' .*? '*/'
+        -> skip
+    ;
+
+LineComment
+    :   '//' ~[\r\n]*
+        -> skip
     ;
