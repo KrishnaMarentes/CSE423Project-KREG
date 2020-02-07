@@ -1,7 +1,7 @@
 grammar kregGrammar;
 
 start :
-    asmnt EOF
+    program EOF
 ;
 
 /*
@@ -94,98 +94,241 @@ STRING  :   '"' (WORD | INT)* '"'; //HMMM
 */
 
 program
-    :
-    |   declarationList
+    : declarationList
     ;
 
 declarationList
-    :
-
-    |   declarationList declaration
-    |   declaration
+    : declarationList declaration
+    | declaration
     ;
 
 declaration
-    :
-    |   varDeclaration
-    |   funDeclaration
+    : varDeclaration
+    | funDeclaration
     ;
 
 varDeclaration
-    :
-    |   typeSpecifier varDeclList
+    : typeSpecifier varDeclList
     ;
 
 scopedVarDeclaration
-:
-    |   scopedTypeSpecifier varDeclList
+    : scopedTypeSpecifier varDeclList
     ;
 
 varDeclList
-:
-    |   varDeclList , varDeclInitialize
-    |   varDeclInitialize
+    : varDeclList ',' varDeclInitialize
+    | varDeclInitialize
     ;
 
 varDeclInitialize
-    :
-    |   varDeclId OR varDeclId : simpleExpression
+    : varDeclId
+    | varDeclId '=' simpleExpression
     ;
 
 varDeclId
-    :
-    ID
+    : ID
     ;
 
-scopedTypeSpecifier -> static typeSpecifier OR typeSpecifier
-typeSpecifier -> int OR bool OR char
+scopedTypeSpecifier
+    : 'static' typeSpecifier
+    | typeSpecifier
+    ;
 
-funDeclaration -> typeSpecifier ID ( params ) statement
-params -> params , parameter OR parameter
-parameter -> typeSpecifier paramId
-paramId -> ID
+typeSpecifier
+    : 'int' | 'float' | 'double' | 'char' | 'long' | 'unsigned' | 'signed' | 'void' | 'short'
+    ;
 
-statement -> expressionStmt OR compoundStmt OR selectionStmt OR iterationStmt OR returnStmt OR breakStmt OR gotoStmt
-expressionStmt -> expression ; OR ;
-compoundStmt -> { localDeclarations statementList }
-localDeclarations -> localDeclarations scopedVarDeclaration OR EPS
-statementList -> statementList statement OR EPS
-elsifList -> elsifList elsif simpleExpression then statement OR EPS
-selectionStmt -> if simpleExpression then statement elsifList OR if simpleExpression then statement elsifList else statement
-iterationStmt -> while simpleExpression do statement
-returnStmt -> return ; OR return expression ;
-breakStmt -> break ;
-gotoStmt -> goto labelId ;
-label -> labelId :
-labelId -> ID
+funDeclaration
+    : typeSpecifier ID '(' params ')' statement
+    ;
 
-expression -> mutable = expression OR mutable += expression OR mutable -= expression OR mutable *= expression OR mutable /= expression OR mutable ++ OR mutable -- OR simpleExpression
-simpleExpression -> simpleExpression | andExpression OR andExpression
-andExpression -> andExpression & unaryRelExpression OR unaryRelExpression
-unaryRelExpression -> ! unaryRelExpression OR relExpression
-relExpression -> sumExpression relop sumExpression OR sumExpression
-relop -> <= OR < OR > OR >= OR == OR !=
-sumExpression -> sumExpression sumop mulExpression OR mulExpression
+params
+    : params ',' parameter
+    | parameter
+    ;
+
+parameter
+    : typeSpecifier paramId
+    ;
+
+paramId
+    : ID
+    ;
+
+statement
+    : expressionStmt
+    | compoundStmt
+    | selectionStmt
+    | iterationStmt
+    | returnStmt
+    | breakStmt
+    | gotoStmt
+    ;
+
+expressionStmt
+    : expression SEMICOLN
+    | SEMICOLN
+    ;
+
+compoundStmt
+    : '{' localDeclarations statementList '}'
+    ;
+
+localDeclarations
+    : localDeclarations scopedVarDeclaration
+    |
+    ;
+
+statementList
+    : statementList statement
+    |
+    ;
+
+elsifList
+    : elsifList 'elsif' simpleExpression 'then' statement
+    |
+    ;
+
+selectionStmt
+    : 'if' simpleExpression 'then' statement elsifList
+    | 'if' simpleExpression 'then' statement elsifList 'else' statement
+    ;
+
+iterationStmt
+    : 'while' simpleExpression 'do' statement
+    ;
+
+returnStmt
+    : 'return' SEMICOLN
+    | 'return' expression SEMICOLN
+    ;
+
+breakStmt
+    : 'break' SEMICOLN
+    ;
+
+gotoStmt
+    : 'goto' labelId SEMICOLN
+    ;
+
+label
+    : labelId SEMICOLN
+    ;
+
+labelId
+    : ID
+    ;
+
+expression
+    : mutable '=' expression
+    | mutable '+=' expression
+    | mutable '-=' expression
+    | mutable '*=' expression
+    | mutable '/=' expression
+    | mutable '++'
+    | mutable '--'
+    | simpleExpression
+    ;
+
+simpleExpression
+    : simpleExpression '|' andExpression
+    | andExpression
+    ;
+
+andExpression
+    : andExpression '&' unaryRelExpression
+    | unaryRelExpression
+    ;
+
+unaryRelExpression
+    : '!' unaryRelExpression
+    | relExpression
+    ;
+
+relExpression
+    : sumExpression relop sumExpression
+    | sumExpression
+    ;
+
+relop
+    : '<=' | '<' | '>' | '>=' | '==' | '!='
+    ;
+
+sumExpression
+    : sumExpression sumop mulExpression
+    | mulExpression
+    ;
+
 sumop
     : '+' | '-'
     ;
-mulExpression -> mulExpression mulop unaryExpression OR unaryExpression
+
+mulExpression
+    : mulExpression mulop unaryExpression
+    | unaryExpression
+    ;
+
 mulop
     : '*' | '/' | '%'
     ;
 
-unaryExpression -> unaryop unaryExpression OR factor
+unaryExpression
+    : unaryop unaryExpression
+    | factor
+    ;
 
 unaryop
     :   '-' | '*' | '!' | '&'
     ;
 
-factor -> immutable OR mutable
-mutable -> ID OR mutable [ expression ]
-immutable -> ( expression ) OR call OR constant
-call -> ID ( args )
-args -> argList OR EPS
-argList -> argList , expression OR expression
-constant -> NUMCONST OR CHARCONST OR STRINGCONST OR true OR false
+factor
+    : immutable
+    | mutable
+    ;
 
+mutable
+    : ID
+    | mutable '[' expression ']'
+    ;
 
+immutable
+    : '(' expression ')'
+    | call
+    | constant
+    ;
+
+call
+    : ID '(' args ')'
+    ;
+
+args
+    : argList
+    |
+    ;
+
+argList
+    : argList ',' expression
+    | expression
+    ;
+
+constant
+    : NUMCONST
+    | CHARCONST
+    | STRINGCONST
+    ;
+
+SEMICOLN
+    :   ';'
+    ;
+
+ID
+    :   LETTER (LETTER | INT | '_')*
+    ;
+
+fragment LETTER
+    :   [a-zA-Z]
+    ;
+
+fragment INT
+    : [0-9]+
+    ;
