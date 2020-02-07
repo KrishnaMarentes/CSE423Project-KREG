@@ -4,6 +4,7 @@ start :
     asmnt EOF
 ;
 
+/*
 primaryExpression
     :   Identifier
     |   Constant
@@ -77,8 +78,6 @@ assignmentOperator
     :   '=' | '*=' | '/=' | '%=' | '+=' | '-=' | '<<=' | '>>=' | '&=' | '^=' | '|='
     ;
 
-
-
 PLUS    :   '+';
 MINUS   :   '-';
 STAR    :   '*';
@@ -92,7 +91,7 @@ fragment LETTER  :   [a-zA-Z];
 STRING  :   '"' (WORD | INT)* '"'; //HMMM
 
 // break already a parser rule?
-/*
+*/
 
 program
     :
@@ -167,11 +166,20 @@ unaryRelExpression -> ! unaryRelExpression OR relExpression
 relExpression -> sumExpression relop sumExpression OR sumExpression
 relop -> <= OR < OR > OR >= OR == OR !=
 sumExpression -> sumExpression sumop mulExpression OR mulExpression
-sumop -> + OR -
+sumop
+    : '+' | '-'
+    ;
 mulExpression -> mulExpression mulop unaryExpression OR unaryExpression
-mulop -> * OR / OR %
+mulop
+    : '*' | '/' | '%'
+    ;
+
 unaryExpression -> unaryop unaryExpression OR factor
-unaryop -> - OR * OR ? OR &
+
+unaryop
+    :   '-' | '*' | '!' | '&'
+    ;
+
 factor -> immutable OR mutable
 mutable -> ID OR mutable [ expression ]
 immutable -> ( expression ) OR call OR constant
@@ -180,5 +188,4 @@ args -> argList OR EPS
 argList -> argList , expression OR expression
 constant -> NUMCONST OR CHARCONST OR STRINGCONST OR true OR false
 
-*/
 
