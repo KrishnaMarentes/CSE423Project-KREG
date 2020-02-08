@@ -75,6 +75,7 @@ statement
     | returnStmt
     | breakStmt
     | gotoStmt
+    | labelStmt
     ;
 
 expressionStmt
@@ -123,8 +124,8 @@ gotoStmt
     : 'goto' labelId SEMICOLN
     ;
 
-label
-    : labelId SEMICOLN
+labelStmt
+    : labelId COLN
     ;
 
 labelId
@@ -233,6 +234,10 @@ SEMICOLN
     :   ';'
     ;
 
+COLN
+    : ':'
+    ;
+
 LPAREN
     : '('
     ;
@@ -242,15 +247,37 @@ RPAREN
     ;
 
 ID
-    :   LETTER (LETTER | INT | '_')*
+    :   LETTER (LETTER | DIGIT | '_')*
+    ;
+
+CHARCONST
+    : APOS LETTER APOS
+    | QUOTE LETTER QUOTE
+    ;
+
+//TODO
+//STRINGCONST
+//    : APOS
+//    ;
+
+APOS
+    : '\''
+    ;
+
+QUOTE
+    : '"'
     ;
 
 fragment LETTER
     :  [a-zA-Z]
     ;
 
-fragment INT
-    : [0-9]+
+INT
+    : DIGIT+
+    ;
+
+fragment DIGIT
+    : [0-9]
     ;
 
 Whitespace
