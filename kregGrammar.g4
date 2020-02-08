@@ -77,6 +77,7 @@ statement
     | breakStmt
     | gotoStmt
     | labelStmt
+    | scopedVarDeclaration //added here to support edge cases, haven't found any side effects yet
     ;
 
 expressionStmt
@@ -142,17 +143,15 @@ expression
     | mutable '++'
     | mutable '--'
     | simpleExpression
-    | scopedVarDeclaration //I honestly don't know about this, but it fixes errors.
-                           //It's also VERY similar to the first line of this rule
     ;
 
 simpleExpression
-    : simpleExpression '|' andExpression
+    : simpleExpression '||' andExpression
     | andExpression
     ;
 
 andExpression
-    : andExpression '&' unaryRelExpression
+    : andExpression '&&' unaryRelExpression
     | unaryRelExpression
     ;
 
@@ -163,11 +162,12 @@ unaryRelExpression
 
 relExpression
     : sumExpression relop sumExpression
+    | relExpression relop relExpression
     | sumExpression
     ;
 
 relop
-    : '<=' | '<' | '>' | '>=' | '==' | '!=' | '||' | '&&'
+    : '<=' | '<' | '>' | '>=' | '==' | '!='
     ;
 
 sumExpression
@@ -194,7 +194,7 @@ unaryExpression
     ;
 
 unaryop
-    :   '-' | '*' | '!' | '&'
+    :   '-' | '*' | '!' | '&' | '~'
     ;
 
 factor
@@ -250,16 +250,16 @@ RPAREN
     ;
 
 ID
-    :   LETTER (LETTER | DIGIT | '_')*
+    :   ('_' | LETTER)+ (LETTER | DIGIT | '_')*
     ;
 
 CHARCONST
-    : APOS LETTER APOS
-    //| QUOTE LETTER QUOTE //char constants aren't surrounded by double quotes in C
+    : APOS ALLCHARS+ APOS
+    //| QUOTE LETTER QUOTE //This is valid in C but I'm going to let STRINGCONST handle it
     ;
 
 STRINGCONST
-  : QUOTE (~["\\\r\n] | '\\' (. | EOF))* QUOTE
+  : QUOTE ALLCHARS* QUOTE
   ;
 
 APOS
@@ -268,6 +268,10 @@ APOS
 
 QUOTE
     : '"'
+    ;
+
+fragment ALLCHARS
+    :  (~["\\\r\n] | '\\' (. | EOF))
     ;
 
 fragment LETTER
