@@ -279,6 +279,7 @@ INT
     | ('0x'|'0X')HEXDIGIT+
     | '0'OCTALDIGIT+
     | '0b'BINARYDIGIT+
+    | FLOAT
     ;
 
 fragment DIGIT
@@ -296,6 +297,14 @@ fragment OCTALDIGIT
 fragment BINARYDIGIT
     : [0-1]
     ;
+
+fragment FLOAT
+    :   [0-9]+ '.' [0-9]+ EXP?('f'|'F')?
+    |   '.' [0-9]+ EXP?('f'|'F')?
+    |   [0-9]+ EXP('f'|'F')?
+    ;
+
+fragment EXP : ('e'|'E') ('+'|'-')? [0-9]+ ;
 
 Whitespace
     :   [ \t]+
