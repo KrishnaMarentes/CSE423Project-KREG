@@ -1,3 +1,5 @@
-1+222+1100-5
-12+4
-9+1
+#include <stdio.h>
+
+int main() {
+    return 0;
+}

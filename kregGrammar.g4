@@ -19,7 +19,8 @@ declaration
     ;
 
 varDeclaration
-    : typeSpecifier varDeclList
+    : typeSpecifier varDeclList SEMICOLN
+    | scopedVarDeclaration SEMICOLN
     ;
 
 scopedVarDeclaration
@@ -32,8 +33,8 @@ varDeclList
     ;
 
 varDeclInitialize
-    : varDeclId SEMICOLN
-    | varDeclId '=' simpleExpression SEMICOLN
+    : varDeclId
+    | varDeclId '=' expression
     ;
 
 varDeclId
@@ -50,7 +51,7 @@ typeSpecifier
     ;
 
 funDeclaration
-    : typeSpecifier ID LPAREN params RPAREN statement
+    : typeSpecifier ID LPAREN params RPAREN ( compoundStmt | SEMICOLN+) //compoundStmt works WAY better here
     ;
 
 params
@@ -141,6 +142,8 @@ expression
     | mutable '++'
     | mutable '--'
     | simpleExpression
+    | scopedVarDeclaration //I honestly don't know about this, but it fixes errors.
+                           //It's also VERY similar to the first line of this rule
     ;
 
 simpleExpression
@@ -164,7 +167,7 @@ relExpression
     ;
 
 relop
-    : '<=' | '<' | '>' | '>=' | '==' | '!='
+    : '<=' | '<' | '>' | '>=' | '==' | '!=' | '||' | '&&'
     ;
 
 sumExpression
@@ -252,13 +255,12 @@ ID
 
 CHARCONST
     : APOS LETTER APOS
-    | QUOTE LETTER QUOTE
+    //| QUOTE LETTER QUOTE //char constants aren't surrounded by double quotes in C
     ;
 
-//TODO
-//STRINGCONST
-//    : APOS
-//    ;
+STRINGCONST
+  : QUOTE (~["\\\r\n] | '\\' (. | EOF))* QUOTE
+  ;
 
 APOS
     : '\''
@@ -274,10 +276,25 @@ fragment LETTER
 
 INT
     : DIGIT+
+    | ('0x'|'0X')HEXDIGIT+
+    | '0'OCTALDIGIT+
+    | '0b'BINARYDIGIT+
     ;
 
 fragment DIGIT
     : [0-9]
+    ;
+
+fragment HEXDIGIT
+    : [0-9A-Fa-f]
+    ;
+
+fragment OCTALDIGIT
+    : [0-7]
+    ;
+
+fragment BINARYDIGIT
+    : [0-1]
     ;
 
 Whitespace
