@@ -77,7 +77,7 @@ statement
     | breakStmt
     | gotoStmt
     | labelStmt
-    | scopedVarDeclaration //added here to support edge cases, haven't found any side effects yet
+    | varDeclaration //added here to support edge cases, haven't found any side effects yet
     ;
 
 expressionStmt
@@ -90,7 +90,7 @@ compoundStmt
     ;
 
 localDeclarations
-    : localDeclarations scopedVarDeclaration
+    : localDeclarations varDeclaration
     |
     ;
 
@@ -100,17 +100,17 @@ statementList
     ;
 
 elsifList
-    : elsifList 'elsif' simpleExpression 'then' statement
+    : elsifList 'else if' LPAREN expression RPAREN statement
     |
     ;
 
 selectionStmt
-    : 'if' simpleExpression 'then' statement elsifList
-    | 'if' simpleExpression 'then' statement elsifList 'else' statement
+    : 'if' LPAREN expression RPAREN statement elsifList
+    | 'if' LPAREN expression RPAREN statement elsifList 'else' statement
     ;
 
 iterationStmt
-    : 'while' simpleExpression 'do' statement
+    : 'while' LPAREN expression RPAREN statement
     ;
 
 returnStmt
@@ -140,8 +140,8 @@ expression
     | mutable '-=' expression
     | mutable '*=' expression
     | mutable '/=' expression
-    | mutable '++'
-    | mutable '--'
+    //| mutable '++' //trying this out
+    //| mutable '--'
     | simpleExpression
     ;
 
@@ -190,11 +190,15 @@ mulop
 
 unaryExpression
     : unaryop unaryExpression
+    | mutable '++'
+    | mutable '--'
+    | '--' mutable
+    | '++' mutable
     | factor
     ;
 
 unaryop
-    :   '-' | '*' | '!' | '&' | '~'
+    :   '-' | '*' | '!' | '&' | '~' 
     ;
 
 factor
