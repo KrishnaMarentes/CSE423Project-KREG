@@ -28,7 +28,7 @@ scopedVarDeclaration
     ;
 
 varDeclList
-    : varDeclList ',' varDeclInitialize
+    : varDeclList COMMA varDeclInitialize
     | varDeclInitialize
     ;
 
@@ -55,7 +55,7 @@ funDeclaration
     ;
 
 params
-    : params ',' parameter
+    : params COMMA parameter
     | parameter
     |
     ;
@@ -86,7 +86,7 @@ expressionStmt
     ;
 
 compoundStmt
-    : '{' localDeclarations statementList '}'
+    : LCURLY localDeclarations statementList RCURLY
     ;
 
 localDeclarations
@@ -111,6 +111,7 @@ selectionStmt
 
 iterationStmt
     : 'while' LPAREN expression RPAREN statement
+    | 'do' statement 'while' LPAREN expression RPAREN SEMICOLN
     ;
 
 returnStmt
@@ -208,7 +209,7 @@ factor
 
 mutable
     : ID
-    | mutable '[' expression ']'
+    | mutable LSQUARE expression RSQUARE
     ;
 
 immutable
@@ -227,7 +228,7 @@ args
     ;
 
 argList
-    : argList ',' expression
+    : argList COMMA expression
     | expression
     ;
 
@@ -245,12 +246,32 @@ COLN
     : ':'
     ;
 
+COMMA
+    : ','
+    ;
+
 LPAREN
     : '('
     ;
 
 RPAREN
     : ')'
+    ;
+
+LCURLY
+    : '{'
+    ;
+
+RCURLY
+    : '}'
+    ;
+
+LSQUARE
+    : '['
+    ;
+
+RSQUARE
+    : ']'
     ;
 
 ID
