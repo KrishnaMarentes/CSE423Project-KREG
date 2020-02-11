@@ -1,11 +1,7 @@
 grammar kregGrammar;
 
-start :
-    program EOF
-;
-
 program
-    : declarationList
+    : declarationList EOF
     ;
 
 declarationList
@@ -16,6 +12,7 @@ declarationList
 declaration
     : varDeclaration
     | funDeclaration
+    | SEMICOLN
     ;
 
 varDeclaration
@@ -33,8 +30,8 @@ varDeclList
     ;
 
 varDeclInitialize
-    : varDeclId
-    | varDeclId '=' expression
+    : '*'* varDeclId
+    | '*'* varDeclId (LSQUARE RSQUARE)* '=' (expression | LCURLY expressionList RCURLY)
     ;
 
 varDeclId
@@ -51,7 +48,7 @@ typeSpecifier
     ;
 
 funDeclaration
-    : typeSpecifier ID LPAREN params RPAREN ( compoundStmt | SEMICOLN+) //compoundStmt works WAY better here
+    : typeSpecifier ID LPAREN params RPAREN (compoundStmt | SEMICOLN)
     ;
 
 params
@@ -77,7 +74,12 @@ statement
     | breakStmt
     | gotoStmt
     | labelStmt
-    | varDeclaration //added here to support edge cases, haven't found any side effects yet
+    ;
+
+expressionList
+    : expressionList COMMA expression
+    | expression
+    |
     ;
 
 expressionStmt
@@ -86,16 +88,11 @@ expressionStmt
     ;
 
 compoundStmt
-    : LCURLY localDeclarations statementList RCURLY
-    ;
-
-localDeclarations
-    : localDeclarations varDeclaration
-    |
+    : LCURLY statementList RCURLY
     ;
 
 statementList
-    : statementList statement
+    : statementList ( statement | varDeclaration )
     |
     ;
 
@@ -107,11 +104,20 @@ elsifList
 selectionStmt
     : 'if' LPAREN expression RPAREN statement elsifList
     | 'if' LPAREN expression RPAREN statement elsifList 'else' statement
+    | 'switch' LPAREN expression RPAREN (LCURLY switchList ('default' COLN statementList)? RCURLY | (case | 'default' COLN statementList))
     ;
+
+switchList
+    : switchList case
+    |
+    ;
+
+case : 'case' constant COLN statementList;
 
 iterationStmt
     : 'while' LPAREN expression RPAREN statement
     | 'do' statement 'while' LPAREN expression RPAREN SEMICOLN
+    | 'for' LPAREN expressionList SEMICOLN expressionList SEMICOLN expressionList RPAREN statement
     ;
 
 returnStmt
@@ -141,6 +147,17 @@ expression
     | mutable '-=' expression
     | mutable '*=' expression
     | mutable '/=' expression
+    | mutable '%=' expression
+    | mutable '<<' expression
+    | mutable '<<=' expression
+    | mutable '>>' expression
+    | mutable '>>=' expression
+    | mutable '&=' expression
+    | mutable '|=' expression
+    | mutable '^=' expression
+    | (mutable | immutable) '&' expression
+    | (mutable | immutable) '|' expression
+    | (mutable | immutable) '^' expression
     //| mutable '++' //trying this out
     //| mutable '--'
     | simpleExpression
@@ -238,62 +255,82 @@ constant
     | STRINGCONST
     ;
 
-SEMICOLN
-    :   ';'
-    ;
+STATIC : 'static';
+BREAK : 'break';
+GOTO : 'goto';
+CONTINUE : 'continue';
+FOR : 'for';
+IF : 'if';
+RETURN : 'return';
+WHILE : 'while';
+DO : 'do';
+SWITCH : 'switch';
+CASE : 'case';
+DEFAULT: 'default';
 
-COLN
-    : ':'
-    ;
+TYPE_INT : 'int';
+TYPE_FLOAT : 'float';
+TYPE_DOUBLE : 'double';
+TYPE_CHAR : 'char';
+TYPE_LONG : 'long';
+TYPE_UNSIGNED : 'unsigned';
+TYPE_SIGNED : 'signed';
+TYPE_VOID : 'void';
+TYPE_SHORT : 'short';
 
-COMMA
-    : ','
-    ;
+COMPARE_LESSTHAN : '<';
+COMPARE_LESSTHANEQUALS : '<=';
+COMPARE_GREATERTHAN : '>';
+COMPARE_GREATERTHANEQUALS : '>=';
+COMPARE_EQUALS : '==' ;
+COMPARE_NOTEQUALS : '!=' ;
 
-LPAREN
-    : '('
-    ;
+ANDAND : '&&';
+OROR : '||';
+OR : '|';
+AND : '&';
+CARET : '^';
+NOT : '!';
+TILDE : '~';
+LSHIFT : '<<' ;
+RSHIFT : '>>' ;
 
-RPAREN
-    : ')'
-    ;
+PLUS : '+';
+PLUSPLUS : '++';
+MINUS : '-';
+MINUSMINUS : '--';
+STAR : '*';
+DIV : '/';
+MOD : '%';
 
-LCURLY
-    : '{'
-    ;
+ASSIGNMENT : '=';
+STAR_ASSIGNMENT : '*=';
+DIV_ASSIGNMENT : '/=';
+MOD_ASSIGNMENT : '%=';
+ADD_ASSIGNMENT : '+=';
+SUB_ASSIGNMENT : '-=';
+AND_ASSIGNMENT : '&=';
+XOR_ASSIGNMENT : '^=';
+OR_ASSIGNMENT  : '|=';
+LSHIFT_ASSIGNMENT : '<<=';
+RSHIFT_ASSIGNMENT : '>>=';
 
-RCURLY
-    : '}'
-    ;
+SEMICOLN: ';' ;
+COLN : ':' ;
+COMMA : ',' ;
+LPAREN : '(' ;
+RPAREN : ')' ;
+LCURLY : '{' ;
+RCURLY : '}' ;
+LSQUARE : '[' ;
+RSQUARE : ']' ;
+APOS : '\'' ;
+QUOTE : '"' ;
 
-LSQUARE
-    : '['
-    ;
+ID : ('_' | LETTER)+ (LETTER | DIGIT | '_')* ;
+CHARCONST : APOS ALLCHARS+ APOS ;
+STRINGCONST : QUOTE ALLCHARS* QUOTE ;
 
-RSQUARE
-    : ']'
-    ;
-
-ID
-    :   ('_' | LETTER)+ (LETTER | DIGIT | '_')*
-    ;
-
-CHARCONST
-    : APOS ALLCHARS+ APOS
-    //| QUOTE LETTER QUOTE //This is valid in C but I'm going to let STRINGCONST handle it
-    ;
-
-STRINGCONST
-  : QUOTE ALLCHARS* QUOTE
-  ;
-
-APOS
-    : '\''
-    ;
-
-QUOTE
-    : '"'
-    ;
 
 fragment ALLCHARS
     :  (~["\\\r\n] | '\\' (. | EOF))
@@ -331,6 +368,7 @@ fragment FLOAT
     :   [0-9]+ '.' [0-9]+ EXP?('f'|'F')?
     |   '.' [0-9]+ EXP?('f'|'F')?
     |   [0-9]+ EXP('f'|'F')?
+    |   [0-9]+ ('f'|'F')?
     ;
 
 fragment EXP : ('e'|'E') ('+'|'-')? [0-9]+ ;
