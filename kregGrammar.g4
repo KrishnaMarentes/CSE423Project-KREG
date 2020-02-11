@@ -151,11 +151,13 @@ elsifList
 selectionStmt
     : 'if' LPAREN expression RPAREN statement elsifList
     | 'if' LPAREN expression RPAREN statement elsifList 'else' statement
-    | 'switch' LPAREN expression RPAREN (LCURLY switchList ('default' COLN defaultList)? RCURLY | (case | 'default' COLN defaultList))
+    | 'switch' LPAREN expression RPAREN case defaultList
+    | 'switch' LPAREN expression RPAREN 'default' COLN defaultList
+    | 'switch' LPAREN expression RPAREN LCURLY switchList ('default' COLN defaultList)? RCURLY
     ;
 
 switchList
-    : switchList case (defaultList | 'default' COLN defaultList)
+    : switchList case
     | case
     |
     ;
