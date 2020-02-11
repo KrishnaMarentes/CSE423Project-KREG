@@ -12,12 +12,54 @@ declarationList
 declaration
     : varDeclaration
     | funDeclaration
+    | structDeclaration
+    | enumDeclaration
     | SEMICOLN
+    ;
+
+structDeclaration
+    : 'struct' ID LCURLY unInitVarDeclList RCURLY ID? SEMICOLN
+    ;
+
+enumDeclaration
+    : 'enum' ID LCURLY enumDeclList RCURLY ID? SEMICOLN
+    ;
+
+enumDeclList
+    : enumDeclList COMMA enumId
+    | enumId
+    |
+    ;
+
+enumId
+    : ID ASSIGNMENT enumExpression
+    | ID
+    ;
+
+structInit
+    : 'struct' ID varDeclId SEMICOLN
+    | 'struct' ID varDeclId ASSIGNMENT expression SEMICOLN
+    ;
+
+enumInit
+    : 'enum' ID ID SEMICOLN
+    | 'enum' ID ID ASSIGNMENT expression SEMICOLN
+    ;
+
+unInitVarDeclList
+    : unInitVarDeclList unInitVar
+    |
+    ;
+
+unInitVar
+    : typeSpecifier varDeclId SEMICOLN
     ;
 
 varDeclaration
     : typeSpecifier varDeclList SEMICOLN
     | scopedVarDeclaration SEMICOLN
+    | structInit
+    | enumInit
     ;
 
 scopedVarDeclaration
@@ -30,13 +72,13 @@ varDeclList
     ;
 
 varDeclInitialize
-    : '*'* varDeclId
-    | '*'* varDeclId (LSQUARE RSQUARE)* '=' (expression | LCURLY expressionList RCURLY)
+    :  varDeclId
+    |  varDeclId '=' (expression | LCURLY expressionList RCURLY)
     ;
 
 varDeclId
-    : ID
-    ;
+    : '*'* ID (LSQUARE RSQUARE)*
+    ; 
 
 scopedTypeSpecifier
     : 'static' typeSpecifier
@@ -62,7 +104,7 @@ parameter
     ;
 
 paramId
-    : ID
+    : '*'* ID (LSQUARE RSQUARE)*
     ;
 
 statement
@@ -96,6 +138,11 @@ statementList
     |
     ;
 
+defaultList
+    : statementList ( statement | varDeclaration )
+    | statement
+    ;
+
 elsifList
     : elsifList 'else if' LPAREN expression RPAREN statement
     |
@@ -104,15 +151,16 @@ elsifList
 selectionStmt
     : 'if' LPAREN expression RPAREN statement elsifList
     | 'if' LPAREN expression RPAREN statement elsifList 'else' statement
-    | 'switch' LPAREN expression RPAREN (LCURLY switchList ('default' COLN statementList)? RCURLY | (case | 'default' COLN statementList))
+    | 'switch' LPAREN expression RPAREN (LCURLY switchList ('default' COLN defaultList)? RCURLY | (case | 'default' COLN defaultList))
     ;
 
 switchList
-    : switchList case
+    : switchList case (defaultList | 'default' COLN defaultList)
+    | case
     |
     ;
 
-case : 'case' constant COLN statementList;
+case : 'case' (INT | CHARCONST) COLN (defaultList | statementList);
 
 iterationStmt
     : 'while' LPAREN expression RPAREN statement
@@ -148,20 +196,38 @@ expression
     | mutable '*=' expression
     | mutable '/=' expression
     | mutable '%=' expression
-    | mutable '<<' expression
     | mutable '<<=' expression
-    | mutable '>>' expression
     | mutable '>>=' expression
     | mutable '&=' expression
     | mutable '|=' expression
     | mutable '^=' expression
+    | (mutable | immutable) '<<' expression
+    | (mutable | immutable) '>>' expression
     | (mutable | immutable) '&' expression
     | (mutable | immutable) '|' expression
     | (mutable | immutable) '^' expression
-    //| mutable '++' //trying this out
-    //| mutable '--'
     | simpleExpression
     ;
+
+enumExpression
+    : properUnaryOps INT '<<' enumExpression
+    | properUnaryOps INT '>>' enumExpression
+    | properUnaryOps INT '&' enumExpression
+    | properUnaryOps INT '|' enumExpression
+    | properUnaryOps INT '^' enumExpression
+    | properUnaryOps INT '||' enumExpression
+    | properUnaryOps INT '&&' enumExpression
+    | properUnaryOps INT '<' enumExpression
+    | properUnaryOps INT '<=' enumExpression
+    | properUnaryOps INT '>' enumExpression
+    | properUnaryOps INT '>=' enumExpression
+    | properUnaryOps INT '+' enumExpression
+    | properUnaryOps INT '-' enumExpression
+    | properUnaryOps INT '*' enumExpression
+    | properUnaryOps INT
+    ;
+
+properUnaryOps : ('-' | '~' | '!')* ;
 
 simpleExpression
     : simpleExpression '||' andExpression
@@ -216,7 +282,7 @@ unaryExpression
     ;
 
 unaryop
-    :   '-' | '*' | '!' | '&' | '~' 
+    :   '-' | '*' | '!' | '&' | '~'
     ;
 
 factor
@@ -227,6 +293,7 @@ factor
 mutable
     : ID
     | mutable LSQUARE expression RSQUARE
+    | mutable ('.' | '->') mutable
     ;
 
 immutable
@@ -267,6 +334,8 @@ DO : 'do';
 SWITCH : 'switch';
 CASE : 'case';
 DEFAULT: 'default';
+STRUCT: 'struct';
+ENUM : 'enum';
 
 TYPE_INT : 'int';
 TYPE_FLOAT : 'float';
@@ -317,6 +386,8 @@ RSHIFT_ASSIGNMENT : '>>=';
 
 SEMICOLN: ';' ;
 COLN : ':' ;
+PERIOD : '.';
+ARROW : '->';
 COMMA : ',' ;
 LPAREN : '(' ;
 RPAREN : ')' ;
@@ -328,11 +399,14 @@ APOS : '\'' ;
 QUOTE : '"' ;
 
 ID : ('_' | LETTER)+ (LETTER | DIGIT | '_')* ;
-CHARCONST : APOS ALLCHARS+ APOS ;
-STRINGCONST : QUOTE ALLCHARS* QUOTE ;
+CHARCONST : APOS CHARCHARS+ APOS ;
+//CHARCONST : APOS CHARCHARS APOS ; //can also do it like this, which will generate a lexer error if 'ab' is entered
+//but char tmp = 'ab'; in gcc is a compiler time -warning-
+STRINGCONST : QUOTE STRINGCHARS* QUOTE ;
 
+fragment CHARCHARS : (~['\\\r\n] | '\\' (. | EOF)) ;
 
-fragment ALLCHARS
+fragment STRINGCHARS
     :  (~["\\\r\n] | '\\' (. | EOF))
     ;
 
@@ -344,7 +418,7 @@ INT
     : DIGIT+
     | ('0x'|'0X')HEXDIGIT+
     | '0'OCTALDIGIT+
-    | '0b'BINARYDIGIT+
+    | ('0b'|'0B')BINARYDIGIT+
     | FLOAT
     ;
 
