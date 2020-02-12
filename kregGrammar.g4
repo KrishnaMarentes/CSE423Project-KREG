@@ -18,7 +18,12 @@ declaration
     ;
 
 structDeclaration
-    : 'static'? 'struct' ID LCURLY unInitVarDecl RCURLY ID? SEMICOLN
+    : 'static'? 'struct' ID LCURLY unInitVarDecl* RCURLY ID? SEMICOLN
+    ;
+
+structInit
+    : 'static'? 'struct' ID varDeclList SEMICOLN
+    | 'static'? 'struct' ID varDeclId ASSIGNMENT (structExpressionList | LCURLY structExpressionList RCURLY) SEMICOLN
     ;
 
 enumDeclaration
@@ -36,11 +41,6 @@ enumId
     | ID
     ;
 
-structInit
-    : 'struct' ID varDeclId SEMICOLN
-    | 'struct' ID varDeclId ASSIGNMENT (expressionList | LCURLY expressionList RCURLY) SEMICOLN
-    ;
-
 enumInit
     : 'enum' ID ID SEMICOLN
     | 'enum' ID ID ASSIGNMENT expression SEMICOLN
@@ -51,13 +51,9 @@ unInitVarDecl
     ;
 
 unInitVarDeclList
-    : unInitVarDeclList COMMA unInitVar
-    | unInitVar
+    : unInitVarDeclList COMMA varDeclId
+    | varDeclId
     |
-    ;
-
-unInitVar
-    : varDeclId
     ;
 
 varDeclaration
@@ -95,7 +91,7 @@ typeSpecifier
     ;
 
 funDeclaration
-    : typeSpecifier ID LPAREN params RPAREN (compoundStmt | SEMICOLN)
+    : typeSpecifier '*'* ID LPAREN params RPAREN (compoundStmt | SEMICOLN)
     ;
 
 params
@@ -121,6 +117,12 @@ statement
     | breakStmt
     | gotoStmt
     | labelStmt
+    ;
+
+structExpressionList
+    : structExpressionList COMMA '.'? expression
+    | '.'? expression
+    |
     ;
 
 expressionList
@@ -301,6 +303,7 @@ mutable
     : ID
     | mutable LSQUARE expression RSQUARE
     | mutable ('.' | '->') mutable
+    | immutable ('.' | '->') mutable
     ;
 
 immutable
