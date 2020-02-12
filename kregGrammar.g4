@@ -18,7 +18,7 @@ declaration
     ;
 
 structDeclaration
-    : 'struct' ID LCURLY unInitVarDeclList RCURLY ID? SEMICOLN
+    : 'static'? 'struct' ID LCURLY unInitVarDecl RCURLY ID? SEMICOLN
     ;
 
 enumDeclaration
@@ -38,7 +38,7 @@ enumId
 
 structInit
     : 'struct' ID varDeclId SEMICOLN
-    | 'struct' ID varDeclId ASSIGNMENT expression SEMICOLN
+    | 'struct' ID varDeclId ASSIGNMENT (expressionList | LCURLY expressionList RCURLY) SEMICOLN
     ;
 
 enumInit
@@ -46,13 +46,18 @@ enumInit
     | 'enum' ID ID ASSIGNMENT expression SEMICOLN
     ;
 
+unInitVarDecl
+    : typeSpecifier unInitVarDeclList SEMICOLN
+    ;
+
 unInitVarDeclList
-    : unInitVarDeclList unInitVar
+    : unInitVarDeclList COMMA unInitVar
+    | unInitVar
     |
     ;
 
 unInitVar
-    : typeSpecifier varDeclId SEMICOLN
+    : varDeclId
     ;
 
 varDeclaration
@@ -77,7 +82,7 @@ varDeclInitialize
     ;
 
 varDeclId
-    : '*'* ID (LSQUARE RSQUARE)*
+    : '*'* ID (LSQUARE expression? RSQUARE)*
     ; 
 
 scopedTypeSpecifier
