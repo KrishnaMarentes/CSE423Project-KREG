@@ -8,8 +8,6 @@ import static javafx.application.Platform.exit;
 
 public class SCC {
     public static void main(String[] args) {
-        //kregGrammarLexer lexer = new kregGrammarLexer(CharStreams.fromString("1+2+500"));
-
         CharStream cs = null;
         if(args.length > 0) {
             try {
@@ -28,28 +26,30 @@ public class SCC {
         kregGrammarParser parser = new kregGrammarParser(new CommonTokenStream(lexer));
         parser.setBuildParseTree(true);
 
-        RuleContext tree = parser.start();
-
-        //print token text only with this code
-        TokenStream ts = parser.getTokenStream();
-
-//        for(int i = 0; i < ts.size(); i++) {
-//            String t = ts.get(i).getText();
-//            int line = ts.get(i).getLine(); //get line that token is on
-//            int type = ts.get(i).getType(); //type of token, integer only
-//            //might be better to print out token type how TreeUtils class does it
-//            //OR, we make our own array of strings that is mapped by the 'type' integer
-//            //First option probably better, but it means we have to make our .g4 file a certain way
-//            System.out.println(type + " " + t + " " + line);
-//        }
+        RuleContext tree = parser.program();
 
 
-        List<String> ruleNamesList = Arrays.asList(parser.getRuleNames());
-        String prettyTree = TreeUtils.toPrettyTree(tree, ruleNamesList);
-
-        System.out.println(prettyTree);
+        //printParseTree(tree, parser.getRuleNames());
+        //printTokens(parser.getTokenStream(), lexer.getRuleNames());
 
         System.out.println("done!");
+    }
+
+    private static void printParseTree(RuleContext rc, String[] ruleNames) {
+        List<String> ruleNamesList = Arrays.asList(ruleNames);
+        String prettyTree = TreeUtils.toPrettyTree(rc, ruleNamesList);
+
+        System.out.println(prettyTree);
+    }
+
+    private static void printTokens(TokenStream ts, String[] ruleNames) {
+        for(int i = 0; i < ts.size() - 1; i++) {
+            String t = ts.get(i).getText();
+            int line = ts.get(i).getLine(); //get line that token is on
+            String type = ruleNames[ts.get(i).getType() - 1]; //type of token, integer only
+
+            System.out.println("< " + t + " , " + type + " >");
+        }
     }
 
     //TODO: Finish this
