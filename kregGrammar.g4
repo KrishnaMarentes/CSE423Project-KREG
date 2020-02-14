@@ -158,18 +158,18 @@ elsifList
 selectionStmt
     : 'if' LPAREN expression RPAREN statement elsifList
     | 'if' LPAREN expression RPAREN statement elsifList 'else' statement
-    | 'switch' LPAREN expression RPAREN case defaultList
+    | 'switch' LPAREN expression RPAREN switchCase defaultList
     | 'switch' LPAREN expression RPAREN 'default' COLN defaultList
     | 'switch' LPAREN expression RPAREN LCURLY switchList ('default' COLN defaultList)? RCURLY
     ;
 
 switchList
-    : switchList case
-    | case
+    : switchList switchCase
+    | switchCase
     |
     ;
 
-case : 'case' (INT | CHARCONST) COLN (defaultList | statementList);
+switchCase : 'case' (INT | CHARCONST) COLN (defaultList | statementList);
 
 iterationStmt
     : 'while' LPAREN expression RPAREN statement
@@ -304,6 +304,7 @@ mutable
     | mutable LSQUARE expression RSQUARE
     | mutable ('.' | '->') mutable
     | immutable ('.' | '->') mutable
+    | LPAREN expression RPAREN('.' | '->') mutable
     ;
 
 immutable
@@ -414,6 +415,14 @@ CHARCONST : APOS CHARCHARS+ APOS ;
 //but char tmp = 'ab'; in gcc is a compiler time -warning-
 STRINGCONST : QUOTE STRINGCHARS* QUOTE ;
 
+INT
+    : DIGIT+
+    | ('0x'|'0X')HEXDIGIT+
+    | '0'OCTALDIGIT+
+    | ('0b'|'0B')BINARYDIGIT+
+    | FLOAT
+    ;
+
 fragment CHARCHARS : (~['\\\r\n] | '\\' (. | EOF)) ;
 
 fragment STRINGCHARS
@@ -422,14 +431,6 @@ fragment STRINGCHARS
 
 fragment LETTER
     :  [a-zA-Z]
-    ;
-
-INT
-    : DIGIT+
-    | ('0x'|'0X')HEXDIGIT+
-    | '0'OCTALDIGIT+
-    | ('0b'|'0B')BINARYDIGIT+
-    | FLOAT
     ;
 
 fragment DIGIT
@@ -478,3 +479,5 @@ LineComment
     :   '//' ~[\r\n]*
         -> skip
     ;
+
+Unknown  : . ;

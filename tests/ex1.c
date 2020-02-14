@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-
 struct TestStruct {
     int i;
     int j;
