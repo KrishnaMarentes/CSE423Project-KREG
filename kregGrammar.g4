@@ -18,16 +18,16 @@ declaration
     ;
 
 structDeclaration
-    : 'static'? 'struct' ID LCURLY unInitVarDecl* RCURLY ID? SEMICOLN
+    : STATIC? STRUCT ID LCURLY unInitVarDecl* RCURLY ID? SEMICOLN
     ;
 
 structInit
-    : 'static'? 'struct' ID varDeclList SEMICOLN
-    | 'static'? 'struct' ID varDeclId ASSIGNMENT (structExpressionList | LCURLY structExpressionList RCURLY) SEMICOLN
+    : STATIC? STRUCT ID varDeclList SEMICOLN
+    | STATIC? STRUCT ID varDeclId ASSIGNMENT (structExpressionList | LCURLY structExpressionList RCURLY) SEMICOLN
     ;
 
 enumDeclaration
-    : 'enum' ID LCURLY enumDeclList RCURLY ID? SEMICOLN
+    : ENUM ID LCURLY enumDeclList RCURLY ID? SEMICOLN
     ;
 
 enumDeclList
@@ -42,8 +42,8 @@ enumId
     ;
 
 enumInit
-    : 'enum' ID ID SEMICOLN
-    | 'enum' ID ID ASSIGNMENT expression SEMICOLN
+    : ENUM ID ID SEMICOLN
+    | ENUM ID ID ASSIGNMENT expression SEMICOLN
     ;
 
 unInitVarDecl
@@ -74,24 +74,24 @@ varDeclList
 
 varDeclInitialize
     :  varDeclId
-    |  varDeclId '=' (expression | LCURLY expressionList RCURLY)
+    |  varDeclId ASSIGNMENT (expression | LCURLY expressionList RCURLY)
     ;
 
 varDeclId
-    : '*'* ID (LSQUARE expression? RSQUARE)*
+    : ID (LSQUARE expression? RSQUARE)*
     ; 
 
 scopedTypeSpecifier
-    : 'static' typeSpecifier
+    : STATIC typeSpecifier
     | typeSpecifier
     ;
 
 typeSpecifier
-    : 'int' | 'float' | 'double' | 'char' | 'long' | 'unsigned' | 'signed' | 'void' | 'short'
+    : (TYPE_INT | TYPE_FLOAT | TYPE_DOUBLE | TYPE_CHAR | TYPE_LONG | TYPE_UNSIGNED | TYPE_SIGNED | TYPE_VOID | TYPE_SHORT) STAR*
     ;
 
 funDeclaration
-    : typeSpecifier '*'* ID LPAREN params RPAREN (compoundStmt | SEMICOLN)
+    : typeSpecifier ID LPAREN params RPAREN (compoundStmt | SEMICOLN)
     ;
 
 params
@@ -105,7 +105,7 @@ parameter
     ;
 
 paramId
-    : '*'* ID (LSQUARE RSQUARE)*
+    : ID (LSQUARE RSQUARE)*
     ;
 
 statement
@@ -120,8 +120,8 @@ statement
     ;
 
 structExpressionList
-    : structExpressionList COMMA '.'? expression
-    | '.'? expression
+    : structExpressionList COMMA PERIOD? expression
+    | PERIOD? expression
     |
     ;
 
@@ -151,16 +151,16 @@ defaultList
     ;
 
 elsifList
-    : elsifList 'else if' LPAREN expression RPAREN statement
+    : elsifList ELSE IF LPAREN expression RPAREN statement
     |
     ;
 
 selectionStmt
-    : 'if' LPAREN expression RPAREN statement elsifList
-    | 'if' LPAREN expression RPAREN statement elsifList 'else' statement
-    | 'switch' LPAREN expression RPAREN switchCase defaultList
-    | 'switch' LPAREN expression RPAREN 'default' COLN defaultList
-    | 'switch' LPAREN expression RPAREN LCURLY switchList ('default' COLN defaultList)? RCURLY
+    : IF LPAREN expression RPAREN statement elsifList
+    | IF LPAREN expression RPAREN statement elsifList ELSE statement
+    | SWITCH LPAREN expression RPAREN switchCase defaultList
+    | SWITCH LPAREN expression RPAREN DEFAULT COLN defaultList
+    | SWITCH LPAREN expression RPAREN LCURLY switchList (DEFAULT COLN defaultList)? RCURLY
     ;
 
 switchList
@@ -169,25 +169,25 @@ switchList
     |
     ;
 
-switchCase : 'case' (INT | CHARCONST) COLN (defaultList | statementList);
+switchCase : CASE (INT | CHARCONST) COLN (defaultList | statementList);
 
 iterationStmt
-    : 'while' LPAREN expression RPAREN statement
-    | 'do' statement 'while' LPAREN expression RPAREN SEMICOLN
-    | 'for' LPAREN expressionList SEMICOLN expressionList SEMICOLN expressionList RPAREN statement
+    : WHILE LPAREN expression RPAREN statement
+    | DO statement WHILE LPAREN expression RPAREN SEMICOLN
+    | FOR LPAREN expressionList SEMICOLN expressionList SEMICOLN expressionList RPAREN statement
     ;
 
 returnStmt
-    : 'return' SEMICOLN
-    | 'return' expression SEMICOLN
+    : RETURN SEMICOLN
+    | RETURN expression SEMICOLN
     ;
 
 breakStmt
-    : 'break' SEMICOLN
+    : BREAK SEMICOLN
     ;
 
 gotoStmt
-    : 'goto' labelId SEMICOLN
+    : GOTO labelId SEMICOLN
     ;
 
 labelStmt
@@ -199,57 +199,57 @@ labelId
     ;
 
 expression
-    : mutable '=' expression
-    | mutable '+=' expression
-    | mutable '-=' expression
-    | mutable '*=' expression
-    | mutable '/=' expression
-    | mutable '%=' expression
-    | mutable '<<=' expression
-    | mutable '>>=' expression
-    | mutable '&=' expression
-    | mutable '|=' expression
-    | mutable '^=' expression
-    | (mutable | immutable) '<<' expression
-    | (mutable | immutable) '>>' expression
-    | (mutable | immutable) '&' expression
-    | (mutable | immutable) '|' expression
-    | (mutable | immutable) '^' expression
+    : mutable ASSIGNMENT expression
+    | mutable ADD_ASSIGNMENT expression
+    | mutable SUB_ASSIGNMENT expression
+    | mutable STAR_ASSIGNMENT expression
+    | mutable DIV_ASSIGNMENT expression
+    | mutable MOD_ASSIGNMENT expression
+    | mutable LSHIFT_ASSIGNMENT expression
+    | mutable RSHIFT_ASSIGNMENT expression
+    | mutable AND_ASSIGNMENT expression
+    | mutable OR_ASSIGNMENT expression
+    | mutable XOR_ASSIGNMENT expression
+    | (mutable | immutable) LSHIFT expression
+    | (mutable | immutable) RSHIFT expression
+    | (mutable | immutable) AND expression
+    | (mutable | immutable) OR expression
+    | (mutable | immutable) CARET expression
     | simpleExpression
     ;
 
 enumExpression
-    : properUnaryOps INT '<<' enumExpression
-    | properUnaryOps INT '>>' enumExpression
-    | properUnaryOps INT '&' enumExpression
-    | properUnaryOps INT '|' enumExpression
-    | properUnaryOps INT '^' enumExpression
-    | properUnaryOps INT '||' enumExpression
-    | properUnaryOps INT '&&' enumExpression
-    | properUnaryOps INT '<' enumExpression
-    | properUnaryOps INT '<=' enumExpression
-    | properUnaryOps INT '>' enumExpression
-    | properUnaryOps INT '>=' enumExpression
-    | properUnaryOps INT '+' enumExpression
-    | properUnaryOps INT '-' enumExpression
-    | properUnaryOps INT '*' enumExpression
+    : properUnaryOps INT LSHIFT enumExpression
+    | properUnaryOps INT RSHIFT enumExpression
+    | properUnaryOps INT AND enumExpression
+    | properUnaryOps INT OR enumExpression
+    | properUnaryOps INT CARET enumExpression
+    | properUnaryOps INT OROR enumExpression
+    | properUnaryOps INT ANDAND enumExpression
+    | properUnaryOps INT COMPARE_LESSTHAN enumExpression
+    | properUnaryOps INT COMPARE_LESSTHANEQUALS enumExpression
+    | properUnaryOps INT COMPARE_GREATERTHAN enumExpression
+    | properUnaryOps INT COMPARE_GREATERTHANEQUALS enumExpression
+    | properUnaryOps INT PLUS enumExpression
+    | properUnaryOps INT MINUS enumExpression
+    | properUnaryOps INT STAR enumExpression
     | properUnaryOps INT
     ;
 
-properUnaryOps : ('-' | '~' | '!')* ;
+properUnaryOps : (MINUS | TILDE | NOT)* ;
 
 simpleExpression
-    : simpleExpression '||' andExpression
+    : simpleExpression OROR andExpression
     | andExpression
     ;
 
 andExpression
-    : andExpression '&&' unaryRelExpression
+    : andExpression ANDAND unaryRelExpression
     | unaryRelExpression
     ;
 
 unaryRelExpression
-    : '!' unaryRelExpression
+    : NOT unaryRelExpression
     | relExpression
     ;
 
@@ -260,7 +260,12 @@ relExpression
     ;
 
 relop
-    : '<=' | '<' | '>' | '>=' | '==' | '!='
+    : COMPARE_LESSTHANEQUALS
+    | COMPARE_LESSTHAN
+    | COMPARE_GREATERTHAN
+    | COMPARE_GREATERTHANEQUALS
+    | COMPARE_EQUALS
+    | COMPARE_NOTEQUALS
     ;
 
 sumExpression
@@ -269,7 +274,7 @@ sumExpression
     ;
 
 sumop
-    : '+' | '-'
+    : PLUS | MINUS
     ;
 
 mulExpression
@@ -278,20 +283,20 @@ mulExpression
     ;
 
 mulop
-    : '*' | '/' | '%'
+    : STAR | DIV | MOD
     ;
 
 unaryExpression
     : unaryop unaryExpression
-    | mutable '++'
-    | mutable '--'
-    | '--' mutable
-    | '++' mutable
+    | mutable PLUSPLUS
+    | mutable MINUSMINUS
+    | MINUSMINUS mutable
+    | PLUSPLUS mutable
     | factor
     ;
 
 unaryop
-    :   '-' | '*' | '!' | '&' | '~'
+    :   MINUS | STAR | NOT | AND | TILDE
     ;
 
 factor
@@ -300,11 +305,11 @@ factor
     ;
 
 mutable
-    : ID
+    : STAR* ID
     | mutable LSQUARE expression RSQUARE
-    | mutable ('.' | '->') mutable
-    | immutable ('.' | '->') mutable
-    | LPAREN expression RPAREN('.' | '->') mutable
+    | mutable (PERIOD | ARROW) mutable
+    | immutable (PERIOD | ARROW) mutable
+    | LPAREN expression RPAREN(PERIOD | ARROW) mutable
     ;
 
 immutable
@@ -339,6 +344,7 @@ GOTO : 'goto';
 CONTINUE : 'continue';
 FOR : 'for';
 IF : 'if';
+ELSE: 'else';
 RETURN : 'return';
 WHILE : 'while';
 DO : 'do';
