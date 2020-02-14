@@ -1,0 +1,382 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{textcomp}
+
+\title{CSE423 Assignment 1 Documentation}
+\author{Rebecca Castillo\\Geoff Knox\\Krishna Marentes\\Elijah Orozco}
+\date{February 16 2020}
+
+\begin{document}
+
+\maketitle
+
+\section{Program Overview}
+\text{This file serves as the documentation for our compiler, currently in the scanning and parsing stages. Our user guide can be found in ``usage.pdf". Our compiler is written in Java and currently consists of three parts:}
+\begin{itemize}
+    \item Grammar
+    \item Scanner/Parser Generator
+    \item Driver
+\end{itemize}
+\text{A third-party tool, ``Antlr," serves as the scanner/parser generator that takes our Grammar (stored in the .g4 file) as input. Antlr is prompted to generate and run scanning and parsing files with the specified grammar from the Driver file, which handles command line arguments, the compiler/Antlr interface, and general ``main" function duties.}
+
+\section{Design - Antlr}
+Our compiler uses Antlr4, a tool similar to Flex/Bison that can be used for compilers written in Java. Antlr is both a scanner and parser all at once, and uses a simple format for specifying the language to parse.\\
+We originally began our design handwriting our scanner code, with the same plan for the parser. However, Antlr was an attractive choice for us due to the advantages outlined below.
+\subsection{Advantages}
+Antlr allowed us to fast-track our parser development by greatly reducing the amount of code we needed to design and write. Antlr handles the parsing algorithm so that we can avoid writing tedious and error-prone code ourselves. Additionally, the grammar files Antlr uses are simple and easy to write. There is also a convenient plugin for our team's IDE of choice, IntelliJ, that seamlessly incorporates Antlr into our development environment, including a useful dynamic parse tree display.
+\subsection{Disadvantages}
+As simple as Antlr grammar files are and as much function as Antlr provides, there is still the learning curve associated with using and integrating such a complex tool. We are also aware that Antlr grammar files can be difficult to debug, but we are prepared to handle such issues, especially with the tools the IntelliJ Antlr plugin provides.
+
+
+\section{Language Specification}
+\subsection{Introduction}
+Here are the types of the various elements by type font or symbol for the grammar that follows:
+\begin{itemize}
+    \item \textbf{Terminals, including terminal punctuation, are bolded}
+    \item TOKENS ARE ALL CAPS
+    \item Nonterminals are in ``normal" font
+    \item The symbol $\epsilon$ means the empty string
+    \item ``EOF" indicates the end of the file
+\end{itemize}
+The grammar also uses standard regex terms. Symbols indicating regex rules are never bolded so as not to be confused with terminal symbols. Parentheses are also used to avoid confusion. For example, an instance of ``(\textbf{*})*" indicates that the * terminal may be seen zero or more times.
+\subsection{Tokens}
+\begin{itemize}
+\item ID $\rightarrow$ 
+    (\textbf{\_} $|$ [a-zA-Z])+ ([a-zA-Z] $|$ DIGIT $|$ \textbf{\_})*
+    
+\item CHARCONST $\rightarrow$ 
+    \textbf{\textquotesingle} CHARCHARS+ \textbf{\textquotesingle}
+    
+\item STRINGCONST $\rightarrow$ 
+    \textbf{\textquotesingle\textquotesingle} STRINGCHARS* \textbf{\textquotesingle\textquotesingle}
+    
+\item INT $\rightarrow$ 
+    DIGIT+ \\
+    $|$ (\textbf{0x} $|$ \textbf{0X})HEXDIGIT+ \\
+    $|$ \textbf{0}OCTALDIGIT+ \\
+    $|$ (\textbf{0b} $|$ \textbf{0B})BINARYDIGIT+ \\
+    $|$ FLOAT
+\end{itemize}
+The following are ``helper tokens" that are not strictly considered tokens by our compiler but serve to help define the tokens above.
+\begin{itemize}
+\item CHARCHARS $\rightarrow$
+    \begin{verbatim}
+        (~['\\\r\n] | '\\' (. | EOF))
+    \end{verbatim}
+\item LETTER $\rightarrow$ [\textbf{a-zA-Z}]
+\item DIGIT $\rightarrow$ [\textbf{0-9}]
+\item HEXDIGIT $\rightarrow$ [\textbf{0-9A-Fa-f}]
+\item OCTALDIGIT $\rightarrow$ [\textbf{0-7}]
+\item BINARYDIGIT $\rightarrow$ [\textbf{0-1}]
+\item FLOAT $\rightarrow$ 
+    [\textbf{0-9}]+ \textbf{.} [\textbf{0-9}]+ EXP?(\textbf{f}$|$\textbf{F})?\\
+    $|$   \textbf{.} [\textbf{0-9}]+ EXP?(\textbf{f}$|$\textbf{F})?\\
+    $|$   [\textbf{0-9}]+ EXP(\textbf{f}$|$\textbf{F})?\\
+    $|$ [\textbf{0-9}]+ (\textbf{f}$|$\textbf{F})?
+    
+\item EXP $\rightarrow$ 
+    (\textbf{e}$|$\textbf{E}) (\textbf{+}$|$\textbf{-})? [\textbf{0-9}]+
+\end{itemize}
+
+\subsection{The Grammar}
+\begin{enumerate}
+\item program $\rightarrow$ 
+    declarationList \textbf{EOF}
+    
+\item declarationList $\rightarrow$ 
+    declarationList declaration 
+    $|$ declaration
+    
+\item declaration $\rightarrow$ 
+    varDeclaration 
+    $|$ funDeclaration
+    $|$ structDeclaration
+    $|$ enumDeclaration
+    $|$ \textbf{;}
+
+\item structDeclaration $\rightarrow$
+    \textbf{static}? \textbf{struct} ID \textbf{\{} unInitVarDecl* \textbf{\}} ID? \textbf{;}
+
+\item structInit $\rightarrow$
+    \textbf{static}? \textbf{struct} ID (\textbf{*})* varDeclList \textbf{;}
+
+\item enumDeclaration $\rightarrow$
+    \textbf{enum} ID \textbf{\{} enumDeclList \textbf{\}} ID? \textbf{;}
+    
+\item enumDeclList $\rightarrow$
+    enumDeclList \textbf{,} enumId
+    $|$ enumId
+    $|$ $\epsilon$
+    
+\item enumId $\rightarrow$
+    ID ASSIGNMENT enumExpression
+    $|$ ID
+
+\item enumInit $\rightarrow$
+    \textbf{enum} ID ID \textbf{;}
+    $|$ \textbf{enum} ID ID \textbf{=} expression \textbf{;}
+    
+\item unInitVarDecl $\rightarrow$
+    typeSpecifier unInitVarDeclList \textbf{;}
+
+\item unInitVarDeclList $\rightarrow$
+    unInitVarDeclList \textbf{,} varDeclId
+    $|$ varDeclId
+    $|$ $\epsilon$
+
+\item varDeclaration $\rightarrow$ 
+    typeSpecifier varDecList \textbf{;}
+    $|$ scopedVarDeclaration \textbf{;}
+    $|$ structInit
+    $|$ enumInit
+    
+\item scopedVarDeclaration $\rightarrow$ 
+    scopedTypeSpecifier varDeclList
+    
+\item forLoopVars
+    typeSpecifier varDeclList
+    $|$ expression List
+    
+\item varDeclList $\rightarrow$ 
+    varDeclList \textbf{,} varDeclInitialize 
+    $|$ varDeclInitialize
+    
+\item varDeclInitialize $\rightarrow$ 
+    varDeclId 
+    $|$ varDeclId \textbf{=} (expression $|$ \textbf{\{} expressionList \textbf{\}})
+
+\item varDeclId $\rightarrow$ 
+    ID (\textbf{[} expression? \textbf{]})*
+    
+\item scopedTypeSpecifier $\rightarrow$ 
+    \textbf{static} typeSpecifier 
+    $|$ typeSpecifier
+    
+\item typeSpecifier $\rightarrow$ 
+    (\textbf{int} $|$ \textbf{float} $|$ \textbf{double} $|$ \textbf{char} $|$ \textbf{long} $|$ \textbf{unsigned} $|$ \textbf{signed} $|$ \textbf{void} $|$ \textbf{short})(\textbf{*})*
+
+\item funDeclaration $\rightarrow$ 
+    typeSpecifier ID \textbf{(} params \textbf{)} (compoundStmt $|$ \textbf{;})
+
+\item params $\rightarrow$ 
+    params \textbf{,} parameter 
+    $|$ parameter 
+    $|$ $\epsilon$
+
+\item parameter $\rightarrow$ 
+    typeSpecifier paramId
+
+\item paramId $\rightarrow$ 
+    ID (\textbf{[]})*
+
+\item statement $\rightarrow$ 
+    expressionStmt 
+    $|$ compoundStmt 
+    $|$ selectionStmt 
+    $|$ iterationStmt 
+    $|$ returnStmt 
+    $|$ breakStmt 
+    $|$ gotoStmt 
+    $|$ labelStmt 
+
+\item structExpressionList $\rightarrow$
+    expressionList \textbf{,} \textbf{.}? expression
+    $|$ \textbf{.}? expression
+    $|$ $\epsilon$
+
+\item expressionList $\rightarrow$
+    expressionList \textbf{,} expression
+    $|$ expression
+    $|$ $\epsilon$
+
+\item expressionStmt $\rightarrow$ 
+    expression \textbf{;}
+    $|$ \textbf{;}
+
+\item compoundStmt $\rightarrow$ 
+    \textbf{\{} statementList \textbf{\}}
+
+\item statementList $\rightarrow$ 
+    statementList (statement $|$ varDelcaration)
+    $|$ \textbf{EPS}
+    
+\item defaultList $\rightarrow$
+    statementList (statement $|$ varDeclaration)
+    $|$ statement
+
+\item elsifList $\rightarrow$ 
+    elsifList \textbf{else if (} expression \textbf{)} statement 
+    $|$ \textbf{EPS}
+
+\item selectionStmt $\rightarrow$ 
+    \textbf{if (} expression \textbf{)} statement elsifList \\
+    $|$ \textbf{if (} expression \textbf{)} statement elsifList \textbf{else} statement\\
+    $|$ \textbf{switch (} expression \textbf{)} switchCase defaultList\\
+    $|$ \textbf{switch (} expression \textbf{)} \textbf{default :} defaultList\\
+    $|$ \textbf{switch (} expression \textbf{) \{} switchList (\textbf{default :} defaultList)? \textbf{\}} 
+    
+\item switchList $\rightarrow$
+    switchList switchCase
+    $|$ switchCase
+    $|$ $\epsilon$
+
+\item switchCase $\rightarrow$
+    \textbf{case} (\textbf{INT $|$ CHARCONST}) \textbf{:} (defaultList $|$ statementList)
+
+\item iterationStmt $\rightarrow$ 
+    \textbf{while (} expression \textbf{)} statement \\
+    $|$ \textbf{do} statement \textbf{while (} expression \textbf{);}\\
+    $|$ \textbf{for (} forLoopVars \textbf{;} expressionList \textbf{;} expressionList \textbf{)} statement
+
+\item returnStmt $\rightarrow$ 
+    \textbf{return ;} 
+    $|$ \textbf{return} expression \textbf{;}
+
+\item breakStmt $\rightarrow$ 
+    \textbf{break ;}
+
+\item gotoStmt $\rightarrow$ 
+    \textbf{goto} labelId \textbf{;}
+
+\item labelStmt $\rightarrow$ 
+    labelId \textbf{:}
+
+\item labelId $\rightarrow$ 
+    ID
+
+\item expression $\rightarrow$ 
+    mutable \textbf{=} expression \\
+    $|$ mutable \textbf{+=} expression\\ 
+    $|$ mutable \textbf{-=} expression \\
+    $|$ mutable \textbf{*=} expression \\
+    $|$ mutable \textbf{/=} expression \\
+    $|$ mutable \textbf{\%=} expression\\
+    $|$ mutable \textbf{$<<$=} expression\\ 
+    $|$ mutable \textbf{$>>$=} expression\\
+    $|$ mutable \textbf{\&=} expression\\
+    $|$ mutable \textbf{$|$=} expression\\
+    $|$ mutable \textbf{\^}\textbf{=} expression\\
+    $|$ (mutable $|$ immutable) \textbf{$<<$} expression\\
+    $|$ (mutable $|$ immutable) \textbf{$>>$} expression\\
+    $|$ (mutable $|$ immutable) \textbf{\&} expression\\
+    $|$ (mutable $|$ immutable) \textbf{$|$} expression\\
+    $|$ (mutable $|$ immutable) \textbf{\^} expression\\
+    $|$ simpleExpression
+
+\item enumExpression $\rightarrow$
+    properUnaryOps INT \textbf{$<<$} enumExpression\\
+    $|$ properUnaryOps INT \textbf{$>>$} enumExpression\\
+    $|$ properUnaryOps INT \textbf{\&} enumExpression\\
+    $|$ properUnaryOps INT \textbf{$|$} enumExpression\\
+    $|$ properUnaryOps INT \textbf{\^} enumExpression\\
+    $|$ properUnaryOps INT \textbf{$||$} enumExpression\\
+    $|$ properUnaryOps INT \textbf{\&\&} enumExpression\\
+    $|$ properUnaryOps INT \textbf{$<$} enumExpression\\
+    $|$ properUnaryOps INT \textbf{$<=$} enumExpression\\
+    $|$ properUnaryOps INT \textbf{$>$} enumExpression\\
+    $|$ properUnaryOps INT \textbf{$>=$} enumExpression\\
+    $|$ properUnaryOps INT \textbf{+} enumExpression\\
+    $|$ properUnaryOps INT \textbf{-} enumExpression\\
+    $|$ properUnaryOps INT \textbf{*} enumExpression\\
+    $|$ properUnaryOps INT
+
+\item properUnaryOps $\rightarrow$
+    (\textbf{-} $|$ \textbf{\~} $|$ \textbf{!})*
+
+\item simpleExpression $\rightarrow$ 
+    (simpleExpression \textbf{$||$} andExpression )
+    $|$ andExpression
+
+\item andExpression $\rightarrow$ 
+    andExpression \textbf{\&\&} unaryRelExpression 
+    $|$ unaryRelExpression
+
+\item unaryRelExpression $\rightarrow$ 
+    \textbf{!} unaryRelExpression 
+    $|$ relExpression
+
+\item relExpression $\rightarrow$ 
+    sumExpression relop sumExpression 
+    $|$ relExpression relop relExpression 
+    $|$ sumExpression
+
+\item relop $\rightarrow$ 
+    \textbf{$<$=} 
+    $|$ \textbf{$<$} 
+    $|$ \textbf{$>$} 
+    $|$ \textbf{$>$=} 
+    $|$ \textbf{==} 
+    $|$ \textbf{!=}
+
+\item sumExpression $\rightarrow$ 
+    sumExpression sumop mulExpression 
+    $|$ mulExpression
+
+\item sumop $\rightarrow$ 
+    \textbf{+} $|$ \textbf{-}
+
+\item mulExpression $\rightarrow$ 
+    mulExpression mulop unaryExpression 
+    $|$ unaryExpression
+
+\item mulop $\rightarrow$ 
+    \textbf{*} $|$ \textbf{/} $|$ \textbf{\%}
+
+\item unaryExpression $\rightarrow$ 
+    unaryop unaryExpression 
+    $|$ mutable \textbf{++} 
+    $|$ mutable \textbf{--} 
+    $|$ \textbf{--} mutable 
+    $|$ \textbf{++} mutable 
+    $|$ factor 
+
+\item unaryop $\rightarrow$ 
+    \textbf{-} $|$ \textbf{*} $|$ \textbf{!} $|$ \textbf{\&} $|$ \textbf{\~}
+
+\item factor$|$ $\rightarrow$ 
+    immutable $|$ mutable
+
+\item mutable $\rightarrow$ 
+    (\textbf{*})* ID \\
+    $|$ mutable \textbf{[} expression \textbf{]}\\
+    $|$ mutable (\textbf{.} $|$ \textbf{-$>$} mutable\\
+    $|$ immutable (\textbf{.} $|$ \textbf{-$>$} mutable\\
+    $|$ \textbf{(} expression \textbf{)} (\textbf{.} $|$ \textbf{-$>$}) mutable\\
+    $|$ (\textbf{*})* \textbf{(} expression \textbf{)}
+
+\item immutable $\rightarrow$ 
+    \textbf{(} expression \textbf{)} 
+    $|$ call 
+    $|$ constant
+
+\item call $\rightarrow$ 
+    ID \textbf{(} args \textbf{)}
+    $|$ \textbf{sizeof (} (\textbf{struct} ID (\textbf{*})* $|$ typeSpecifier $|$ ID) \textbf{)}
+
+\item args $\rightarrow$ 
+    argList $|$ $\epsilon$
+
+\item argList $\rightarrow$ 
+    argList \textbf{,} expression $|$ expression
+
+\item constant $\rightarrow$ 
+    INT $|$ CHARCONST $|$ STRINGCONST
+\end{enumerate}
+
+\subsection{Semantic Notes}
+\begin{itemize}
+    \item HEX, OCTAL, and BINARYDIGIT default to \textbf{int} when parsed
+    \item Many variables can be declared and/or initialized in one statement, e.g. ``int a = 1, b = 2;"
+    
+    
+\end{itemize}
+
+\subsection{Limitations}
+The following are not supported by our grammar.
+\begin{itemize}
+    \item Preprocessor statements
+    \item Casting
+    \item Pointers, arrays, and strings
+    \item Ternary operations
+\end{itemize}
+\end{document}
