@@ -22,8 +22,8 @@ structDeclaration
     ;
 
 structInit
-    : STATIC? STRUCT ID varDeclList SEMICOLN
-    | STATIC? STRUCT ID varDeclId ASSIGNMENT (structExpressionList | LCURLY structExpressionList RCURLY) SEMICOLN
+    : STATIC? STRUCT ID STAR* varDeclList SEMICOLN
+    | STATIC? STRUCT ID STAR* varDeclId ASSIGNMENT (structExpressionList | LCURLY structExpressionList RCURLY) SEMICOLN
     ;
 
 enumDeclaration
@@ -65,6 +65,11 @@ varDeclaration
 
 scopedVarDeclaration
     : scopedTypeSpecifier varDeclList
+    ;
+
+forLoopVars
+    : typeSpecifier varDeclList
+    | expressionList
     ;
 
 varDeclList
@@ -174,7 +179,7 @@ switchCase : CASE (INT | CHARCONST) COLN (defaultList | statementList);
 iterationStmt
     : WHILE LPAREN expression RPAREN statement
     | DO statement WHILE LPAREN expression RPAREN SEMICOLN
-    | FOR LPAREN expressionList SEMICOLN expressionList SEMICOLN expressionList RPAREN statement
+    | FOR LPAREN forLoopVars SEMICOLN expressionList SEMICOLN expressionList RPAREN statement
     ;
 
 returnStmt
@@ -310,6 +315,7 @@ mutable
     | mutable (PERIOD | ARROW) mutable
     | immutable (PERIOD | ARROW) mutable
     | LPAREN expression RPAREN(PERIOD | ARROW) mutable
+    | STAR* LPAREN expression RPAREN
     ;
 
 immutable
@@ -320,6 +326,7 @@ immutable
 
 call
     : ID LPAREN args RPAREN
+    | SIZEOF LPAREN (STRUCT ID STAR* | typeSpecifier | ID) RPAREN
     ;
 
 args
@@ -353,6 +360,7 @@ CASE : 'case';
 DEFAULT: 'default';
 STRUCT: 'struct';
 ENUM : 'enum';
+SIZEOF : 'sizeof';
 
 TYPE_INT : 'int';
 TYPE_FLOAT : 'float';

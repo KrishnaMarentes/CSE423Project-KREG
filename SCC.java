@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Arrays;
 
-import static javafx.application.Platform.exit;
-
 public class SCC {
     public static void main(String[] args) {
         CharStream filename = null;

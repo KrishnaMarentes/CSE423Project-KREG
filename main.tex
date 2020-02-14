@@ -20,8 +20,26 @@
 \text{A third-party tool, ``Antlr," serves as the scanner/parser generator that takes our Grammar (stored in the .g4 file) as input. Antlr is prompted to generate and run scanning and parsing files with the specified grammar from the Driver file, which handles command line arguments, the compiler/Antlr interface, and general ``main" function duties.}
 
 \section{Usage}
-At present, our compiler takes input from a .c file, and can output results to the terminal or to a file. Command-line arguments are available for the following functions:\\
-\textit{Put the stuff we have here}
+At present, our compiler takes input from a .c file, and can output user-specified results to the terminal. Those results include:\\
+\begin{itemize}
+    \item -t Print tokens
+    \item -p Print parse tree
+\end{itemize}
+
+\subsection{Run instructions:}
+Ensure that the repository is cloned and unzipped then navigate into the folder.
+\begin{itemize}
+    \item Windows
+        \subitem Compile .g4: java -jar antlr-4.8-complete.jar kregGrammar.g4 -o out
+        \subitem Compile java: javac -cp ".;antlr-4.8-complete.jar;out" *.java
+        \subitem Run Example: java -cp ".;antlr-4.8-complete.jar;out" SCC tests\textbackslash ex1.c
+        \subitem Print tokens: java -cp ".;antlr-4.8-complete.jar;out" SCC -t tests\textbackslash ex1.c
+    \item Mac / Linux
+        \subitem Compile .g4: java -jar antlr-4.8-complete.jar kregGrammar.g4 -o out
+        \subitem Compile java: javac -cp ".:antlr-4.8-complete.jar:out" *.java
+        \subitem Run Example: java -cp ".:antlr-4.8-complete.jar:out" SCC tests/ex1.c
+        \subitem Print tokens: java -cp ".:antlr-4.8-complete.jar:out" SCC -t tests/ex1.c
+\end{itemize}
 
 \section{Design - Antlr}
 Our compiler uses Antlr4, a tool similar to Flex/Bison that can be used for compilers written in Java. Antlr is both a scanner and parser all at once, and uses a simple format for specifying the language to parse.\\
