@@ -1,0 +1,123 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{textcomp}
+
+\title{CSE423 Assignment 1 Documentation}
+\author{Rebecca Castillo\\Geoff Knox\\Krishna Marentes\\Elijah Orozco}
+\date{February 16 2020}
+
+\begin{document}
+
+\maketitle
+
+\section{Program Overview}
+\text{This file serves as the documentation for our compiler, currently in the scanning/parsing stages. Our user guide can be found [insert build file]. We have written our compiler in the Java language. Our compiler is written in Java and currently consists of three parts:}
+\begin{itemize}
+    \item Grammar
+    \item Scanner/Parser Generator
+    \item Driver
+\end{itemize}
+\text{A third-party tool, ``Antlr," serves as the scanner/parser generator that takes our Grammar (stored in the .g4 file) as input. Antlr is prompted to generate and run scanning and parsing files with the specified grammar from the Driver file, which handles command line arguments, the compiler/Antlr interface, and general ``main" function duties.}
+
+\section{Usage}
+At present, our compiler takes input from a .c file, and can output results to the terminal or to a file. Command-line arguments are available for the following functions:\\
+\textit{Put the stuff we have here}
+
+\section{Design - Antlr}
+Our compiler uses Antlr4, a tool similar to Flex/Bison that can be used for compilers written in Java. Antlr is both a scanner and parser all at once, and uses a simple format for specifying the language to parse.\\
+We originally began our design handwriting our scanner code, with the same plan for the parser. However, Antlr was an attractive choice for us due to the advantages outlined below.
+\subsection{Advantages}
+Antlr allowed us to fast-track our parser development by greatly reducing the amount of code we need to design and write. Antlr handles the parsing algorithm so that we can avoid writing tedious and error-prone code ourselves. Additionally, the grammar files Antlr uses are simple and easy to write. There is also a convenient plugin for our team's IDE of choice, IntelliJ, that seamlessly incorporates Antlr into our development environment, including a useful parse tree display.
+\subsection{Disadvantages}
+As simple as Antlr grammar files are and as much function as Antlr provides, there is still the learning curve associated with using and integrating such a complex tool. We are also aware that Antlr grammar files can be difficult to debug, but we are prepared to handle such issues, especially with the tools the IntelliJ Antlr plugin provides.
+
+
+\section{Language Specification}
+\subsection{The Grammar}
+\begin{enumerate}
+\item start $\rightarrow$ program \textbf{EOF}
+\item program $\rightarrow$ declarationList
+\item declarationList $\rightarrow$ declarationList declaration $|$ declaration
+\item declaration $\rightarrow$ varDeclaration $|$ funDeclaration
+
+\item varDeclaration $\rightarrow$ typeSpecifier varDecList \textbf{;}
+\item scopedVarDeclaration $\rightarrow$ scopedTypeSpecifier varDeclList \textbf{;}
+\item varDeclList $\rightarrow$ varDeclList \textbf{,} varDeclInitialize $|$ varDeclInitialize
+\item varDeclInitialize $\rightarrow$ varDeclId $|$ varDeclId \textbf{=} expression
+\item varDeclId $\rightarrow$ ID
+\item scopedTypeSpecifier $\rightarrow$ \textbf{static} typeSpecifier $|$ typeSpecifier
+\item typeSpecifier $\rightarrow$ \textbf{int} $|$ \textbf{float} $|$ \textbf{double} $|$ \textbf{char} $|$ \textbf{long} $|$ \textbf{unsigned} $|$ \textbf{signed} $|$ \textbf{void} $|$ \textbf{short}
+
+\item funDeclaration $\rightarrow$ typeSpecifier ID \textbf{(} params \textbf{)} (compoundStmt $|$ \textbf{;}+)
+\item params $\rightarrow$ params \textbf{,} parameter $|$ parameter $|$ $\epsilon$
+\item parameter $\rightarrow$ typeSpecifier paramId
+\item paramId $\rightarrow$ ID
+
+\item statement $\rightarrow$ expressionStmt $|$ compoundStmt $|$ selectionStmt $|$ iterationStmt $|$ returnStmt $|$ breakStmt $|$ gotoStmt $|$ labelStmt $|$ varDeclaration
+\item expressionStmt $\rightarrow$ expression \textbf{;} $|$ \textbf{;}
+\item compoundStmt $\rightarrow$ \textbf{\{} localDeclarations statementList \textbf{\}}
+\item localDeclarations $\rightarrow$ localDeclarations scopedVarDeclaration $|$ \textbf{EPS}
+\item statementList $\rightarrow$ statementList statement $|$ \textbf{EPS}
+\item elsifList $\rightarrow$ elsifList \textbf{else if (} expression \textbf{)} statement $|$ \textbf{EPS}
+\item selectionStmt $\rightarrow$ \textbf{if (} expression \textbf{)} statement elsifList $|$ \textbf{if (} expression \textbf{)} statement elsifList \textbf{else} statement
+\item iterationStmt $\rightarrow$ \textbf{while (} expression \textbf{)} statement $|$ \textbf{do} statement \textbf{while (} expression \textbf{);}
+\item returnStmt $\rightarrow$ \textbf{return ;} $|$ \textbf{return} expression \textbf{;}
+\item breakStmt $\rightarrow$ \textbf{break ;}
+\item gotoStmt $\rightarrow$ \textbf{goto} labelId \textbf{;}
+\item labelStmt $\rightarrow$ labelId \textbf{:}
+\item labelId $\rightarrow$ ID
+
+\item expression $\rightarrow$ mutable \textbf{=} expression $|$ mutable \textbf{+=} expression $|$ mutable \textbf{-=} expression $|$ mutable \textbf{*=} expression $|$ mutable \textbf{/=} expression $|$ simpleExpression
+\item simpleExpression $\rightarrow$ simpleExpression \textbf{$||$} andExpression $|$ andExpression
+\item andExpression $\rightarrow$ andExpression \textbf{&&} unaryRelExpression $|$ unaryRelExpression
+\item unaryRelExpression $\rightarrow$ \textbf{!} unaryRelExpression $|$ relExpression
+\item relExpression $\rightarrow$ sumExpression relop sumExpression $|$ relExpression relop relExpression $|$ sumExpression
+\item relop $\rightarrow$ \textbf{$<=$} $|$ \textbf{$<$} $|$ \textbf{$>$} $|$ \textbf{$>=$} $|$ \textbf{==} $|$ \textbf{!=}
+\item sumExpression $\rightarrow$ sumExpression sumop mulExpression $|$ mulExpression
+\item sumop $\rightarrow$ \textbf{+} $|$ \textbf{-}
+\item mulExpression $\rightarrow$ mulExpression mulop unaryExpression $|$ unaryExpression
+\item mulop $\rightarrow$ \textbf{*} $|$ \textbf{/} $|$ \textbf{\%}
+\item unaryExpression $\rightarrow$ unaryop unaryExpression $|$ mutable \textbf{++} $|$ mutable \textbf{--} $|$ \textbf{--} mutable $|$ \textbf{++} mutable $|$ factor 
+\item unaryop $\rightarrow$ \textbf{-} $|$ \textbf{*} $|$ \textbf{!} $|$ \textbf{&} $|$ \textbf{~}
+\item factor$|$ $\rightarrow$ immutable $|$ mutable
+\item mutable $\rightarrow$ ID $|$ mutable \textbf{[} expression \textbf{]}
+\item immutable $\rightarrow$ \textbf{(} expression \textbf{)} $|$ call $|$ constant
+\item call $\rightarrow$ ID \textbf{(} args \textbf{)}
+\item args $\rightarrow$ argList $|$ \textbf{EPS}
+\item argList $\rightarrow$ argList \textbf{,} expression $|$ expression
+\item constant $\rightarrow$ INT $|$ CHARCONST $|$ STRINGCONST
+
+\item ID $\rightarrow$ (\textbf{\_} $|$ LETTER)+ (LETTER $|$ DIGIT $|$ \textbf{\_})*
+\item CHARCONST $\rightarrow$ \textbf{\textquotesingle} ALLCHARS+ \textbf{\textquotesingle}
+\item STRINGCONST $\rightarrow$ \textbf{\textquotesingle\textquotesingle} ALLCHARS* \textbf{\textquotesingle\textquotesingle}
+\item INT $\rightarrow$ DIGIT+ $|$ (\textbf{0x} $|$ \textbf{0X})HEXDIGIT+ $|$ \textbf{0}OCTALDIGIT+ $|$ \textbf{0b}BINARYDIGIT+ $|$ FLOAT
+\item DIGIT $\rightarrow$ [\textbf{0-9}]
+\item HEXDIGIT $\rightarrow$ [\textbf{0-9A-Fa-f}]
+\item OCTALDIGIT $\rightarrow$ [\textbf{0-7}]
+\item BINARYDIGIT $\rightarrow$ [\textbf{0-1}]
+\item FLOAT $\rightarrow$ [\textbf{0-9}]+ \textbf{.} [\textbf{0-9}]+ EXP?(\textbf{f}$|$\textbf{F})?
+    $|$   \textbf{.} [\textbf{0-9}]+ EXP?(\textbf{f}$|$\textbf{F})?
+    $|$   [\textbf{0-9}]+ EXP(\textbf{f}$|$\textbf{F})?
+\item EXP $\rightarrow$ (\textbf{e}$|$\textbf{E}) (\textbf{+}$|$\textbf{-})? [\textbf{0-9}]+
+\end{enumerate}
+
+\subsection{Semantic Notes}
+\begin{itemize}
+    \item HEX, OCTAL, and BINARYDIGIT default to \textbf{int} when parsed
+    \item Many variables can be declared and/or initialized in one statement
+    
+    
+\end{itemize}
+
+\subsection{Limitations}
+The following are not supported by our grammar.
+\begin{itemize}
+    \item For loops
+    \item Switch statements
+    \item Preprocessor statements
+    \item Casting
+    \item Struct, enum
+    \item Pointers, arrays, and strings
+    \item Ternary operations
+\end{itemize}
+\end{document}

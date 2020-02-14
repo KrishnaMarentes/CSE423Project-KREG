@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-
 int main() {
     ///more comment tests
     /*
@@ -11,7 +8,7 @@ int main() {
 	int m1 = 4 & 7;
 
 	int k2 = 4 ^ 7;
-	k2 ^= 9;
+	2k ^= 9;
 
 	printf("testing out this       %d\n", *f);
 	return 0;
