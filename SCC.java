@@ -8,29 +8,62 @@ import static javafx.application.Platform.exit;
 
 public class SCC {
     public static void main(String[] args) {
-        CharStream cs = null;
+        CharStream filename = null;
+        char opt;
+        int i = 0;
+        boolean print_tks = false;
+        boolean print_pt = false;
+
         if(args.length > 0) {
             try {
-                cs = CharStreams.fromFileName(args[0]);
+                /*
+                Command line arguments for file name, parse tree, or token list
+                 */
+                if (args[0].charAt(0) == '-') {
+                    for (i = 1; i < args[0].length(); i++) {
+                        opt = args[0].charAt(i);
+                        switch (opt) {
+                            case 't':
+                                print_tks = true;
+                                break;
+                            case 'p':
+                                print_pt = true;
+                                break;
+                            default:
+                                System.out.println("Entered a unrecognized option.");
+                                usage();
+                                System.exit(1);
+                                break;
+                        }
+                    }
+                }
+
+                filename = CharStreams.fromFileName(args[args.length - 1]);
             } catch (IOException e) {
                 e.printStackTrace();
                 usage();
-                exit();
+                System.exit(1);
             }
         } else {
             usage();
-            exit();
+            System.exit(1);
         }
 
-        kregGrammarLexer lexer = new kregGrammarLexer(cs);
+        kregGrammarLexer lexer = new kregGrammarLexer(filename);
         kregGrammarParser parser = new kregGrammarParser(new CommonTokenStream(lexer));
         parser.setBuildParseTree(true);
 
         RuleContext tree = parser.program();
 
+        if (print_tks) {
+            System.out.println("printing tokens...");
+            printTokens(parser.getTokenStream(), lexer.getRuleNames());
+        }
+        if (print_pt) {
+            System.out.println("printing parse tree...");
+            printParseTree(tree, parser.getRuleNames());
+        }
 
-        //printParseTree(tree, parser.getRuleNames());
-        //printTokens(parser.getTokenStream(), lexer.getRuleNames());
 
         System.out.println("done!");
     }
@@ -54,6 +87,10 @@ public class SCC {
 
     //TODO: Finish this
     private static void usage() {
-        System.out.println("usage: java .... ");
+        System.out.println("usage: java [OPTS] FILENAME");
+        System.out.println("OPTS: [t, p]");
+        System.out.println("t: Print the tokens");
+        System.out.println("p: Print the parse tree");
+        System.out.println("FILENAME: file path");
     }
 }
