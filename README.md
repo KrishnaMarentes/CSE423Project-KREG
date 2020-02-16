@@ -5,5 +5,5 @@ Geoffrey Knox
 
 ### **Project 1** *(Front End)*:
 - [x] Obtain a sample .c file
-- [ ] Write scanner/tokenizer
-- [ ] Convert .c file to string of tokens using scanner
+- [x] Write scanner/tokenizer
+- [x] Convert .c file to string of tokens using scanner
