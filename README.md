@@ -8,9 +8,11 @@
   * Antlr serves as both a scanner and parser all at once
 * Grammar is written specifically for the use of Antlr, as kregGrammar.g4, but a .txt file is also included
 * Necessary documentation is included
+  * See documentation.pdf
   * Command line arguments are supported
   * Error messages are also displayed
 * Usage <br />
+  * See usage.pdf
   * Clone repository <br />
   usage: java [OPTS] FILENAME <br />
   OPTS: [t, p] <br />
