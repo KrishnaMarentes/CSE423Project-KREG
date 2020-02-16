@@ -5,8 +5,8 @@ Geoffrey Knox
 
 ### **Project 1** *(Front End)*:
 - [x] Obtain a sample .c file
-- [ ] Form framework files for scanner and parser
-- [ ] Integrate Antlr4 with framework
-  - [ ] Write Grammar
-- [ ] Implement command line arguments
-- [ ] Polish outputs
+- [x] Form framework files for scanner and parser
+- [x] Integrate Antlr4 with framework
+  - [x] Write Grammar
+- [x] Implement command line arguments
+- [x] Polish outputs

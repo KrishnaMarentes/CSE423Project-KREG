@@ -62,7 +62,6 @@ public class SCC {
             printParseTree(tree, parser.getRuleNames());
         }
 
-
         System.out.println("done!");
     }
 
@@ -83,7 +82,6 @@ public class SCC {
         }
     }
 
-    //TODO: Finish this
     private static void usage() {
         System.out.println("usage: java [OPTS] FILENAME");
         System.out.println("OPTS: [t, p]");
