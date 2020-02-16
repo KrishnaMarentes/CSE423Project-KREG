@@ -16,7 +16,7 @@
   OPTS: [t, p] <br />
   t: Print the tokens <br />
   p: Print the parse tree <br />
-  FILENAME: file path <br /> <br />
+  FILENAME: file path <br />
   
   **Run instructions** <br />
   
