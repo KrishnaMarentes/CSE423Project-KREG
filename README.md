@@ -4,7 +4,7 @@
 **Elijah Orozco** <br />
 
 ### **Project Assignment 1** *(Front End)*:
-* Implementation of scanner and parser using Java and Antlr, a third-party tool.
+* Implementation of scanner and parser using Java and Antlr, a third-party tool
   * Antlr serves as both a scanner and parser all at once
 * Grammar is written specifically for the use of Antlr, as kregGrammar.g4, but a .txt file is also included
 * Necessary documentation is included
