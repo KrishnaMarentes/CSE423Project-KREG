@@ -339,8 +339,8 @@ The following are ``helper tokens" that are not strictly considered tokens by ou
 \item mutable $\rightarrow$ 
     (\textbf{*})* ID \\
     $|$ mutable \textbf{[} expression \textbf{]}\\
-    $|$ mutable (\textbf{.} $|$ \textbf{-$>$} mutable\\
-    $|$ immutable (\textbf{.} $|$ \textbf{-$>$} mutable\\
+    $|$ mutable (\textbf{.} $|$ \textbf{-$>$}) mutable\\
+    $|$ immutable (\textbf{.} $|$ \textbf{-$>$}) mutable\\
     $|$ \textbf{(} expression \textbf{)} (\textbf{.} $|$ \textbf{-$>$}) mutable\\
     $|$ (\textbf{*})* \textbf{(} expression \textbf{)}
 
@@ -367,8 +367,6 @@ The following are ``helper tokens" that are not strictly considered tokens by ou
 \begin{itemize}
     \item HEX, OCTAL, and BINARYDIGIT default to \textbf{int} when parsed
     \item Many variables can be declared and/or initialized in one statement, e.g. ``int a = 1, b = 2;"
-    
-    
 \end{itemize}
 
 \subsection{Limitations}
@@ -376,7 +374,12 @@ The following are not supported by our grammar.
 \begin{itemize}
     \item Preprocessor statements
     \item Casting
-    \item Pointers, arrays, and strings
     \item Ternary operations
+\end{itemize}
+We've attempted to implement the following, but support can be considered to be in ``beta mode" as there may be edge cases that have not been tested.
+\begin{itemize}
+    \item Pointers
+    \item Arrays
+    \item Strings
 \end{itemize}
 \end{document}
