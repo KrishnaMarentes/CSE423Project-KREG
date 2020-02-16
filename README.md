@@ -16,8 +16,10 @@
   OPTS: [t, p] <br />
   t: Print the tokens <br />
   p: Print the parse tree <br />
-  FILENAME: file path <br />
-  **Run instructions**
+  FILENAME: file path <br /> <br />
+  
+  **Run instructions** <br />
+  
   * Windows <br />
     Compile .g4: java -jar antlr-4.8-complete.jar kregGrammar.g4 -o out <br />
     Compile java: javac -cp “.;antlr-4.8-complete.jar;out” *.java <br />
