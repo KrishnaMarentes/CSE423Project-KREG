@@ -1,7 +1,7 @@
-* Rebecca Castillo
-* Geoff Knox
-* Krishna Marentes
-* Elijah Orozco
+Rebecca Castillo <br />
+Geoff Knox <br />
+Krishna Marentes <br />
+Elijah Orozco <br />
 
 ### **Project Assignment 1** *(Front End)*:
 * Implementation of scanner and parser using Java and Antlr, a third-party tool.
