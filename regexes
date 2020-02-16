@@ -1,0 +1,6 @@
+for full files, selects comments as well    : #.+>|\/\/.+\n|(?s)\/\*.*?\*\/|->|>>=?|<<=?|\|\||&&|[|\^&%<>!\\-+*\/=]?=|--|\+\+|".+"|[\w]+|[\W]|.+
+for lines, parses correctly so far          : #.+>|->|>>=?|<<=?|\|\||&&|[|^&%<>!\-+*/=]?=|--|\+\+|".+"|[\w]+|[\W]|.+
+no preprocess commands                      : ->|>>=?|<<=?|\|\||&&|[|^&%<>!\-+*/=]?=|--|\+\+|".+"|[\w]+|[\W]|.+
+grab include file                           : [\w]+\.h
+also grab include file                      : <(.+)>
+remove spaces                               : //.+\n|(?s)/\*.*?\*/
