@@ -1,7 +1,7 @@
-Rebecca Castillo <br />
-Geoff Knox <br />
-Krishna Marentes <br />
-Elijah Orozco <br />
+**Rebecca Castillo** <br />
+**Geoff Knox** <br />
+**Krishna Marentes** <br />
+**Elijah Orozco** <br />
 
 ### **Project Assignment 1** *(Front End)*:
 * Implementation of scanner and parser using Java and Antlr, a third-party tool.
@@ -13,12 +13,12 @@ Elijah Orozco <br />
 * Usage <br />
   **Run instructions**
   * Clone repository
-  * Windows
+  * Windows <br />
     Compile .g4: java -jar antlr-4.8-complete.jar kregGrammar.g4 -o out <br />
     Compile java: javac -cp “.;antlr-4.8-complete.jar;out” *.java <br />
     Run Example: java -cp “.;antlr-4.8-complete.jar;out” SCC tests\ex1.c <br />
     Print tokens: java -cp “.;antlr-4.8-complete.jar;out” SCC -t tests\ex1.c <br />
-  * Mac / Linux
+  * Mac / Linux <br />
     Compile .g4: java -jar antlr-4.8-complete.jar kregGrammar.g4 -o out <br />
     Compile java: javac -cp “.:antlr-4.8-complete.jar:out” *.java <br />
     Run Example: java -cp “.:antlr-4.8-complete.jar:out” SCC tests/ex1.c <br />
