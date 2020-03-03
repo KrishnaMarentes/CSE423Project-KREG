@@ -1,5 +1,8 @@
 import org.antlr.v4.runtime.*;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,11 +10,14 @@ import java.util.Arrays;
 
 public class SCC {
     public static void main(String[] args) {
-        CharStream filename = null;
+        String filename = null;
+        CharStream src_code = null;
         char opt;
         int i = 0;
         boolean print_tks = false;
         boolean print_pt = false;
+        boolean print_ast = false;
+        boolean save_output = false;
 
         if(args.length > 0) {
             try {
@@ -22,11 +28,17 @@ public class SCC {
                     for (i = 1; i < args[0].length(); i++) {
                         opt = args[0].charAt(i);
                         switch (opt) {
+                            case 'a':
+                                print_ast = true;
+                                break;
                             case 't':
                                 print_tks = true;
                                 break;
                             case 'p':
                                 print_pt = true;
+                                break;
+                            case 's':
+                                save_output = true;
                                 break;
                             default:
                                 System.out.println("Entered a unrecognized option.");
@@ -37,7 +49,8 @@ public class SCC {
                     }
                 }
 
-                filename = CharStreams.fromFileName(args[args.length - 1]);
+                filename = args[args.length-1];
+                src_code = CharStreams.fromFileName(filename);
             } catch (IOException e) {
                 e.printStackTrace();
                 usage();
@@ -48,61 +61,129 @@ public class SCC {
             System.exit(1);
         }
 
-        kregGrammarLexer lexer = new kregGrammarLexer(filename);
+        kregGrammarLexer lexer = new kregGrammarLexer(src_code);
         kregGrammarParser parser = new kregGrammarParser(new CommonTokenStream(lexer));
         parser.setBuildParseTree(true);
 
         RuleContext tree = parser.program();
 
+        if (save_output) {
+            // Destroy output file if it already exists
+            File out = new File(filename + ".out");
+            if (out.exists())
+                out.delete();
+            // Create the output file so that output can be appended to a clean file
+            try {
+                out.createNewFile();
+            } catch (IOException e) {
+                System.out.println("Error in creating file " + filename + ".out" +
+                        "\nThe output will not be saved.");
+                save_output = false;
+            }
+        }
+
+
+        //TODO: Allow to just save to file without having to also print to terminal
         if (print_tks) {
             System.out.println("printing tokens...");
-            printTokens(parser.getTokenStream(), lexer.getRuleNames());
+            if (save_output)
+                printTokens(parser.getTokenStream(), lexer.getRuleNames(), filename);
+            else
+                printTokens(parser.getTokenStream(), lexer.getRuleNames(), null);
         }
         if (print_pt) {
             System.out.println("printing parse tree...");
-            printParseTree(tree, parser.getRuleNames());
+            if (save_output)
+                printParseTree(tree, parser.getRuleNames(), filename);
+            else
+                printParseTree(tree, parser.getRuleNames(), null);
+        }
+        if (print_ast) {
+            //TODO: Print AST from the AST structure itself, not from rulenames list
+            System.out.println("printing abstract syntax tree...");
+            if (save_output)
+                printAST(tree, parser.getRuleNames(), filename);
+            else
+                printAST(tree, parser.getRuleNames(), null);
         }
 
         System.out.println("done!");
+
+        /* Lines from testing AST implementation */
+        List<String> ruleNamesList = Arrays.asList(parser.getRuleNames());
+        //AST data structure created here
+        ASTNode an = TreeUtils.generateAST(tree, ruleNamesList);
 
         /* List of symbol tables, one for each scope. The first is the global table */
         ArrayList<SymbolTable> symbols = new ArrayList<SymbolTable>();
         symbols.add(new SymbolTable(0)); // Add the global symbol table to list
         // TODO: Make a class/function that walks an AST to populate/add symbol tables
         // TODO: Add error messages when invalid declarations are made
-
-        List<String> ruleNamesList = Arrays.asList(parser.getRuleNames());
-
-        //AST data structure created here
-        ASTNode an = TreeUtils.generateAST(tree, ruleNamesList);
-        //ast string placed into String object here
-        //Fix this asap, this isn't being done correctly
-        String prettyTree = TreeUtils.toASTPrettyTree(tree, ruleNamesList);
-        System.out.println(prettyTree);
     }
 
-    private static void printParseTree(RuleContext rc, String[] ruleNames) {
+    private static void printAST(RuleContext rc, String[] ruleNames, String filename) {
+        List<String> ruleNamesList = Arrays.asList(ruleNames);
+        String prettyAST = TreeUtils.toASTPrettyTree(rc, ruleNamesList);
+        System.out.println(prettyAST);
+        if (filename != null) {
+            try {
+                FileWriter f = new FileWriter(filename + ".out", true);
+                BufferedWriter b = new BufferedWriter(f);
+                b.write(prettyAST.toString() + "\n\n");
+                b.close();
+                f.close();
+            } catch (IOException e) {
+                System.out.println("An error occurred when attempting to save the output to a file");
+            }
+        }
+    }
+
+    private static void printParseTree(RuleContext rc, String[] ruleNames, String filename) {
         List<String> ruleNamesList = Arrays.asList(ruleNames);
         String prettyTree = TreeUtils.toPrettyTree(rc, ruleNamesList);
-
         System.out.println(prettyTree);
+        if (filename != null) {
+            try {
+                FileWriter f = new FileWriter(filename + ".out", true);
+                BufferedWriter b = new BufferedWriter(f);
+                b.write(prettyTree.toString() + "\n\n");
+                b.close();
+                f.close();
+            } catch (IOException e) {
+                System.out.println("An error occurred when attempting to save the output to a file");
+            }
+        }
     }
 
-    private static void printTokens(TokenStream ts, String[] ruleNames) {
+    private static void printTokens(TokenStream ts, String[] ruleNames, String filename) {
+        StringBuilder output = new StringBuilder();
         for(int i = 0; i < ts.size() - 1; i++) {
             String t = ts.get(i).getText();
             int line = ts.get(i).getLine(); //get line that token is on
             String type = ruleNames[ts.get(i).getType() - 1]; //type of token, integer only
-
-            System.out.println("< " + t + " , " + type + " >");
+            output.append("< ").append(t).append(" , ").append(type).append(" >");
+        }
+        System.out.println(output);
+        if (filename != null) {
+            try {
+                FileWriter f = new FileWriter(filename + ".out", true);
+                BufferedWriter b = new BufferedWriter(f);
+                b.write(output.toString() + "\n\n");
+                b.close();
+                f.close();
+            } catch (IOException e) {
+                System.out.println("An error occurred when attempting to save the output to a file");
+            }
         }
     }
 
     private static void usage() {
         System.out.println("usage: java [OPTS] FILENAME");
-        System.out.println("OPTS: [t, p]");
+        System.out.println("OPTS: [t, p, a, s]");
         System.out.println("t: Print the tokens");
         System.out.println("p: Print the parse tree");
+        System.out.println("a: Print the abstract syntax tree");
+        System.out.println("s: Save all printing to a file named 'FILENAME.out'");
         System.out.println("FILENAME: file path");
     }
 }

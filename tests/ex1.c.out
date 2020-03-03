@@ -1,0 +1,170 @@
+program 
+  declarationList 
+    declarationList 
+      declarationList 
+        declarationList 
+          declarationList 
+            declarationList 
+              declarationList 
+                declarationList 
+                  declarationList 
+                    declarationList 
+                      declaration 
+                        structDeclaration structTestStruct{
+                          unInitVarDecl 
+                            typeSpecifier int
+                            unInitVarDeclList 
+                              varDeclId i
+                            ;
+                          unInitVarDecl 
+                            typeSpecifier int
+                            unInitVarDeclList 
+                              varDeclId j
+                            ;
+                          unInitVarDecl 
+                            typeSpecifier int
+                            unInitVarDeclList 
+                              varDeclId k
+                            ;
+                          };
+                    declaration 
+                      funDeclaration 
+                        typeSpecifier int
+                        __func(
+                        params 
+                          params 
+                            parameter 
+                              typeSpecifier int
+                              paramId a
+                          ,
+                          parameter 
+                            typeSpecifier int
+                            paramId b
+                        )
+                        compoundStmt {
+                          statementList statementList
+                            statement 
+                              returnStmt return
+                                expression 
+                                  simpleExpression 
+                                    andExpression 
+                                      unaryRelExpression 
+                                        relExpression 
+                                          sumExpression 
+                                            sumExpression 
+                                              mulExpression 
+                                                unaryExpression 
+                                                  factor 
+                                                    mutable a
+                                            sumop +
+                                            mulExpression 
+                                              unaryExpression 
+                                                factor 
+                                                  mutable b
+                                ;
+                          }
+                  declaration 
+                    funDeclaration 
+                      typeSpecifier int
+                      main(params)
+                      compoundStmt {statementList<missing '}'>
+                declaration 
+                  varDeclaration structInit
+              declaration 
+                varDeclaration 
+                  structInit structTestStruct*ts=malloc(sizeof(
+            declaration
+          declaration structTestStruct))
+        declaration ;
+      declaration 
+        varDeclaration 
+          typeSpecifier float
+          varDeclList 
+            varDeclInitialize 
+              varDeclId f
+              =
+              expression 
+                simpleExpression 
+                  andExpression 
+                    unaryRelExpression 
+                      relExpression 
+                        sumExpression 
+                          mulExpression 
+                            unaryExpression 
+                              factor 
+                                immutable 
+                                  constant 4455.21342
+          ;
+    declaration 
+      varDeclaration 
+        typeSpecifier int
+        varDeclList 
+          varDeclInitialize 
+            varDeclId arr_ex[
+              expression 
+                simpleExpression 
+                  andExpression 
+                    unaryRelExpression 
+                      relExpression 
+                        sumExpression 
+                          mulExpression 
+                            unaryExpression 
+                              factor 
+                                immutable 
+                                  constant 3
+              ]
+        ;
+  arr_ex[0]=10;arr_ex[1]=0x1;arr_ex[2]=0x5;inti=0;i+=1;i<<=3;i|=2;i>>=1;ts->i=3;printf("Hello, World!            %d\n",ts->i);free(ts);return0;}
+
+program 
+  structDeclaration structTestStruct
+    unInitVarDecl 
+      typeSpecifier int
+      unInitVarDeclList 
+        varDeclId i
+    unInitVarDecl 
+      typeSpecifier int
+      unInitVarDeclList 
+        varDeclId j
+    unInitVarDecl 
+      typeSpecifier int
+      unInitVarDeclList 
+        varDeclId k
+  funDeclaration 
+    typeSpecifier int
+    __func
+    parameter 
+      typeSpecifier int
+      paramId a
+    ,
+    parameter 
+      typeSpecifier int
+      paramId b
+    returnStmt return
+      sumExpression 
+        mutable a
+        sumop +
+        mutable b
+  funDeclaration 
+    typeSpecifier int
+    main<missing '}'>
+  varDeclaration structInit
+  varDeclaration 
+    structInit structTestStruct*ts=mallocsizeof
+  structTestStruct
+  varDeclaration 
+    typeSpecifier float
+    varDeclList 
+      varDeclInitialize 
+        varDeclId f
+        =
+        constant 4455.21342
+  varDeclaration 
+    typeSpecifier int
+    varDeclList 
+      varDeclInitialize 
+        varDeclId arr_ex[
+          constant 3
+          ]
+  arr_ex[0]=10arr_ex[1]=0x1arr_ex[2]=0x5inti=0i+=1i<<=3i|=2i>>=1ts->i=3printf"Hello, World!            %d\n",ts->ifreetsreturn0
+
