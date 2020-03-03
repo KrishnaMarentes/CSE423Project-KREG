@@ -70,6 +70,15 @@ public class SCC {
         symbols.add(new SymbolTable(0)); // Add the global symbol table to list
         // TODO: Make a class/function that walks an AST to populate/add symbol tables
         // TODO: Add error messages when invalid declarations are made
+
+        List<String> ruleNamesList = Arrays.asList(parser.getRuleNames());
+
+        //AST data structure created here
+        ASTNode an = TreeUtils.generateAST(tree, ruleNamesList);
+        //ast string placed into String object here
+        //Fix this asap, this isn't being done correctly
+        String prettyTree = TreeUtils.toASTPrettyTree(tree, ruleNamesList);
+        System.out.println(prettyTree);
     }
 
     private static void printParseTree(RuleContext rc, String[] ruleNames) {

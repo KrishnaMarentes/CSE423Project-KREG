@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.antlr.v4.runtime.misc.Utils;
@@ -12,7 +15,108 @@ public class TreeUtils {
     public static final String Indents = "  ";
     private static int level;
 
-    private TreeUtils() {}
+
+    //private static final List<String> iffy_ignores = Arrays.asList("varDeclList", "argList", "expressionStmt", "varDeclInitialize", "expressionList");
+    private static final List<String> ignore_list = Arrays.asList("declarationList", "expressionList", "expressionStmt", "declaration", "compoundStmt", "statementList", "statement", "params", "(", ")", "{", "}", ";", "<EOF>");
+    private static final List<String> expression_list = Arrays.asList("expression", "simpleExpression", "andExpression", "unaryRelExpression", "relExpression", "sumExpression", "mulExpression", "unaryExpression", "factor", "immutable");
+    private static final List<String> non_collapse = Arrays.asList("returnStmt");
+
+    public static ASTNode generateAST(final Tree t, final List<String> ruleNames) {
+        ASTNode an = toCustomNodeTree(t, ruleNames);
+        return toAST(an);
+    }
+
+    public static ASTNode toAST(ASTNode an) {
+        if(an == null) return null;
+        int count = an.children.size();
+        //remove all nodes that have id as ""
+        for(int i = 0; i < count; i++) {
+            ArrayList<ASTNode> list = extractEmptyNodeChildren(an.children.get(i));
+            if(list != null) {
+                an.children.remove(i); //remove current child
+                an.children.addAll(i, list); //add list to child list at last index
+                i -= 1; //check the last child again since it already had a match
+                count = an.children.size(); //change size for loop purposes
+            }
+        }
+        for(int i = 0; i < an.children.size(); i++) {
+            an.children.set(i, toAST(an.children.get(i)));
+        }
+        return an;
+    }
+
+    public static ArrayList<ASTNode> extractEmptyNodeChildren(ASTNode an) {
+        if(an != null && an.id.equals("")) {
+            return an.children;
+        }
+        return null;
+    }
+
+    public static ASTNode toCustomNodeTree(final Tree t, final List<String> ruleNames) {
+        if (t.getChildCount() == 0) {
+            String checkString = Utils.escapeWhitespace(Trees.getNodeText(t, ruleNames), false);
+            if(ignore_list.contains(checkString)) {
+                return null;
+            }
+            return new ASTNode(checkString);
+        }
+
+        String rule = Utils.escapeWhitespace(Trees.getNodeText(t, ruleNames), false);
+        ASTNode an = new ASTNode(rule);
+        if(ignore_list.contains(rule)) {
+            an = new ASTNode("");
+            for (int i = 0; i < t.getChildCount(); i++) {
+                an.add(toCustomNodeTree(t.getChild(i), ruleNames));
+            }
+        } else if(t.getChildCount() == 1 && expression_list.contains(rule)) {
+            an = new ASTNode("");
+            an.add(toCustomNodeTree(t.getChild(0), ruleNames));
+        } else {
+            for (int i = 0; i < t.getChildCount(); i++) {
+                an.add(toCustomNodeTree(t.getChild(i), ruleNames));
+            }
+        }
+        return an;
+    }
+
+    public static String toASTPrettyTree(final Tree t, final List<String> ruleNames) {
+        level = 0;
+        return astProcess(t, ruleNames).replaceAll("(?m)^\\s+$", "").replaceAll("\\r?\\n\\r?\\n", Eol);
+    }
+
+    private static String astProcess(final Tree t, final List<String> ruleNames) {
+
+        if (t.getChildCount() == 0) {
+            String checkString = Utils.escapeWhitespace(Trees.getNodeText(t, ruleNames), false);
+            if(ignore_list.contains(checkString)) {
+                return "";
+            }
+            return checkString;
+        }
+
+        StringBuilder sb = new StringBuilder();
+
+        String rule = Utils.escapeWhitespace(Trees.getNodeText(t, ruleNames), false);
+        if(ignore_list.contains(rule)) {
+            for (int i = 0; i < t.getChildCount(); i++) {
+                sb.append(astProcess(t.getChild(i), ruleNames));
+            }
+        } else if(t.getChildCount() == 1 && expression_list.contains(rule)) {
+            sb.append(astProcess(t.getChild(0), ruleNames));
+        } else {
+            sb.append(lead(level));
+            level++;
+            //sb.append(t.getChildCount() + " : " + rule + ' ');
+            sb.append(rule + ' ');
+            //System.out.println(rule + " " + t.getChildCount());
+            for (int i = 0; i < t.getChildCount(); i++) {
+                sb.append(astProcess(t.getChild(i), ruleNames));
+            }
+            level--;
+            sb.append(lead(level));
+        }
+        return sb.toString();
+    }
 
     public static String toPrettyTree(final Tree t, final List<String> ruleNames) {
         level = 0;
@@ -30,6 +134,7 @@ public class TreeUtils {
         sb.append(lead(level));
         level++;
         String s = Utils.escapeWhitespace(Trees.getNodeText(t, ruleNames), false);
+//        System.out.println(t.getChildCount() + " : " + s);
         sb.append(s + ' ');
         for (int i = 0; i < t.getChildCount(); i++) {
             sb.append(process(t.getChild(i), ruleNames));

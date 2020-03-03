@@ -1,15 +1,8 @@
-int t,k;
-
-int main();
-
 int main() {
-    {
-        int j=4,l,k;
-        float k = 2, g, h;
-    }
+    int j=4;
+    float k = 2;
     f = 2 == 2;
-    int k = f = 2;
-    printf("hello, world!");
-    char c = 'm';
-    return 10+2;
+    printf("hello, world!", f);
+
+    return calc()+2;
 }
