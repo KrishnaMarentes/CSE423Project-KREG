@@ -21,6 +21,7 @@ public class TreeUtils {
     private static final List<String> expression_list = Arrays.asList("expression", "simpleExpression", "andExpression", "unaryRelExpression", "relExpression", "sumExpression", "mulExpression", "unaryExpression", "factor", "immutable");
     private static final List<String> non_collapse = Arrays.asList("returnStmt");
 
+    /* Call to convert Antlr parse tree into our own AST */
     public static ASTNode generateAST(final Tree t, final List<String> ruleNames) {
         ASTNode an = toCustomNodeTree(t, ruleNames);
         return toAST(an);
@@ -52,29 +53,36 @@ public class TreeUtils {
         return null;
     }
 
+    /* Recursively convert Antlr tree to AST by creating an AST node at each Antlr node */
     public static ASTNode toCustomNodeTree(final Tree t, final List<String> ruleNames) {
-        if (t.getChildCount() == 0) {
-            String checkString = Utils.escapeWhitespace(Trees.getNodeText(t, ruleNames), false);
-            if(ignore_list.contains(checkString)) {
-                return null;
-            }
-            return new ASTNode(checkString);
-        }
 
         String rule = Utils.escapeWhitespace(Trees.getNodeText(t, ruleNames), false);
+
+        /* If the node is a terminal, check if it's in the ignore list. If not,
+         * return a new AST node with the node rule as its name. */
+        if (t.getChildCount() == 0) {
+            //String checkString = Utils.escapeWhitespace(Trees.getNodeText(t, ruleNames), false);
+            if(ignore_list.contains(rule)) {
+                return null;
+            }
+            return new ASTNode(rule);
+        }
+
         ASTNode an = new ASTNode(rule);
+
         if(ignore_list.contains(rule)) {
+            /* If rule is in ignore list, make the node name an empty String,
+             * to be yanked out later */
             an = new ASTNode("");
-            for (int i = 0; i < t.getChildCount(); i++) {
-                an.add(toCustomNodeTree(t.getChild(i), ruleNames));
-            }
+
         } else if(t.getChildCount() == 1 && expression_list.contains(rule)) {
+            /* Mark nodes to yank later that are useless one-child expression
+            * nodes, e.g. sumexpression->mulexpression->unaryexpression->...*/
             an = new ASTNode("");
-            an.add(toCustomNodeTree(t.getChild(0), ruleNames));
-        } else {
-            for (int i = 0; i < t.getChildCount(); i++) {
-                an.add(toCustomNodeTree(t.getChild(i), ruleNames));
-            }
+        }
+
+        for (int i = 0; i < t.getChildCount(); i++) {
+            an.add(toCustomNodeTree(t.getChild(i), ruleNames));
         }
         return an;
     }

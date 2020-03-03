@@ -13,6 +13,8 @@ public class ASTNode {
     }
 
     public static ASTNode ASTNodeCreator(String id) {
+        /* Will expect more cases here to resolve what
+        * "kind" of node it is, e.g. program, varDeclaration, etc. */
         switch(id) {
             case "program":
                 break;
@@ -22,6 +24,8 @@ public class ASTNode {
         return new ASTNode("id");
     }
 
+    /* Subclasses to handle rule-specific features
+    * ******************************************** */
     public static class VarDeclaration extends ASTNode {
         public VarDeclaration(TypeSpecifier ts, String id) {
             super(id);
