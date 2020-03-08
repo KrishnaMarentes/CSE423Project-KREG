@@ -1,38 +1,120 @@
 import java.util.ArrayList;
 
-public class SymbolTable {
+/**
+ * EX:
+ *  : will always be root type: global
+ *      SymbolTable Global
+ *      String Name: Global
+ *      String Return Type: Null (or void?) ( used for forloops as well)
+ *      SuperClass parent : Null
+ *      List of superclass elements (Table)
+ *      : inside:
+ *          List of superclass elements (Symbol Table or Entry)
+ *              SymbolTable (example) : Main
+ *                  String Name: Main
+ *                  String Type: INT # check symboltableentry.java for setup for types -> SuperClass
+ *                  SuperClass parent : Global
+ *
+ *                  List of superclass elements
+ *
+ *
+ *              SymbolTable ...
+ *                  : Other Functions that can be globally seen :
+ *              Entry ...
+ *                  : Global variables :
+ *
+ */
 
-    /* Numerical measurement for scope level. Global table is 0. Main would be 1, etc. */
-    private int scope;
-    /* Would like to have a name associated with it, e.g. the function name, but
-     * I haven't figured out how we would name nameless blocks */
-    //private String name;
-    private ArrayList<SymbolTableEntry> table;
-
-    public SymbolTable(int scope) {
-        this.table = new ArrayList<SymbolTableEntry>();
-        this.scope = scope;
+abstract class SymbolTableSuper {
+    enum SymbolType {
+        INT, CHAR, FLOAT, DOUBLE, LONG, UNSIGNED, SIGNED, SHORT, VOID;
     }
 
-    /* Add entry with given name and type to table */
-    public void addEntry(String name, String type) {
-        SymbolTableEntry entry = new SymbolTableEntry(name, type);
-        this.table.add(entry);
+    private SymbolType type;
+    private String name;
+
+    abstract String getEntryType();
+
+    String getType() { return this.type.name(); }
+    String getName() { return this.name; }
+
+    void setName(String name) {
+        this.name = name;
     }
 
-    /* Check if a symbol with the given name is already in
-     * the symbol table. Searches the table linearly.
-     * Returns true if already in table, false otherwise.
+    void setType(String type) {
+        try {
+            this.type = SymbolType.valueOf(type);
+        } catch(IllegalArgumentException e) {
+            // This should probably be more formal or print somewhere else but here it is.
+            System.out.println(e.getMessage());
+            System.out.println("'" + type + "' is not a valid type");
+        } catch(NullPointerException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+}
+
+/**
+ * Symbol Table Class
+ */
+public class SymbolTable extends SymbolTableSuper {
+
+    private SymbolTable parent = null;
+    private ArrayList<SymbolTableSuper> entries = new ArrayList<>();
+
+    String getEntryType() { return "Table"; }
+
+    /**
+     * Adds table to a tables entries
+     * @param type Type of instance, see parent class for types
+     * @param name Name of instance
      */
-    public boolean lookupSymbol(String name) {
-        int i = 0;
-        SymbolTableEntry entry = table.get(i++);
-        while (entry != null) {
-            if (name.compareTo(entry.getName()) == 0) {
-                return true;
+    void addTable(String type, String name) {
+
+        SymbolTable entry = new SymbolTable();
+
+        entry.parent = this;
+        entry.setName(name);
+        entry.setType(type);
+
+        this.entries.add(entry);
+    }
+
+    /**
+     * Adds simple entry to a tables entries
+     * @param type Type of instance, see parent class for types
+     * @param name Name of the instance
+     */
+    void addEntry(String type, String name) {
+
+        SymbolEntry entry = new SymbolEntry();
+
+        entry.setName(name);
+        entry.setType(type);
+
+        this.entries.add(entry);
+    }
+
+    /**
+     * Check if a symbol with the given name is in scope. Returns true if found, false otherwise.
+     * @param name The name of the entry
+     * @return true or false
+     */
+    public boolean lookupEntry(String name) {
+        for (SymbolTableSuper entry : entries) {
+            if (name.equals(entry.getName())) {
+                 return true;
             }
-            entry = table.get(i++);
         }
         return false;
     }
+
+}
+
+/**
+ * Simple entry in a Symbol Table, variable declaration.
+ */
+class SymbolEntry extends SymbolTableSuper {
+    String getEntryType() { return "Entry"; }
 }
