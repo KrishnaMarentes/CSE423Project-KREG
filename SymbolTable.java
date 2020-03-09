@@ -102,10 +102,17 @@ public class SymbolTable extends SymbolTableSuper {
      * @return true or false
      */
     public boolean lookupEntry(String name) {
-        for (SymbolTableSuper entry : entries) {
-            if (name.equals(entry.getName())) {
-                 return true;
+
+        SymbolTable check = new SymbolTable();
+        check = this;
+
+        while (check != null) {
+            for (SymbolTableSuper entry : check.entries) {
+                if (name.equals(entry.getName())) {
+                    return true;
+                }
             }
+            check = this.parent;
         }
         return false;
     }
