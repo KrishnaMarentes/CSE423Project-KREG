@@ -17,14 +17,18 @@ public class TreeUtils {
 
 
     //private static final List<String> iffy_ignores = Arrays.asList("varDeclList", "argList", "expressionStmt", "varDeclInitialize", "expressionList");
-    private static final List<String> ignore_list = Arrays.asList("declarationList", "expressionList", "expressionStmt", "declaration", "compoundStmt", "statementList", "statement", "params", "(", ")", "{", "}", ";", "<EOF>");
-    private static final List<String> expression_list = Arrays.asList("expression", "simpleExpression", "andExpression", "unaryRelExpression", "relExpression", "sumExpression", "mulExpression", "unaryExpression", "factor", "immutable");
+    //got rid of 'params' and 'compoundStmt' in ignore_list
+    private static final List<String> ignore_list = Arrays.asList("declarationList", "paramId", "expressionList", "argList", "varDeclId", "varDeclList", "scopedVarDeclaration", "unInitVarDeclList", "expressionStmt", "declaration", "statementList", "statement", "(", ")", "{", "}", "[", "]", ";", "<EOF>");
+    private static final List<String> expression_list = Arrays.asList("params", "expression", "simpleExpression", "andExpression", "unaryRelExpression", "relExpression", "sumExpression", "mulExpression", "unaryExpression", "factor", "immutable");
     private static final List<String> non_collapse = Arrays.asList("returnStmt");
 
     /* Call to convert Antlr parse tree into our own AST */
     public static ASTNode generateAST(final Tree t, final List<String> ruleNames) {
         ASTNode an = toCustomNodeTree(t, ruleNames);
-        return toAST(an);
+//        return toAST(an);
+        an = toAST(an);
+        an = ASTNode.ASTNodeResolver(an);
+        return an;
     }
 
     public static ASTNode toAST(ASTNode an) {
@@ -40,6 +44,7 @@ public class TreeUtils {
                 count = an.children.size(); //change size for loop purposes
             }
         }
+        //an.children = extractNullChildren(an);
         for(int i = 0; i < an.children.size(); i++) {
             an.children.set(i, toAST(an.children.get(i)));
         }
@@ -51,6 +56,14 @@ public class TreeUtils {
             return an.children;
         }
         return null;
+    }
+
+    public static ArrayList<ASTNode> extractNullChildren(ASTNode n) {
+        for(int i = 0; i < n.children.size(); i++) {
+            if(n.children.get(i) == null) {
+                n.children.remove(i);            }
+        }
+        return n.children;
     }
 
     /* Recursively convert Antlr tree to AST by creating an AST node at each Antlr node */
@@ -72,7 +85,7 @@ public class TreeUtils {
 
         if(ignore_list.contains(rule)) {
             /* If rule is in ignore list, make the node name an empty String,
-             * to be yanked out later */
+             * to be yoinked out later */
             an = new ASTNode("");
 
         } else if(t.getChildCount() == 1 && expression_list.contains(rule)) {

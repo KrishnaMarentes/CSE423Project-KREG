@@ -1,5 +1,5 @@
 struct TestStruct {
-    int i;
+    int i,t;
     int j;
     int k;
 };
@@ -9,7 +9,7 @@ int __func(int a, int b)
     return a + b;
 }
 
-int main() {
+int* main() {
         struct TestStruct* ts = malloc(sizeof(struct TestStruct));
         //this is a comment test
         /*

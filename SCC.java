@@ -114,6 +114,8 @@ public class SCC {
         //AST data structure created here
         ASTNode an = TreeUtils.generateAST(tree, ruleNamesList);
 
+        System.out.println(ASTNode.toPrettyASTString(an));
+
         /* List of symbol tables, one for each scope. The first is the global table */
         ArrayList<SymbolTable> symbols = new ArrayList<SymbolTable>();
         symbols.add(new SymbolTable(0)); // Add the global symbol table to list
@@ -129,7 +131,7 @@ public class SCC {
             try {
                 FileWriter f = new FileWriter(filename + ".out", true);
                 BufferedWriter b = new BufferedWriter(f);
-                b.write(prettyAST.toString() + "\n\n");
+                b.write(prettyAST + "\n\n");
                 b.close();
                 f.close();
             } catch (IOException e) {
