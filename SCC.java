@@ -118,7 +118,7 @@ public class SCC {
 
         /* List of symbol tables, one for each scope. The first is the global table */
         ArrayList<SymbolTable> symbols = new ArrayList<SymbolTable>();
-        symbols.add(new SymbolTable(0)); // Add the global symbol table to list
+        //symbols.add(new SymbolTable(0)); // Add the global symbol table to list
         // TODO: Make a class/function that walks an AST to populate/add symbol tables
         // TODO: Add error messages when invalid declarations are made
     }

@@ -7,8 +7,8 @@ int main(int argc, char** argv)
 {
     int t,y;
 
-    if(y < 2 && (t > 5 || 6 == 6)) {
-        printf("fuck you %d times", 6);
+    if(y=6) {
+        printf("test values %d %s", 6, "hello");
     }
 
     return y;
