@@ -5,10 +5,14 @@ int foo(int k, float m) {
 
 int main(int argc, char** argv)
 {
-    int t,y;
+    int i,j=3, m=4,f;
 
-    if(y=6) {
-        printf("test values %d %s", 6, "hello");
+    while(i < 2 || 2 == 2) {
+        i++;
+        {
+            break;
+            t--;
+        }
     }
 
     return y;

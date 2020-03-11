@@ -91,7 +91,7 @@ public class ASTNode {
         public TypeSpecifier type;
         ArrayList<Pair<String, Expression>> vars; //<ID, init_value>
 
-        //put vars in children?
+        //replace String with Var Type? (to show that it can be an array too, maybe some internal boolean)
         public VarDeclaration(String scope, TypeSpecifier type, ArrayList<Pair<String, Expression>> vars) {
             super("VarDeclaration");
             this.scope = scope;
@@ -111,6 +111,10 @@ public class ASTNode {
                     if(c.size() == 3) {
                         Expression expr = Expression.ExpressionResolver(c.get(2));
                         newVars.add(new Pair<String, Expression>(c.get(0).id, expr));
+                    } else if(c.size() == 4) {
+                        Expression expr = Expression.ExpressionResolver(c.get(2));
+                        //nasty hack - surround string with [brackets] to denote array
+                        newVars.add(new Pair<String, Expression>("[" + c.get(0).id + "]", expr));
                     } else {
                         newVars.add(new Pair<String, Expression>(c.get(0).id, null));
                     }
@@ -130,10 +134,16 @@ public class ASTNode {
                 if(vars.get(i).getValue() == null) {
                     sb.append(ASTNode.lead(indentLevel) + vars.get(i).getKey() + EOL);
                 } else {
-                    sb.append(ASTNode.lead(indentLevel) + vars.get(i).getKey() + " = " + EOL);
-                    indentLevel+=2;
-                    sb.append(vars.get(i).getValue().printNode(indentLevel));
-                    indentLevel-=2;
+                    if(vars.get(i).getKey().startsWith("[")) {
+                        String key = ASTNode.lead(indentLevel) + vars.get(i).getKey();
+                        String val = "[" + vars.get(i).getValue().printNode(-1) + "]";
+                        sb.append(key.replaceAll("(\\[|])", "") + val + EOL);
+                    } else {
+                        sb.append(ASTNode.lead(indentLevel) + vars.get(i).getKey() + " = " + EOL);
+                        indentLevel += 2;
+                        sb.append(vars.get(i).getValue().printNode(indentLevel));
+                        indentLevel -= 2;
+                    }
                 }
             }
 
@@ -265,6 +275,34 @@ public class ASTNode {
         public Statement(ASTNode node) {
             super(node.id);
             this.children = node.children;
+        }
+
+        public static class IterationStatement extends Statement {
+            public IterationStatement(ASTNode node) {
+                super(node);
+            }
+
+            public static class WhileStatement extends IterationStatement {
+                public Expression bool_expression;
+                public Statement statement;
+                public WhileStatement(ASTNode node) {
+                    super(node);
+                    this.id = "WhileStatement";
+                    bool_expression = Expression.ExpressionResolver(node.children.get(2));
+                    statement = Statement.StatementResolver(node.children.get(4));
+                }
+
+                public String printNode(int indentLevel) {
+                    StringBuilder sb = new StringBuilder();
+
+                    sb.append(ASTNode.lead(indentLevel) + this.id + EOL);
+                    ++indentLevel;
+                    sb.append(bool_expression.printNode(indentLevel));
+                    sb.append(statement.printNode(indentLevel));
+
+                    return sb.toString();
+                }
+            }
         }
 
         public static class CompoundStatement extends Statement {
@@ -418,16 +456,75 @@ public class ASTNode {
             }
         }
 
+        public static class BreakStatement extends Statement {
+            public BreakStatement(ASTNode node) {
+                super(node);
+                this.id = "BreakStatement";
+            }
+
+            public String printNode(int indentLevel) {
+                return ASTNode.lead(indentLevel) + this.id + EOL;
+            }
+        }
+
+        public static class LabelStatement extends Statement {
+            public String tagName;
+            public LabelStatement(ASTNode node) {
+                super(node);
+                this.id = "LabelStatement";
+                tagName = node.children.get(0).children.get(0).id;
+            }
+
+            public String printNode(int indentLevel) {
+                StringBuilder sb = new StringBuilder();
+
+                sb.append(ASTNode.lead(indentLevel) + this.id + EOL);
+                ++indentLevel;
+                sb.append(ASTNode.lead(indentLevel) + tagName + EOL);
+
+                return sb.toString();
+            }
+        }
+
+        public static class GotoStatement extends Statement {
+            public String tagName;
+            public GotoStatement(ASTNode node) {
+                super(node);
+                this.id = "GotoStatement";
+                tagName = node.children.get(1).children.get(0).id;
+            }
+
+            public String printNode(int indentLevel) {
+                StringBuilder sb = new StringBuilder();
+
+                sb.append(ASTNode.lead(indentLevel) + this.id + EOL);
+                ++indentLevel;
+                sb.append(ASTNode.lead(indentLevel) + tagName + EOL);
+
+                return sb.toString();
+            }
+        }
+
         public static Statement StatementResolver(ASTNode node) {
             if(node == null) return null;
             String statementType = node.id.replaceAll("Stmt", "");
             switch (statementType) {
+                case "iteration":
+                    if(node.children.get(0).id.equals("while")) {
+                        return new IterationStatement.WhileStatement(node);
+                    }
                 case "selection":
                     if(node.children.get(0).id.equals("if")) {
                         return new SelectionStatement.IfStatement(node);
                     } else if(node.children.get(0).id.equals("switch")) {
                         return new SelectionStatement.SwitchStatement(node);
                     }
+                case "label":
+                    return new LabelStatement(node);
+                case "goto":
+                    return new GotoStatement(node);
+                case "break":
+                    return new BreakStatement(node);
                 case "expression":
                     return new ExpressionStatement(node);
                 case "return":
@@ -550,6 +647,8 @@ public class ASTNode {
 //                return ASTNode.lead(indentLevel) + this.id + EOL;
 //            }
             public String printNode(int indentLevel) {
+                if(indentLevel == -1)
+                    return this.id;
                 return ASTNode.lead(indentLevel) + this.id + EOL;
             }
         }
