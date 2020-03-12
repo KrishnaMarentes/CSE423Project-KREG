@@ -27,7 +27,7 @@ import java.util.ArrayList;
 
 abstract class SymbolTableSuper {
     enum SymbolType {
-        INT, CHAR, FLOAT, DOUBLE, LONG, UNSIGNED, SIGNED, SHORT, VOID;
+        INT, CHAR, FLOAT, DOUBLE, LONG, UNSIGNED, SIGNED, SHORT, VOID, PNTR;
     }
 
     private SymbolType type;

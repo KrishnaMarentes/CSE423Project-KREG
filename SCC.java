@@ -117,7 +117,9 @@ public class SCC {
         System.out.println(ASTNode.toPrettyASTString(an));
 
         /* List of symbol tables, one for each scope. The first is the global table */
-        ArrayList<SymbolTable> symbols = new ArrayList<SymbolTable>();
+        SymbolTable global = new SymbolTable();
+        global.setName("global");
+        global.setType(null);
         //symbols.add(new SymbolTable(0)); // Add the global symbol table to list
         // TODO: Make a class/function that walks an AST to populate/add symbol tables
         // TODO: Add error messages when invalid declarations are made
