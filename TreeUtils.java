@@ -100,45 +100,6 @@ public class TreeUtils {
         return an;
     }
 
-    public static String toASTPrettyTree(final Tree t, final List<String> ruleNames) {
-        level = 0;
-        return astProcess(t, ruleNames).replaceAll("(?m)^\\s+$", "").replaceAll("\\r?\\n\\r?\\n", Eol);
-    }
-
-    private static String astProcess(final Tree t, final List<String> ruleNames) {
-
-        if (t.getChildCount() == 0) {
-            String checkString = Utils.escapeWhitespace(Trees.getNodeText(t, ruleNames), false);
-            if(ignore_list.contains(checkString)) {
-                return "";
-            }
-            return checkString;
-        }
-
-        StringBuilder sb = new StringBuilder();
-
-        String rule = Utils.escapeWhitespace(Trees.getNodeText(t, ruleNames), false);
-        if(ignore_list.contains(rule)) {
-            for (int i = 0; i < t.getChildCount(); i++) {
-                sb.append(astProcess(t.getChild(i), ruleNames));
-            }
-        } else if(t.getChildCount() == 1 && expression_list.contains(rule)) {
-            sb.append(astProcess(t.getChild(0), ruleNames));
-        } else {
-            sb.append(lead(level));
-            level++;
-            //sb.append(t.getChildCount() + " : " + rule + ' ');
-            sb.append(rule + ' ');
-            //System.out.println(rule + " " + t.getChildCount());
-            for (int i = 0; i < t.getChildCount(); i++) {
-                sb.append(astProcess(t.getChild(i), ruleNames));
-            }
-            level--;
-            sb.append(lead(level));
-        }
-        return sb.toString();
-    }
-
     public static String toPrettyTree(final Tree t, final List<String> ruleNames) {
         level = 0;
         return process(t, ruleNames).replaceAll("(?m)^\\s+$", "").replaceAll("\\r?\\n\\r?\\n", Eol);

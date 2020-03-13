@@ -1,5 +1,3 @@
-import com.sun.corba.se.impl.protocol.INSServerRequestDispatcher;
-import com.sun.corba.se.spi.activation.EndpointInfoListHelper;
 import javafx.util.Pair;
 
 import java.util.ArrayList;
@@ -9,6 +7,8 @@ import java.util.List;
 public class ASTNode {
     public static final String EOL = System.lineSeparator();
     public static final String Indents = "  ";
+    public static int globalCounter = 0;
+    public static final String tmpVar = "KREG.";
 
     public String id = null;
     public ArrayList<ASTNode> children = new ArrayList<ASTNode>();
@@ -21,11 +21,12 @@ public class ASTNode {
         this.children.add(an);
     }
 
-    //just override this
+    //just override these
     public String printNode(int indentLevel)
     {
         return "";
     }
+    public String generateCode() { return ""; }
 
     public static ASTNode ASTNodeResolver(ASTNode node) {
         /* Will expect more cases here to resolve what
@@ -83,6 +84,15 @@ public class ASTNode {
 
         public String printNode(int indentLevel) {
             return "program" + EOL;
+        }
+
+        public String generateCode() {
+            StringBuilder sb = new StringBuilder();
+            for(int i = 0; i < this.children.size(); i++) {
+                if(this.children.get(i) == null) continue;
+                sb.append(this.children.get(i).generateCode());
+            }
+            return sb.toString();
         }
     }
 
@@ -145,6 +155,16 @@ public class ASTNode {
                         indentLevel -= 2;
                     }
                 }
+            }
+
+            return sb.toString();
+        }
+
+        public String generateCode() {
+            StringBuilder sb = new StringBuilder();
+
+            for(int i = 0; i < vars.size(); i++) {
+                sb.append(this.type.id + this.type.pointerLevel + " " + vars.get(i).getKey() + ";" + EOL);
             }
 
             return sb.toString();
@@ -219,6 +239,29 @@ public class ASTNode {
             } else {
                 sb.append(this.compoundStmt.printNode(indentLevel));
             }
+            return sb.toString();
+        }
+
+        public String generateCode() {
+            StringBuilder sb = new StringBuilder();
+
+            sb.append("function " + this.functionName + "(");
+            for(int i = 0; i < params.size(); i++) {
+                sb.append(params.get(i).getKey().id + params.get(i).getKey().pointerLevel + " ");
+                sb.append(params.get(i).getValue());
+                if(i < params.size() - 1) {
+                    sb.append(", ");
+                }
+            }
+            sb.append(")");
+
+            if(compoundStmt != null) {
+                sb.append(EOL);
+                sb.append(compoundStmt.generateCode());
+            } else {
+                sb.append(";");
+            }
+
             return sb.toString();
         }
 
@@ -327,6 +370,19 @@ public class ASTNode {
                 return sb.toString();
             }
 
+            public String generateCode() {
+                StringBuilder sb = new StringBuilder();
+                sb.append("{" + EOL);
+
+                for(int i = 0; i < this.children.size(); i++) {
+                    if(this.children.get(i) == null) continue;
+                    sb.append(this.children.get(i).generateCode());
+                }
+
+                sb.append("}");
+                return sb.toString();
+            }
+
         }
 
         public static class ReturnStatement extends Statement {
@@ -349,6 +405,13 @@ public class ASTNode {
                     sb.append(this.children.get(i).printNode(indentLevel));
                 }
 
+                return sb.toString();
+            }
+
+            public String generateCode() {
+                StringBuilder sb = new StringBuilder();
+                sb.append("return ");
+                sb.append(";" + EOL);
                 return sb.toString();
             }
 
@@ -562,6 +625,13 @@ public class ASTNode {
                 left = ASTNode.ASTNodeResolver(node.children.get(0));
                 right = ASTNode.ASTNodeResolver(node.children.get(2));
             }
+
+            public String generateCode() {
+                StringBuilder sb = new StringBuilder();
+
+                return sb.toString();
+            }
+
         }
 
         public static class AssignmentExpression extends Expression {
@@ -725,6 +795,10 @@ public class ASTNode {
             return sb.toString();
         }
 
+        public String generateCode() {
+            return "";
+        }
+
     }
 
     public static String toPrettyASTString(ASTNode node) {
@@ -741,7 +815,6 @@ public class ASTNode {
 
         for(int i = 0; i < node.children.size(); i++) {
             if(node.children.get(i) == null) continue;
-            //sb.append(getASTString(node.children.get(i), ++indentLevel));
             sb.append(node.children.get(i).printNode(indentLevel));
         }
 

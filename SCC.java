@@ -109,23 +109,20 @@ public class SCC {
 
         System.out.println("done!");
 
-        /* Lines from testing AST implementation */
-        List<String> ruleNamesList = Arrays.asList(parser.getRuleNames());
-        //AST data structure created here
-        ASTNode an = TreeUtils.generateAST(tree, ruleNamesList);
-
-        System.out.println(ASTNode.toPrettyASTString(an));
-
         /* List of symbol tables, one for each scope. The first is the global table */
         ArrayList<SymbolTable> symbols = new ArrayList<SymbolTable>();
-        //symbols.add(new SymbolTable(0)); // Add the global symbol table to list
+        symbols.add(new SymbolTable()); // Add the global symbol table to list
         // TODO: Make a class/function that walks an AST to populate/add symbol tables
         // TODO: Add error messages when invalid declarations are made
     }
 
     private static void printAST(RuleContext rc, String[] ruleNames, String filename) {
         List<String> ruleNamesList = Arrays.asList(ruleNames);
-        String prettyAST = TreeUtils.toASTPrettyTree(rc, ruleNamesList);
+        ASTNode an = TreeUtils.generateAST(rc, ruleNamesList);
+
+        System.out.println(generateIR(an)); /// REMOOOOOVE
+
+        String prettyAST = ASTNode.toPrettyASTString(an);
         System.out.println(prettyAST);
         if (filename != null) {
             try {
@@ -138,6 +135,10 @@ public class SCC {
                 System.out.println("An error occurred when attempting to save the output to a file");
             }
         }
+    }
+
+    private static String generateIR(ASTNode node) {
+        return node.generateCode();
     }
 
     private static void printParseTree(RuleContext rc, String[] ruleNames, String filename) {
