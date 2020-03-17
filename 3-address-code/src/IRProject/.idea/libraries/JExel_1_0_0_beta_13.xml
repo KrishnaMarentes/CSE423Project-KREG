@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="JExel-1_0_0-beta_13">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/CodeConvert/dist/lib/JExel-1_0_0-beta_13.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

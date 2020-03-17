@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="c7690a6d-e231-4309-a140-0f92c0d6c404" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CodeStyleSettingsInfer">
+    <option name="done" value="true" />
+  </component>
+  <component name="ProjectCodeStyleSettingsMigration">
+    <option name="version" value="1" />
+  </component>
+  <component name="ProjectId" id="1ZEHXwk1vBX3Vhf9b6ayJBKqmeI" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+  </component>
+  <component name="RunManager">
+    <configuration name="Test" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Test" />
+      <module name="IRProject" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.Test" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="c7690a6d-e231-4309-a140-0f92c0d6c404" name="Default Changelist" comment="" />
+      <created>1584397376044</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1584397376044</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state width="1238" height="175" key="GridCell.Tab.0.bottom" timestamp="1584474206253">
+      <screen x="0" y="23" width="1280" height="711" />
+    </state>
+    <state width="1238" height="175" key="GridCell.Tab.0.bottom/0.23.1280.711@0.23.1280.711" timestamp="1584474206253" />
+    <state width="1238" height="175" key="GridCell.Tab.0.center" timestamp="1584474206250">
+      <screen x="0" y="23" width="1280" height="711" />
+    </state>
+    <state width="1238" height="175" key="GridCell.Tab.0.center/0.23.1280.711@0.23.1280.711" timestamp="1584474206250" />
+    <state width="1238" height="175" key="GridCell.Tab.0.left" timestamp="1584474206249">
+      <screen x="0" y="23" width="1280" height="711" />
+    </state>
+    <state width="1238" height="175" key="GridCell.Tab.0.left/0.23.1280.711@0.23.1280.711" timestamp="1584474206249" />
+    <state width="1238" height="175" key="GridCell.Tab.0.right" timestamp="1584474206252">
+      <screen x="0" y="23" width="1280" height="711" />
+    </state>
+    <state width="1238" height="175" key="GridCell.Tab.0.right/0.23.1280.711@0.23.1280.711" timestamp="1584474206252" />
+    <state x="269" y="79" key="NewModule_or_Project.wizard" timestamp="1584480008865">
+      <screen x="0" y="23" width="1280" height="711" />
+    </state>
+    <state x="269" y="79" key="NewModule_or_Project.wizard/0.23.1280.711@0.23.1280.711" timestamp="1584480008865" />
+  </component>
+</project>
