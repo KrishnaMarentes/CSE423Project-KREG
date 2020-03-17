@@ -62,12 +62,46 @@ public class Statement extends ASTNode {
             StringBuilder sb = new StringBuilder();
             sb.append("{" + EOL);
 
+            //just print variable declarations
             for(int i = 0; i < this.children.size(); i++) {
-                if(this.children.get(i) == null) continue;
+                if(this.children.get(i) == null || !(this.children.get(i) instanceof VarDeclaration)) continue;
                 sb.append(this.children.get(i).generateCode());
             }
 
-            sb.append("}");
+            if(sb.length() > ("{"+EOL).length()) {
+                sb.append(EOL);
+            }
+
+            for(int i = 0; i < this.children.size(); i++) {
+                if(this.children.get(i) == null) continue;
+                //this takes care of VarDeclaration assignments
+                if(this.children.get(i) instanceof VarDeclaration) {
+                    VarDeclaration v = ((VarDeclaration) this.children.get(i));
+                    for(int j = 0; j < v.vars.size(); j++) {
+                        if(v.vars.get(j).getValue() == null) continue;
+                        String expression = v.vars.get(j).getValue().generateCode();
+                        //try to do reversals in expression, I think
+                        //expression recursion might make it difficult though
+                        //recursion will always make it backwards
+                        String[] exp_list = Expression.getModifiedExpressionString(expression);
+                        String[] list_2 = exp_list[exp_list.length - 1].split(" ");
+                        for(int k = 0; k < exp_list.length && list_2.length != 1; k++) {
+                            sb.append(exp_list[k] + EOL);
+                        }
+                        if(list_2.length > 1) {
+                            String sub = exp_list[exp_list.length - 1].split(" = ")[1];
+                            sb.append(v.vars.get(j).getKey() + " = " + sub + EOL);
+                        }
+                        else {
+                            sb.append(v.vars.get(j).getKey() + " = " + list_2[0] + ";" + EOL);
+                        }
+                    }
+                } else {
+                    sb.append(this.children.get(i).generateCode());
+                }
+            }
+
+            sb.append("}" + EOL);
             return sb.toString();
         }
 
@@ -98,8 +132,20 @@ public class Statement extends ASTNode {
 
         public String generateCode() {
             StringBuilder sb = new StringBuilder();
+            String expression = this.children.get(0).generateCode();
+            String[] generatedStrings = Expression.getModifiedExpressionString(expression);
+            String[] lastVar = generatedStrings[generatedStrings.length - 1].split(" ");
+            for(int i = 0; i < generatedStrings.length - 1 && lastVar.length != 1; i++) {
+                sb.append(generatedStrings[i] + EOL);
+            }
             sb.append("return ");
-            sb.append(";" + EOL);
+            if(lastVar.length > 1) {
+                String sub = generatedStrings[generatedStrings.length - 1].split(" = ")[1];
+                sb.append(sub + EOL);
+            }
+            else {
+                sb.append(lastVar[0] + ";" + EOL);
+            }
             return sb.toString();
         }
 
@@ -176,6 +222,20 @@ public class Statement extends ASTNode {
                     sb.append(ASTNode.lead(indentLevel) + "else" + EOL);
                     ++indentLevel;
                     sb.append(elseBody.printNode(indentLevel));
+                }
+
+                return sb.toString();
+            }
+
+            public String generateCode() {
+                StringBuilder sb = new StringBuilder();
+                ArrayList<String> tagList = new ArrayList<>();
+
+                tagList.add(tagCreator()); //beginning tag
+                tagList.add(tagCreator()); //end tag
+
+                for(int i = 1; i < elseIfList.size(); i++) {
+                    tagList.add(i, tagCreator());
                 }
 
                 return sb.toString();
@@ -287,6 +347,10 @@ public class Statement extends ASTNode {
             return new ExpressionStatement(node);
         }
         return new Statement(node);
+    }
+
+    public static String tagCreator() {
+        return "<" + Expression.tmpVar + Expression.globalCounter++ + ">:";
     }
 
 }

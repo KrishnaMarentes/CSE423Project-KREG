@@ -1,6 +1,10 @@
 import java.util.ArrayList;
 
 public class Expression extends ASTNode {
+
+    public static int globalCounter = 0;
+    public static final String tmpVar = "KREG.";
+
     public ASTNode left;
     public ASTNode right;
     public String symbol;
@@ -26,8 +30,31 @@ public class Expression extends ASTNode {
         public String generateCode() {
             StringBuilder sb = new StringBuilder();
 
+            sb.append(tmpVar + globalCounter++ + " = ");
+            if(left instanceof Constant || left instanceof Mutable) {
+                sb.append(left.generateCode() + " " + this.symbol + " ");
+            } else {
+                sb.append(tmpVar + globalCounter++ + " " + this.symbol + " ");
+            }
+
+            if(right instanceof Constant || right instanceof Mutable) {
+                sb.append(right.generateCode() + ";" + EOL);
+            } else {
+                sb.append(tmpVar + globalCounter + ";" + EOL);
+            }
+
+            if(!(left instanceof Constant || left instanceof Mutable)) {
+                globalCounter--;
+                sb.append(left.generateCode());
+            }
+
+            if(!(right instanceof Constant || right instanceof Mutable)) {
+                sb.append(right.generateCode());
+            }
+
             return sb.toString();
         }
+
 
     }
 
@@ -38,6 +65,27 @@ public class Expression extends ASTNode {
             symbol = node.children.get(1).id;
             left = ASTNode.ASTNodeResolver(node.children.get(0));
             right = ASTNode.ASTNodeResolver(node.children.get(2));
+        }
+
+        public String generateCode() {
+            StringBuilder sb = new StringBuilder();
+
+            String expression = right.generateCode();
+            String[] generatedStrings = Expression.getModifiedExpressionString(expression);
+            String[] lastVar = generatedStrings[generatedStrings.length - 1].split(" ");
+            for(int i = 0; i < generatedStrings.length - 1 && lastVar.length != 1; i++) {
+                sb.append(generatedStrings[i] + EOL);
+            }
+            sb.append(left.generateCode() + " " + this.symbol + " ");
+            if(lastVar.length > 1) {
+                String sub = generatedStrings[generatedStrings.length - 1].split(" = ")[1];
+                sb.append(sub + EOL);
+            }
+            else {
+                sb.append(lastVar[0] + ";" + EOL);
+            }
+
+            return sb.toString();
         }
     }
 
@@ -118,6 +166,10 @@ public class Expression extends ASTNode {
                 return this.id;
             return ASTNode.lead(indentLevel) + this.id + EOL;
         }
+
+        public String generateCode() {
+            return this.id;
+        }
     }
 
     public static class Mutable extends Expression {
@@ -136,6 +188,10 @@ public class Expression extends ASTNode {
         public String printNode(int indentLevel) {
             return ASTNode.lead(indentLevel) + this.id + EOL;
         }
+
+        public String generateCode() {
+            return this.id;
+        }
     }
 
     public static class Immutable extends Expression {
@@ -147,6 +203,10 @@ public class Expression extends ASTNode {
 
         public String printNode(int indentLevel) {
             return expression.printNode(indentLevel);
+        }
+
+        public String generateCode() {
+            return expression.generateCode();
         }
 
     }
@@ -178,6 +238,44 @@ public class Expression extends ASTNode {
 
             return sb.toString();
         }
+
+        public String generateCode() {
+            StringBuilder sb = new StringBuilder();
+            ArrayList<String> args = new ArrayList<>();
+            ArrayList<String> toPrint = new ArrayList<>();
+
+            for(int i = 0; i < this.children.size(); i++) {
+                String expr = this.children.get(i).generateCode();
+                String[] exp_list = getModifiedExpressionString(expr);
+                String[] lastVar = exp_list[exp_list.length - 1].split(" ");
+                for(int j = 0; j < exp_list.length && lastVar.length != 1; j++) {
+//                    sb.append(exp_list[j] + EOL);
+                    toPrint.add(exp_list[j] + EOL);
+                }
+                args.add(lastVar[0]);
+//                if(lastVar.length > 1) {
+//                    //String sub = exp_list[exp_list.length - 1].split(" = ")[1];
+//                    //sb.append(sub + EOL);
+//                    args.add(lastVar[0]);
+//                }
+//                if(i != this.children.size() - 1) {
+//                    sb.append(", ");
+//                }
+            }
+            sb.append(funcName + "(");
+            for(int i = 0; i < args.size(); i++) {
+                sb.append(args.get(i));
+                if(i != args.size() - 1) {
+                    sb.append(", ");
+                }
+            }
+            sb.append(")" + EOL);
+            for(int i = 0; i < toPrint.size(); i++) {
+                sb.append(toPrint.get(i));
+            }
+
+            return sb.toString();
+        }
     }
 
 
@@ -194,6 +292,10 @@ public class Expression extends ASTNode {
 
     public String generateCode() {
         return "";
+    }
+
+    public static String[] getModifiedExpressionString(String expr) {
+        return ASTNode.ArrayReverse(expr.split(EOL));
     }
 
 }

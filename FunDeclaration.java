@@ -39,10 +39,16 @@ public class FunDeclaration extends ASTNode {
 
     public ArrayList<Pair<TypeSpecifier, String>> paramResolver(ASTNode node) {
         ArrayList<Pair<TypeSpecifier, String>> p = new ArrayList<>();
-        for(int i = 0; i < node.children.size(); i++) {
-            if(node.children.get(i) == null || node.children.get(i).id.equals(",")) continue;
-            TypeSpecifier t = TypeSpecifier.TypeSpecifierResolver(node.children.get(i).children.get(0));
-            String param = node.children.get(i).children.get(1).id;
+        if(node.id.equals("params")) {
+            for(int i = 0; i < node.children.size(); i++) {
+                if(node.children.get(i) == null || node.children.get(i).id.equals(",")) continue;
+                TypeSpecifier t = TypeSpecifier.TypeSpecifierResolver(node.children.get(i).children.get(0));
+                String param = node.children.get(i).children.get(1).id;
+                p.add(new Pair<TypeSpecifier, String>(t, param));
+            }
+        } else { //id = parameter?
+            TypeSpecifier t = TypeSpecifier.TypeSpecifierResolver(node.children.get(0));
+            String param = node.children.get(1).id;
             p.add(new Pair<TypeSpecifier, String>(t, param));
         }
         return p;
