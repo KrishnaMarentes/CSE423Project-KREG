@@ -1,11 +1,168 @@
 program 
   declarationList 
+    declarationList 
+      declaration 
+        funDeclaration 
+          typeSpecifier int
+          foo(
+          params 
+            params 
+              parameter 
+                typeSpecifier int
+                paramId m
+            ,
+            parameter 
+              typeSpecifier int
+              paramId f
+          )
+          compoundStmt {
+            statementList statementList
+              statement 
+                returnStmt return
+                  expression 
+                    simpleExpression 
+                      andExpression 
+                        unaryRelExpression 
+                          relExpression 
+                            sumExpression 
+                              sumExpression 
+                                mulExpression 
+                                  unaryExpression 
+                                    factor 
+                                      mutable m
+                              sumop +
+                              mulExpression 
+                                unaryExpression 
+                                  factor 
+                                    mutable f
+                  ;
+            }
     declaration 
       funDeclaration 
         typeSpecifier int
-        main(params)
+        main(
+        params 
+          params 
+            parameter 
+              typeSpecifier int
+              paramId argc
+          ,
+          parameter 
+            typeSpecifier char
+            paramId **argv
+        )
         compoundStmt {
-          statementList statementList
+          statementList 
+            statementList 
+              statementList 
+                statementList 
+                  statementList statementList
+                    varDeclaration 
+                      typeSpecifier int
+                      varDeclList 
+                        varDeclInitialize 
+                          varDeclId m
+                      ;
+                  varDeclaration 
+                    typeSpecifier float
+                    varDeclList 
+                      varDeclList 
+                        varDeclInitialize 
+                          varDeclId t
+                      ,
+                      varDeclInitialize 
+                        varDeclId f
+                    ;
+                statement 
+                  expressionStmt 
+                    expression 
+                      mutable m
+                      =
+                      expression 
+                        simpleExpression 
+                          andExpression 
+                            unaryRelExpression 
+                              relExpression 
+                                sumExpression 
+                                  mulExpression 
+                                    mulExpression 
+                                      unaryExpression 
+                                        factor 
+                                          immutable 
+                                            call foo(
+                                              args 
+                                                argList 
+                                                  expression 
+                                                    simpleExpression 
+                                                      andExpression 
+                                                        unaryRelExpression 
+                                                          relExpression 
+                                                            sumExpression 
+                                                              mulExpression 
+                                                                unaryExpression 
+                                                                  factor 
+                                                                    immutable 
+                                                                      call foo2(args)
+                                              )
+                                    mulop *
+                                    unaryExpression 
+                                      factor 
+                                        immutable 
+                                          constant 2
+                    ;
+              statement 
+                expressionStmt 
+                  expression 
+                    mutable t
+                    =
+                    expression 
+                      simpleExpression 
+                        andExpression 
+                          unaryRelExpression 
+                            relExpression 
+                              sumExpression 
+                                mulExpression 
+                                  mulExpression 
+                                    unaryExpression 
+                                      factor 
+                                        mutable m
+                                  mulop *
+                                  unaryExpression 
+                                    factor 
+                                      immutable 
+                                        call foo(
+                                          args 
+                                            argList 
+                                              argList 
+                                                expression 
+                                                  simpleExpression 
+                                                    andExpression 
+                                                      unaryRelExpression 
+                                                        relExpression 
+                                                          sumExpression 
+                                                            mulExpression 
+                                                              mulExpression 
+                                                                unaryExpression 
+                                                                  factor 
+                                                                    mutable m
+                                                              mulop *
+                                                              unaryExpression 
+                                                                factor 
+                                                                  immutable 
+                                                                    constant 5
+                                              ,
+                                              expression 
+                                                simpleExpression 
+                                                  andExpression 
+                                                    unaryRelExpression 
+                                                      relExpression 
+                                                        sumExpression 
+                                                          mulExpression 
+                                                            unaryExpression 
+                                                              factor 
+                                                                mutable f
+                                          )
+                  ;
             statement 
               returnStmt return
                 expression 
@@ -14,29 +171,94 @@ program
                       unaryRelExpression 
                         relExpression 
                           sumExpression 
-                            mulExpression 
+                            sumExpression 
+                              sumExpression 
+                                mulExpression 
+                                  unaryExpression 
+                                    factor 
+                                      mutable m
+                              sumop +
                               mulExpression 
                                 unaryExpression 
                                   factor 
                                     immutable 
-                                      constant 1
-                              mulop *
+                                      constant 4
+                            sumop +
+                            mulExpression 
                               unaryExpression 
                                 factor 
-                                  immutable 
-                                    constant 2
+                                  immutable (
+                                    expression 
+                                      simpleExpression 
+                                        andExpression 
+                                          unaryRelExpression 
+                                            relExpression 
+                                              sumExpression 
+                                                mulExpression 
+                                                  mulExpression 
+                                                    unaryExpression 
+                                                      factor 
+                                                        immutable 
+                                                          constant 6
+                                                  mulop *
+                                                  unaryExpression 
+                                                    factor 
+                                                      immutable 
+                                                        constant 99
+                                    )
                 ;
           }
   <EOF>
 
-program 
-  funDeclaration 
-    typeSpecifier int
+program
+  FunDeclaration
+    int
+    foo
+      int m
+      int f
+    Body
+      ReturnStatement
+        +
+          m
+          f
+  FunDeclaration
+    int
     main
-    returnStmt return
-      mulExpression 
-        constant 1
-        mulop *
-        constant 2
+      int argc
+      char *
+    Body
+      VarDeclaration
+        int
+          m
+      VarDeclaration
+        float
+          t
+          f
+      =
+        m
+        *
+          call
+            foo
+              call
+                foo2
+          2
+      =
+        t
+        *
+          m
+          call
+            foo
+              *
+                m
+                5
+              f
+      ReturnStatement
+        +
+          +
+            m
+            4
+          *
+            6
+            99
 
 

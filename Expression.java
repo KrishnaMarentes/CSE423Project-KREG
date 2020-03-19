@@ -15,6 +15,13 @@ public class Expression extends ASTNode {
         symbol = null;
     }
 
+    public static String getLastAssignedVar(String ir) {
+        String[] lines = ir.split("\r\n");
+        String lastVar = lines[lines.length-1];
+        lastVar = lastVar.split(" ")[0];
+        return lastVar;
+    }
+
     public static class OpExpression extends Expression {
         public OpExpression(ASTNode node) {
             super(node);
@@ -27,10 +34,52 @@ public class Expression extends ASTNode {
             right = ASTNode.ASTNodeResolver(node.children.get(2));
         }
 
-        public String generateCode() {
+        /* New strategy: recurse first, then print.
+         * This way we don't need to print IR lines backwards.
+         * See https://en.wikipedia.org/wiki/Recursion_(computer_science)#Order_of_execution
+         */
+        public String generateCode(){
             StringBuilder sb = new StringBuilder();
+            // Use correct tmp names
+            String leftTmp;
+            String rightTmp;
 
-            sb.append(tmpVar + globalCounter++ + " = ");
+            // No recursion necessary for either operand
+            if((left instanceof Constant || left instanceof Mutable) &&
+                    (right instanceof Constant || right instanceof Mutable)) {
+                sb.append(tmpVar + globalCounter++ + " = " + left.id + " " +
+                        this.symbol + " " + right.id + ";" + EOL);
+                return sb.toString();
+            }
+
+            // Otherwise, recurse in!
+            else {
+                if (!(left instanceof Constant || left instanceof Mutable)) {
+                    leftTmp = left.generateCode();
+                    sb.append(leftTmp); // record any tmpVars created by the left's IR
+
+                    // Grab just the last tmp var assigned
+                    leftTmp = getLastAssignedVar(leftTmp);
+                } else {
+                    leftTmp = left.id;
+                }
+                if(!(right instanceof Constant || right instanceof Mutable)) {
+                    rightTmp = right.generateCode();
+                    sb.append(rightTmp);
+                    // Grab just the last tmp var assigned
+                    rightTmp = getLastAssignedVar(rightTmp);
+                } else {
+                    rightTmp = right.id;
+                }
+            }
+
+            sb.append(tmpVar + globalCounter++ + " = " +
+                    leftTmp + " " + this.symbol + " " + rightTmp + ";" + EOL);
+
+            return sb.toString();
+
+            /* Geoff's nonsense preserved for all to see */
+            /*sb.append(tmpVar + globalCounter++ + " = ");
             if(left instanceof Constant || left instanceof Mutable) {
                 sb.append(left.generateCode() + " " + this.symbol + " ");
             } else {
@@ -50,9 +99,7 @@ public class Expression extends ASTNode {
 
             if(!(right instanceof Constant || right instanceof Mutable)) {
                 sb.append(right.generateCode());
-            }
-
-            return sb.toString();
+            }*/
         }
 
 
@@ -69,9 +116,20 @@ public class Expression extends ASTNode {
 
         public String generateCode() {
             StringBuilder sb = new StringBuilder();
+            String lastTmp;
 
             String expression = right.generateCode();
-            String[] generatedStrings = Expression.getModifiedExpressionString(expression);
+            //String[] generatedStrings = Expression.getModifiedExpressionString(expression);
+            sb.append(expression);
+
+            /* Every op expression resolves the right hand side into one tmpVar.
+            * The following lines assign the current LHS variable name to that tmpVar */
+            lastTmp = getLastAssignedVar(expression);
+            sb.append(left.id + " = " + lastTmp + ";" + EOL);
+
+            return sb.toString();
+            // Geoff approach
+            /*String[] generatedStrings = Expression.getModifiedExpressionString(expression);
             String[] lastVar = generatedStrings[generatedStrings.length - 1].split(" ");
             for(int i = 0; i < generatedStrings.length - 1 && lastVar.length != 1; i++) {
                 sb.append(generatedStrings[i] + EOL);
@@ -86,6 +144,7 @@ public class Expression extends ASTNode {
             }
 
             return sb.toString();
+            */
         }
     }
 
@@ -241,11 +300,24 @@ public class Expression extends ASTNode {
 
         public String generateCode() {
             StringBuilder sb = new StringBuilder();
+            String lastTmp;
             ArrayList<String> args = new ArrayList<>();
-            ArrayList<String> toPrint = new ArrayList<>();
+            //ArrayList<String> toPrint = new ArrayList<>();
 
             for(int i = 0; i < this.children.size(); i++) {
                 String expr = this.children.get(i).generateCode();
+
+                /* Only append this argument's IR to output if tmpVars were made  */
+                if (expr.indexOf(tmpVar) >= 0) {
+                    sb.append(expr);
+                }
+
+                /* Add the name of the arg to the args list */
+                lastTmp = getLastAssignedVar(expr);
+                args.add(lastTmp);
+
+            }
+ /*
                 String[] exp_list = getModifiedExpressionString(expr);
                 String[] lastVar = exp_list[exp_list.length - 1].split(" ");
                 for(int j = 0; j < exp_list.length && lastVar.length != 1; j++) {
@@ -262,6 +334,9 @@ public class Expression extends ASTNode {
 //                    sb.append(", ");
 //                }
             }
+*/
+            sb.append(tmpVar + globalCounter++ + " = ");
+
             sb.append(funcName + "(");
             for(int i = 0; i < args.size(); i++) {
                 sb.append(args.get(i));
@@ -270,9 +345,10 @@ public class Expression extends ASTNode {
                 }
             }
             sb.append(")" + EOL);
-            for(int i = 0; i < toPrint.size(); i++) {
+
+            /*for(int i = 0; i < toPrint.size(); i++) {
                 sb.append(toPrint.get(i));
-            }
+            }*/
 
             return sb.toString();
         }

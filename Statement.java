@@ -64,7 +64,8 @@ public class Statement extends ASTNode {
 
             //just print variable declarations
             for(int i = 0; i < this.children.size(); i++) {
-                if(this.children.get(i) == null || !(this.children.get(i) instanceof VarDeclaration)) continue;
+                if(this.children.get(i) == null ||
+                        !(this.children.get(i) instanceof VarDeclaration)) continue;
                 sb.append(this.children.get(i).generateCode());
             }
 
@@ -80,10 +81,23 @@ public class Statement extends ASTNode {
                     for(int j = 0; j < v.vars.size(); j++) {
                         if(v.vars.get(j).getValue() == null) continue;
                         String expression = v.vars.get(j).getValue().generateCode();
+
+                        /* Either we need to print all the tmpVars generated in the
+                        * expression, then assign the variable name to the last tmpVar..*/
+                        if (expression.indexOf("KREG") >= 0) { // hacky using string literal but whatever
+                            sb.append(expression);
+                            String lastVar = Expression.getLastAssignedVar(expression);
+                            sb.append(v.vars.get(j).getKey() + " = " + lastVar + ";" + EOL);
+                        } else { /* Or just print the variable and its original value */
+                            sb.append(v.vars.get(j).getKey() + " = " +
+                                    v.vars.get(j).getValue().id + ";" + EOL);
+                        }
+
+                        /* Geoff's nonsense below */
                         //try to do reversals in expression, I think
                         //expression recursion might make it difficult though
                         //recursion will always make it backwards
-                        String[] exp_list = Expression.getModifiedExpressionString(expression);
+                        /*String[] exp_list = Expression.getModifiedExpressionString(expression);
                         String[] list_2 = exp_list[exp_list.length - 1].split(" ");
                         for(int k = 0; k < exp_list.length && list_2.length != 1; k++) {
                             sb.append(exp_list[k] + EOL);
@@ -94,7 +108,7 @@ public class Statement extends ASTNode {
                         }
                         else {
                             sb.append(v.vars.get(j).getKey() + " = " + list_2[0] + ";" + EOL);
-                        }
+                        }*/
                     }
                 } else {
                     sb.append(this.children.get(i).generateCode());
@@ -133,19 +147,26 @@ public class Statement extends ASTNode {
         public String generateCode() {
             StringBuilder sb = new StringBuilder();
             String expression = this.children.get(0).generateCode();
-            String[] generatedStrings = Expression.getModifiedExpressionString(expression);
-            String[] lastVar = generatedStrings[generatedStrings.length - 1].split(" ");
-            for(int i = 0; i < generatedStrings.length - 1 && lastVar.length != 1; i++) {
+            //String[] generatedStrings = Expression.getModifiedExpressionString(expression);
+            //String[] lastVar = generatedStrings[generatedStrings.length - 1].split(" ");
+            String lastVar;
+            // if no tmpvar was made in last expr, just take the first term
+            if (expression.indexOf("KREG") < 0)
+                lastVar = expression.split(" ")[0];
+            else
+                lastVar = Expression.getLastAssignedVar(expression);
+            /*for(int i = 0; i < generatedStrings.length - 1 && lastVar.length != 1; i++) {
                 sb.append(generatedStrings[i] + EOL);
-            }
-            sb.append("return ");
-            if(lastVar.length > 1) {
+            }*/
+            sb.append(expression);
+            sb.append("return " + lastVar + ";" + EOL);
+            /*if(lastVar.length > 1) {
                 String sub = generatedStrings[generatedStrings.length - 1].split(" = ")[1];
                 sb.append(sub + EOL);
             }
             else {
                 sb.append(lastVar[0] + ";" + EOL);
-            }
+            }*/
             return sb.toString();
         }
 
