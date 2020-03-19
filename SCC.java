@@ -22,9 +22,7 @@ public class SCC {
 
         if(args.length > 0) {
             try {
-                /*
-                Command line arguments for file name, parse tree, or token list
-                 */
+                /* Command line arguments for file name, parse tree, IR, or token list */
                 if (args[0].charAt(0) == '-') {
                     for (i = 1; i < args[0].length(); i++) {
                         opt = args[0].charAt(i);
@@ -211,10 +209,11 @@ public class SCC {
 
     private static void usage() {
         System.out.println("usage: java [OPTS] FILENAME");
-        System.out.println("OPTS: [t, p, a, s]");
+        System.out.println("OPTS: [t, p, a, i, s]");
         System.out.println("t: Print the tokens");
         System.out.println("p: Print the parse tree");
         System.out.println("a: Print the abstract syntax tree");
+        System.out.println("i: Print the intermediate representation");
         System.out.println("s: Save all printing to a file named 'FILENAME.out'");
         System.out.println("FILENAME: file path");
     }

@@ -92,23 +92,6 @@ public class Statement extends ASTNode {
                             sb.append(v.vars.get(j).getKey() + " = " +
                                     v.vars.get(j).getValue().id + ";" + EOL);
                         }
-
-                        /* Geoff's nonsense below */
-                        //try to do reversals in expression, I think
-                        //expression recursion might make it difficult though
-                        //recursion will always make it backwards
-                        /*String[] exp_list = Expression.getModifiedExpressionString(expression);
-                        String[] list_2 = exp_list[exp_list.length - 1].split(" ");
-                        for(int k = 0; k < exp_list.length && list_2.length != 1; k++) {
-                            sb.append(exp_list[k] + EOL);
-                        }
-                        if(list_2.length > 1) {
-                            String sub = exp_list[exp_list.length - 1].split(" = ")[1];
-                            sb.append(v.vars.get(j).getKey() + " = " + sub + EOL);
-                        }
-                        else {
-                            sb.append(v.vars.get(j).getKey() + " = " + list_2[0] + ";" + EOL);
-                        }*/
                     }
                 } else {
                     sb.append(this.children.get(i).generateCode());
@@ -147,26 +130,17 @@ public class Statement extends ASTNode {
         public String generateCode() {
             StringBuilder sb = new StringBuilder();
             String expression = this.children.get(0).generateCode();
-            //String[] generatedStrings = Expression.getModifiedExpressionString(expression);
-            //String[] lastVar = generatedStrings[generatedStrings.length - 1].split(" ");
             String lastVar;
+
             // if no tmpvar was made in last expr, just take the first term
-            if (expression.indexOf("KREG") < 0)
+            if (expression.indexOf("KREG") < 0) {
                 lastVar = expression.split(" ")[0];
-            else
+            } else {
                 lastVar = Expression.getLastAssignedVar(expression);
-            /*for(int i = 0; i < generatedStrings.length - 1 && lastVar.length != 1; i++) {
-                sb.append(generatedStrings[i] + EOL);
-            }*/
-            sb.append(expression);
-            sb.append("return " + lastVar + ";" + EOL);
-            /*if(lastVar.length > 1) {
-                String sub = generatedStrings[generatedStrings.length - 1].split(" = ")[1];
-                sb.append(sub + EOL);
+                sb.append(expression);
             }
-            else {
-                sb.append(lastVar[0] + ";" + EOL);
-            }*/
+            sb.append("return " + lastVar + ";" + EOL);
+
             return sb.toString();
         }
 
@@ -181,6 +155,7 @@ public class Statement extends ASTNode {
         }
 
         public static class IfStatement extends SelectionStatement {
+            // Map of children of an IfStatement:
             //0     1       2        3        4        5        6      7
             //IF LPAREN expression RPAREN statement elsifList ELSE statement
             public ArrayList<Pair<Expression, Statement>> elseIfList;

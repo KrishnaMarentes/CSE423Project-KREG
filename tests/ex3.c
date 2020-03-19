@@ -4,9 +4,10 @@ int foo(int m, int f) {
 
 int main(int argc, char** argv)
 {
-    int m;
+    int m, a;
     float t, f;
 
+    a = 1;
     m = foo(foo2()) * 2;
     t = m * foo(m*5, f);
 

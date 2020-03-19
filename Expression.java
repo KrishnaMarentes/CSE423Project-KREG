@@ -8,6 +8,7 @@ public class Expression extends ASTNode {
     public ASTNode left;
     public ASTNode right;
     public String symbol;
+
     public Expression(ASTNode node) {
         super(node.id);
         left = null;
@@ -15,6 +16,9 @@ public class Expression extends ASTNode {
         symbol = null;
     }
 
+    /* Utility function to get the last assigned variable from a
+     * string, presumably from a generateCode() call.
+     */
     public static String getLastAssignedVar(String ir) {
         String[] lines = ir.split("\r\n");
         String lastVar = lines[lines.length-1];
@@ -34,10 +38,6 @@ public class Expression extends ASTNode {
             right = ASTNode.ASTNodeResolver(node.children.get(2));
         }
 
-        /* New strategy: recurse first, then print.
-         * This way we don't need to print IR lines backwards.
-         * See https://en.wikipedia.org/wiki/Recursion_(computer_science)#Order_of_execution
-         */
         public String generateCode(){
             StringBuilder sb = new StringBuilder();
             // Use correct tmp names
@@ -77,29 +77,6 @@ public class Expression extends ASTNode {
                     leftTmp + " " + this.symbol + " " + rightTmp + ";" + EOL);
 
             return sb.toString();
-
-            /* Geoff's nonsense preserved for all to see */
-            /*sb.append(tmpVar + globalCounter++ + " = ");
-            if(left instanceof Constant || left instanceof Mutable) {
-                sb.append(left.generateCode() + " " + this.symbol + " ");
-            } else {
-                sb.append(tmpVar + globalCounter++ + " " + this.symbol + " ");
-            }
-
-            if(right instanceof Constant || right instanceof Mutable) {
-                sb.append(right.generateCode() + ";" + EOL);
-            } else {
-                sb.append(tmpVar + globalCounter + ";" + EOL);
-            }
-
-            if(!(left instanceof Constant || left instanceof Mutable)) {
-                globalCounter--;
-                sb.append(left.generateCode());
-            }
-
-            if(!(right instanceof Constant || right instanceof Mutable)) {
-                sb.append(right.generateCode());
-            }*/
         }
 
 
@@ -119,8 +96,10 @@ public class Expression extends ASTNode {
             String lastTmp;
 
             String expression = right.generateCode();
-            //String[] generatedStrings = Expression.getModifiedExpressionString(expression);
-            sb.append(expression);
+
+            /* Only append if generateCode() call made new variables */
+            if (expression.indexOf(tmpVar) >= 0)
+                sb.append(expression);
 
             /* Every op expression resolves the right hand side into one tmpVar.
             * The following lines assign the current LHS variable name to that tmpVar */
@@ -128,23 +107,6 @@ public class Expression extends ASTNode {
             sb.append(left.id + " = " + lastTmp + ";" + EOL);
 
             return sb.toString();
-            // Geoff approach
-            /*String[] generatedStrings = Expression.getModifiedExpressionString(expression);
-            String[] lastVar = generatedStrings[generatedStrings.length - 1].split(" ");
-            for(int i = 0; i < generatedStrings.length - 1 && lastVar.length != 1; i++) {
-                sb.append(generatedStrings[i] + EOL);
-            }
-            sb.append(left.generateCode() + " " + this.symbol + " ");
-            if(lastVar.length > 1) {
-                String sub = generatedStrings[generatedStrings.length - 1].split(" = ")[1];
-                sb.append(sub + EOL);
-            }
-            else {
-                sb.append(lastVar[0] + ";" + EOL);
-            }
-
-            return sb.toString();
-            */
         }
     }
 
@@ -217,9 +179,7 @@ public class Expression extends ASTNode {
             this.id = node.children.get(0).id;
         }
 
-        //            public String printNode(int indentLevel) {
-//                return ASTNode.lead(indentLevel) + this.id + EOL;
-//            }
+
         public String printNode(int indentLevel) {
             if(indentLevel == -1)
                 return this.id;
@@ -276,7 +236,7 @@ public class Expression extends ASTNode {
             super(node);
             funcName = node.children.get(0).id; //function name that is being called, now ID
             ArrayList<ASTNode> args = node.children.get(2).children;
-//                node.children.get(2).children.clear();
+
             this.children.clear();
             for(int i = 0; i < args.size(); i++) {
                 if(args.get(i) == null || args.get(i).id.equals(",")) continue;
@@ -302,7 +262,6 @@ public class Expression extends ASTNode {
             StringBuilder sb = new StringBuilder();
             String lastTmp;
             ArrayList<String> args = new ArrayList<>();
-            //ArrayList<String> toPrint = new ArrayList<>();
 
             for(int i = 0; i < this.children.size(); i++) {
                 String expr = this.children.get(i).generateCode();
@@ -317,24 +276,7 @@ public class Expression extends ASTNode {
                 args.add(lastTmp);
 
             }
- /*
-                String[] exp_list = getModifiedExpressionString(expr);
-                String[] lastVar = exp_list[exp_list.length - 1].split(" ");
-                for(int j = 0; j < exp_list.length && lastVar.length != 1; j++) {
-//                    sb.append(exp_list[j] + EOL);
-                    toPrint.add(exp_list[j] + EOL);
-                }
-                args.add(lastVar[0]);
-//                if(lastVar.length > 1) {
-//                    //String sub = exp_list[exp_list.length - 1].split(" = ")[1];
-//                    //sb.append(sub + EOL);
-//                    args.add(lastVar[0]);
-//                }
-//                if(i != this.children.size() - 1) {
-//                    sb.append(", ");
-//                }
-            }
-*/
+
             sb.append(tmpVar + globalCounter++ + " = ");
 
             sb.append(funcName + "(");
@@ -345,10 +287,6 @@ public class Expression extends ASTNode {
                 }
             }
             sb.append(")" + EOL);
-
-            /*for(int i = 0; i < toPrint.size(); i++) {
-                sb.append(toPrint.get(i));
-            }*/
 
             return sb.toString();
         }
@@ -368,10 +306,6 @@ public class Expression extends ASTNode {
 
     public String generateCode() {
         return "";
-    }
-
-    public static String[] getModifiedExpressionString(String expr) {
-        return ASTNode.ArrayReverse(expr.split(EOL));
     }
 
 }
