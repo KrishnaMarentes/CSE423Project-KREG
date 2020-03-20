@@ -15,7 +15,7 @@ public class Program extends ASTNode {
         StringBuilder sb = new StringBuilder();
         for(int i = 0; i < this.children.size(); i++) {
             if(this.children.get(i) == null) continue;
-            sb.append(this.children.get(i).generateCode());
+            sb.append(this.children.get(i).generateCode() + EOL);
         }
         return sb.toString();
     }

@@ -1,42 +1,30 @@
-program 
-  declarationList 
-    declaration 
-      funDeclaration 
-        typeSpecifier int
-        main(params)
-        compoundStmt {
-          statementList statementList
-            statement 
-              returnStmt return
-                expression 
-                  simpleExpression 
-                    andExpression 
-                      unaryRelExpression 
-                        relExpression 
-                          sumExpression 
-                            mulExpression 
-                              mulExpression 
-                                unaryExpression 
-                                  factor 
-                                    immutable 
-                                      constant 1
-                              mulop *
-                              unaryExpression 
-                                factor 
-                                  immutable 
-                                    constant 2
-                ;
-          }
-  <EOF>
+function foo(int m, int f)
+{
+KREG.0 = m + f;
+return KREG.0;
+}
 
-program 
-  funDeclaration 
-    typeSpecifier int
-    main
-    returnStmt return
-      mulExpression 
-        constant 1
-        mulop *
-        constant 2
+function main(int argc, char *)
+{
+int m;
+int a;
+float t;
+float f;
+
+a = 1;
+KREG.1 = foo2()
+KREG.2 = foo(KREG.1)
+KREG.3 = KREG.2 * 2;
+m = KREG.3;
+KREG.4 = m * 5;
+KREG.5 = foo(KREG.4, f)
+KREG.6 = m * KREG.5;
+t = KREG.6;
+KREG.7 = m + 4;
+KREG.8 = 6 * 99;
+KREG.9 = KREG.7 + KREG.8;
+return KREG.9;
+}
+
 
 

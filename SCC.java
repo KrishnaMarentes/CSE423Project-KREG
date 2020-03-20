@@ -17,13 +17,12 @@ public class SCC {
         boolean print_tks = false;
         boolean print_pt = false;
         boolean print_ast = false;
+        boolean print_ir = false;
         boolean save_output = false;
 
         if(args.length > 0) {
             try {
-                /*
-                Command line arguments for file name, parse tree, or token list
-                 */
+                /* Command line arguments for file name, parse tree, IR, or token list */
                 if (args[0].charAt(0) == '-') {
                     for (i = 1; i < args[0].length(); i++) {
                         opt = args[0].charAt(i);
@@ -36,6 +35,9 @@ public class SCC {
                                 break;
                             case 'p':
                                 print_pt = true;
+                                break;
+                            case 'i':
+                                print_ir = true;
                                 break;
                             case 's':
                                 save_output = true;
@@ -99,12 +101,18 @@ public class SCC {
                 printParseTree(tree, parser.getRuleNames(), null);
         }
         if (print_ast) {
-            //TODO: Print AST from the AST structure itself, not from rulenames list
             System.out.println("printing abstract syntax tree...");
             if (save_output)
                 printAST(tree, parser.getRuleNames(), filename);
             else
                 printAST(tree, parser.getRuleNames(), null);
+        }
+        if (print_ir) {
+            System.out.println("printing IR...");
+            if (save_output)
+                printIR(tree, parser.getRuleNames(), filename);
+            else
+                printIR(tree, parser.getRuleNames(), null);
         }
 
         System.out.println("done!");
@@ -116,11 +124,28 @@ public class SCC {
         // TODO: Add error messages when invalid declarations are made
     }
 
-    private static void printAST(RuleContext rc, String[] ruleNames, String filename) {
+    private static void printIR(RuleContext rc, String[] ruleNames, String filename) {
         List<String> ruleNamesList = Arrays.asList(ruleNames);
         ASTNode an = TreeUtils.generateAST(rc, ruleNamesList);
 
-        System.out.println(generateIR(an)); /// REMOOOOOVE
+        String ir = generateIR(an);
+        System.out.println(ir);
+        if (filename != null) {
+            try {
+                FileWriter f = new FileWriter(filename + ".out", true);
+                BufferedWriter b = new BufferedWriter(f);
+                b.write(ir + "\n\n");
+                b.close();
+                f.close();
+            } catch (IOException e) {
+                System.out.println("An error occurred when attempting to save the output to a file");
+            }
+        }
+    }
+
+    private static void printAST(RuleContext rc, String[] ruleNames, String filename) {
+        List<String> ruleNamesList = Arrays.asList(ruleNames);
+        ASTNode an = TreeUtils.generateAST(rc, ruleNamesList);
 
         String prettyAST = ASTNode.toPrettyASTString(an);
         System.out.println(prettyAST);
@@ -182,10 +207,11 @@ public class SCC {
 
     private static void usage() {
         System.out.println("usage: java [OPTS] FILENAME");
-        System.out.println("OPTS: [t, p, a, s]");
+        System.out.println("OPTS: [t, p, a, i, s]");
         System.out.println("t: Print the tokens");
         System.out.println("p: Print the parse tree");
         System.out.println("a: Print the abstract syntax tree");
+        System.out.println("i: Print the intermediate representation");
         System.out.println("s: Save all printing to a file named 'FILENAME.out'");
         System.out.println("FILENAME: file path");
     }

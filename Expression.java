@@ -1,14 +1,29 @@
 import java.util.ArrayList;
 
 public class Expression extends ASTNode {
+
+    public static int globalCounter = 0;
+    public static final String tmpVar = "KREG.";
+
     public ASTNode left;
     public ASTNode right;
     public String symbol;
+
     public Expression(ASTNode node) {
         super(node.id);
         left = null;
         right = null;
         symbol = null;
+    }
+
+    /* Utility function to get the last assigned variable from a
+     * string, presumably from a generateCode() call.
+     */
+    public static String getLastAssignedVar(String ir) {
+        String[] lines = ir.split("\r\n");
+        String lastVar = lines[lines.length-1];
+        lastVar = lastVar.split(" ")[0];
+        return lastVar;
     }
 
     public static class OpExpression extends Expression {
@@ -23,11 +38,47 @@ public class Expression extends ASTNode {
             right = ASTNode.ASTNodeResolver(node.children.get(2));
         }
 
-        public String generateCode() {
+        public String generateCode(){
             StringBuilder sb = new StringBuilder();
+            // Use correct tmp names
+            String leftTmp;
+            String rightTmp;
+
+            // No recursion necessary for either operand
+            if((left instanceof Constant || left instanceof Mutable) &&
+                    (right instanceof Constant || right instanceof Mutable)) {
+                sb.append(tmpVar + globalCounter++ + " = " + left.id + " " +
+                        this.symbol + " " + right.id + ";" + EOL);
+                return sb.toString();
+            }
+
+            // Otherwise, recurse in!
+            else {
+                if (!(left instanceof Constant || left instanceof Mutable)) {
+                    leftTmp = left.generateCode();
+                    sb.append(leftTmp); // record any tmpVars created by the left's IR
+
+                    // Grab just the last tmp var assigned
+                    leftTmp = getLastAssignedVar(leftTmp);
+                } else {
+                    leftTmp = left.id;
+                }
+                if(!(right instanceof Constant || right instanceof Mutable)) {
+                    rightTmp = right.generateCode();
+                    sb.append(rightTmp);
+                    // Grab just the last tmp var assigned
+                    rightTmp = getLastAssignedVar(rightTmp);
+                } else {
+                    rightTmp = right.id;
+                }
+            }
+
+            sb.append(tmpVar + globalCounter++ + " = " +
+                    leftTmp + " " + this.symbol + " " + rightTmp + ";" + EOL);
 
             return sb.toString();
         }
+
 
     }
 
@@ -38,6 +89,24 @@ public class Expression extends ASTNode {
             symbol = node.children.get(1).id;
             left = ASTNode.ASTNodeResolver(node.children.get(0));
             right = ASTNode.ASTNodeResolver(node.children.get(2));
+        }
+
+        public String generateCode() {
+            StringBuilder sb = new StringBuilder();
+            String lastTmp;
+
+            String expression = right.generateCode();
+
+            /* Only append if generateCode() call made new variables */
+            if (expression.indexOf(tmpVar) >= 0)
+                sb.append(expression);
+
+            /* Every op expression resolves the right hand side into one tmpVar.
+            * The following lines assign the current LHS variable name to that tmpVar */
+            lastTmp = getLastAssignedVar(expression);
+            sb.append(left.id + " = " + lastTmp + ";" + EOL);
+
+            return sb.toString();
         }
     }
 
@@ -110,13 +179,15 @@ public class Expression extends ASTNode {
             this.id = node.children.get(0).id;
         }
 
-        //            public String printNode(int indentLevel) {
-//                return ASTNode.lead(indentLevel) + this.id + EOL;
-//            }
+
         public String printNode(int indentLevel) {
             if(indentLevel == -1)
                 return this.id;
             return ASTNode.lead(indentLevel) + this.id + EOL;
+        }
+
+        public String generateCode() {
+            return this.id;
         }
     }
 
@@ -136,6 +207,10 @@ public class Expression extends ASTNode {
         public String printNode(int indentLevel) {
             return ASTNode.lead(indentLevel) + this.id + EOL;
         }
+
+        public String generateCode() {
+            return this.id;
+        }
     }
 
     public static class Immutable extends Expression {
@@ -149,6 +224,10 @@ public class Expression extends ASTNode {
             return expression.printNode(indentLevel);
         }
 
+        public String generateCode() {
+            return expression.generateCode();
+        }
+
     }
 
     public static class Call extends Expression {
@@ -157,7 +236,7 @@ public class Expression extends ASTNode {
             super(node);
             funcName = node.children.get(0).id; //function name that is being called, now ID
             ArrayList<ASTNode> args = node.children.get(2).children;
-//                node.children.get(2).children.clear();
+
             this.children.clear();
             for(int i = 0; i < args.size(); i++) {
                 if(args.get(i) == null || args.get(i).id.equals(",")) continue;
@@ -175,6 +254,39 @@ public class Expression extends ASTNode {
             for(int i = 0; i < this.children.size(); i++) {
                 sb.append(this.children.get(i).printNode(indentLevel));
             }
+
+            return sb.toString();
+        }
+
+        public String generateCode() {
+            StringBuilder sb = new StringBuilder();
+            String lastTmp;
+            ArrayList<String> args = new ArrayList<>();
+
+            for(int i = 0; i < this.children.size(); i++) {
+                String expr = this.children.get(i).generateCode();
+
+                /* Only append this argument's IR to output if tmpVars were made  */
+                if (expr.indexOf(tmpVar) >= 0) {
+                    sb.append(expr);
+                }
+
+                /* Add the name of the arg to the args list */
+                lastTmp = getLastAssignedVar(expr);
+                args.add(lastTmp);
+
+            }
+
+            sb.append(tmpVar + globalCounter++ + " = ");
+
+            sb.append(funcName + "(");
+            for(int i = 0; i < args.size(); i++) {
+                sb.append(args.get(i));
+                if(i != args.size() - 1) {
+                    sb.append(", ");
+                }
+            }
+            sb.append(")" + EOL);
 
             return sb.toString();
         }
