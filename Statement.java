@@ -62,12 +62,43 @@ public class Statement extends ASTNode {
             StringBuilder sb = new StringBuilder();
             sb.append("{" + EOL);
 
+            //just print variable declarations
             for(int i = 0; i < this.children.size(); i++) {
-                if(this.children.get(i) == null) continue;
+                if(this.children.get(i) == null ||
+                        !(this.children.get(i) instanceof VarDeclaration)) continue;
                 sb.append(this.children.get(i).generateCode());
             }
 
-            sb.append("}");
+            if(sb.length() > ("{"+EOL).length()) {
+                sb.append(EOL);
+            }
+
+            for(int i = 0; i < this.children.size(); i++) {
+                if(this.children.get(i) == null) continue;
+                //this takes care of VarDeclaration assignments
+                if(this.children.get(i) instanceof VarDeclaration) {
+                    VarDeclaration v = ((VarDeclaration) this.children.get(i));
+                    for(int j = 0; j < v.vars.size(); j++) {
+                        if(v.vars.get(j).getValue() == null) continue;
+                        String expression = v.vars.get(j).getValue().generateCode();
+
+                        /* Either we need to print all the tmpVars generated in the
+                        * expression, then assign the variable name to the last tmpVar..*/
+                        if (expression.indexOf("KREG") >= 0) { // hacky using string literal but whatever
+                            sb.append(expression);
+                            String lastVar = Expression.getLastAssignedVar(expression);
+                            sb.append(v.vars.get(j).getKey() + " = " + lastVar + ";" + EOL);
+                        } else { /* Or just print the variable and its original value */
+                            sb.append(v.vars.get(j).getKey() + " = " +
+                                    v.vars.get(j).getValue().id + ";" + EOL);
+                        }
+                    }
+                } else {
+                    sb.append(this.children.get(i).generateCode());
+                }
+            }
+
+            sb.append("}" + EOL);
             return sb.toString();
         }
 
@@ -98,8 +129,18 @@ public class Statement extends ASTNode {
 
         public String generateCode() {
             StringBuilder sb = new StringBuilder();
-            sb.append("return ");
-            sb.append(";" + EOL);
+            String expression = this.children.get(0).generateCode();
+            String lastVar;
+
+            // if no tmpvar was made in last expr, just take the first term
+            if (expression.indexOf("KREG") < 0) {
+                lastVar = expression.split(" ")[0];
+            } else {
+                lastVar = Expression.getLastAssignedVar(expression);
+                sb.append(expression);
+            }
+            sb.append("return " + lastVar + ";" + EOL);
+
             return sb.toString();
         }
 
@@ -114,6 +155,7 @@ public class Statement extends ASTNode {
         }
 
         public static class IfStatement extends SelectionStatement {
+            // Map of children of an IfStatement:
             //0     1       2        3        4        5        6      7
             //IF LPAREN expression RPAREN statement elsifList ELSE statement
             public ArrayList<Pair<Expression, Statement>> elseIfList;
@@ -176,6 +218,20 @@ public class Statement extends ASTNode {
                     sb.append(ASTNode.lead(indentLevel) + "else" + EOL);
                     ++indentLevel;
                     sb.append(elseBody.printNode(indentLevel));
+                }
+
+                return sb.toString();
+            }
+
+            public String generateCode() {
+                StringBuilder sb = new StringBuilder();
+                ArrayList<String> tagList = new ArrayList<>();
+
+                tagList.add(tagCreator()); //beginning tag
+                tagList.add(tagCreator()); //end tag
+
+                for(int i = 1; i < elseIfList.size(); i++) {
+                    tagList.add(i, tagCreator());
                 }
 
                 return sb.toString();
@@ -287,6 +343,10 @@ public class Statement extends ASTNode {
             return new ExpressionStatement(node);
         }
         return new Statement(node);
+    }
+
+    public static String tagCreator() {
+        return "<" + Expression.tmpVar + Expression.globalCounter++ + ">:";
     }
 
 }

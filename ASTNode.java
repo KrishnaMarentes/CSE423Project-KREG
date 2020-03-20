@@ -7,8 +7,7 @@ import java.util.List;
 public class ASTNode {
     public static final String EOL = System.lineSeparator();
     public static final String Indents = "  ";
-    public static int globalCounter = 0;
-    public static final String tmpVar = "KREG.";
+
 
     public String id = null;
     public ArrayList<ASTNode> children = new ArrayList<ASTNode>();
@@ -100,6 +99,15 @@ public class ASTNode {
             }
         }
         return sb.toString();
+    }
+
+    public static String[] ArrayReverse(String[] array) {
+        for(int i = 0; i < array.length/2; i++) {
+            String tmp = array[i];
+            array[i] = array[array.length - i - 1];
+            array[array.length - i - 1] = tmp;
+        }
+        return array;
     }
 
 }
