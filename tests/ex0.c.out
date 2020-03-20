@@ -1,0 +1,33 @@
+program 
+  declarationList 
+    declaration 
+      funDeclaration 
+        typeSpecifier int
+        main(params)
+        compoundStmt {
+          statementList statementList
+            statement 
+              returnStmt return
+                expression 
+                  simpleExpression 
+                    andExpression 
+                      unaryRelExpression 
+                        relExpression 
+                          sumExpression 
+                            mulExpression 
+                              unaryExpression 
+                                factor 
+                                  immutable 
+                                    constant 0
+                ;
+          }
+  <EOF>
+
+program 
+  funDeclaration 
+    typeSpecifier int
+    main
+    returnStmt return
+      constant 0
+
+

@@ -1,0 +1,22 @@
+NOT SUPPORTED
+--------------
+struct
+enum
+for
+while
+if/else
+switch
+
+IGNORE LIST
+---------------
+declarationList
+declaration
+compoundStmt
+statementList
+statement
+syntaxthings: {,},(,),etc
+params
+
+NON-COLLAPSE
+------------------
+returnStmt
