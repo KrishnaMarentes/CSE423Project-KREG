@@ -1,6 +1,8 @@
 import javafx.util.Pair;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Statement extends ASTNode {
     public Statement(ASTNode node) {
@@ -84,7 +86,7 @@ public class Statement extends ASTNode {
 
                         /* Either we need to print all the tmpVars generated in the
                         * expression, then assign the variable name to the last tmpVar..*/
-                        if (expression.indexOf("KREG") >= 0) { // hacky using string literal but whatever
+                        if (expression.contains("KREG")) { // hacky using string literal but whatever
                             sb.append(expression);
                             String lastVar = Expression.getLastAssignedVar(expression);
                             sb.append(v.vars.get(j).getKey() + " = " + lastVar + ";" + EOL);
@@ -133,7 +135,7 @@ public class Statement extends ASTNode {
             String lastVar;
 
             // if no tmpvar was made in last expr, just take the first term
-            if (expression.indexOf("KREG") < 0) {
+            if (!expression.contains("KREG")) {
                 lastVar = expression.split(" ")[0];
             } else {
                 lastVar = Expression.getLastAssignedVar(expression);
@@ -276,10 +278,14 @@ public class Statement extends ASTNode {
 
     public static class LabelStatement extends Statement {
         public String tagName;
+
+        //<label_name, generated_id (KREG.####)>
+        public static Map<String, String> labels = new HashMap<>();
         public LabelStatement(ASTNode node) {
             super(node);
             this.id = "LabelStatement";
             tagName = node.children.get(0).children.get(0).id;
+            labels.put(tagName, Statement.tagCreator());
         }
 
         public String printNode(int indentLevel) {
@@ -290,6 +296,11 @@ public class Statement extends ASTNode {
             sb.append(ASTNode.lead(indentLevel) + tagName + EOL);
 
             return sb.toString();
+        }
+
+        /* Author: Geoff */
+        public String generateCode() {
+            return labels.get(tagName) + ":" + EOL;
         }
     }
 
@@ -309,6 +320,11 @@ public class Statement extends ASTNode {
             sb.append(ASTNode.lead(indentLevel) + tagName + EOL);
 
             return sb.toString();
+        }
+
+        /* Author: Geoff */
+        public String generateCode() {
+            return "goto " + LabelStatement.labels.get(tagName) + ";" + EOL;
         }
     }
 
@@ -346,7 +362,7 @@ public class Statement extends ASTNode {
     }
 
     public static String tagCreator() {
-        return "<" + Expression.tmpVar + Expression.globalCounter++ + ">:";
+        return "<" + Expression.tmpVar + Expression.globalCounter++ + ">";
     }
 
 }

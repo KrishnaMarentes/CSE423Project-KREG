@@ -20,7 +20,7 @@ public class Expression extends ASTNode {
      * string, presumably from a generateCode() call.
      */
     public static String getLastAssignedVar(String ir) {
-        String[] lines = ir.split("\r\n");
+        String[] lines = ir.split(EOL);
         String lastVar = lines[lines.length-1];
         lastVar = lastVar.split(" ")[0];
         return lastVar;
@@ -98,8 +98,9 @@ public class Expression extends ASTNode {
             String expression = right.generateCode();
 
             /* Only append if generateCode() call made new variables */
-            if (expression.indexOf(tmpVar) >= 0)
+            if (expression.contains(tmpVar)) {
                 sb.append(expression);
+            }
 
             /* Every op expression resolves the right hand side into one tmpVar.
             * The following lines assign the current LHS variable name to that tmpVar */
@@ -139,6 +140,34 @@ public class Expression extends ASTNode {
             } else {
                 sb.append(this.left.printNode(indentLevel));
                 sb.append(ASTNode.lead(indentLevel) + this.symbol + EOL);
+            }
+
+            return sb.toString();
+        }
+
+        /* Author: Geoff */
+        public String generateCode() {
+            StringBuilder sb = new StringBuilder();
+
+            //prefixes
+            //MINUS | STAR | NOT | AND | TILDE
+            //MINUSMINUS | PLUSPLUS
+            if(left == null) { //constant/mutable/immutable on right side, symbol on left
+                //TODO implement unary prefixes
+                if(this.symbol.equals("++") || this.symbol.equals("--")) {
+                    String right = this.right.generateCode();
+                    sb.append( right+ " = " + right + " " + this.symbol.substring(0,1) + " " + "1" + ";" + EOL);
+                }
+            } else { //symbol on right
+                String left = this.left.generateCode();
+
+                /* These extra vars seem unnecessary to me..?
+                 * also they didn't work with my edits -becca */
+                //String var1 = tmpVar + globalCounter++;
+                //String var2 = tmpVar + globalCounter++;
+                //sb.append(var1 + " = " + left + ";" + EOL);
+                sb.append(left + " = " + left + " " + this.symbol.substring(0,1) + " " + "1" + ";" + EOL);
+                //sb.append(var2 + " = " + var1 + ";" + EOL);
             }
 
             return sb.toString();
@@ -267,7 +296,7 @@ public class Expression extends ASTNode {
                 String expr = this.children.get(i).generateCode();
 
                 /* Only append this argument's IR to output if tmpVars were made  */
-                if (expr.indexOf(tmpVar) >= 0) {
+                if (expr.contains(tmpVar)) {
                     sb.append(expr);
                 }
 
