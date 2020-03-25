@@ -315,7 +315,7 @@ public class Expression extends ASTNode {
                     sb.append(", ");
                 }
             }
-            sb.append(")" + EOL);
+            sb.append(");" + EOL);
 
             return sb.toString();
         }

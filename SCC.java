@@ -118,10 +118,8 @@ public class SCC {
         System.out.println("done!");
 
         /* List of symbol tables, one for each scope. The first is the global table */
-        SymbolTable global = new SymbolTable();
-        global.setName("global");
-        global.setType(null);
-        //symbols.add(new SymbolTable(0)); // Add the global symbol table to list
+        SymbolTable global = new SymbolTable("global", null);
+
         // TODO: Make a class/function that walks an AST to populate/add symbol tables
         // TODO: Add error messages when invalid declarations are made
     }

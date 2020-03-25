@@ -65,6 +65,15 @@ public class SymbolTable extends SymbolTableSuper {
 
     String getEntryType() { return "Table"; }
 
+    public SymbolTable() {
+    }
+
+    public SymbolTable(String name, String type) {
+        this.setName(name);
+        this.setType(type);
+    }
+
+
     /**
      * Adds table to a tables entries
      * @param type Type of instance, see parent class for types
