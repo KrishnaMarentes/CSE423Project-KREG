@@ -193,7 +193,8 @@ public class Statement extends ASTNode {
             String lastVar;
 
             // if no tmpvar was made in last expr, just take the first term
-            if (!expression.contains("KREG")) {
+//            if (!expression.contains("KREG")) { //old, left here just in case something terrible happens
+            if (!expression.contains("=")) { //working better in the case of "return j+=3;" and many others
                 lastVar = expression.split(" ")[0];
             } else {
                 lastVar = Expression.getLastAssignedVar(expression);
@@ -240,14 +241,14 @@ public class Statement extends ASTNode {
                 ArrayList<Pair<Expression, Statement>> elseIfStatements = new ArrayList<>();
                 ASTNode current_node = node;
                 while(current_node.children.size() != 0) {
-                    Expression expression = Expression.ExpressionResolver(current_node.children.get(3));
-                    Statement statement = Statement.StatementResolver(current_node.children.get(5));
+                    Expression expression = Expression.ExpressionResolver(current_node.children.get(4));
+                    Statement statement = Statement.StatementResolver(current_node.children.get(6));
                     elseIfStatements.add(new Pair<>(expression, statement));
                     current_node = current_node.children.get(0);
                 }
 
                 //reverse array
-                for(int i = 0; i < elseIfStatements.size(); i+=2) {
+                for(int i = 0; i < elseIfStatements.size() / 2; i++) {
                     Pair<Expression, Statement> tmp1 = elseIfStatements.get(i);
                     Pair<Expression, Statement> tmp2 = elseIfStatements.get(elseIfStatements.size() - 1 - i);
                     elseIfStatements.set(i, tmp2);
