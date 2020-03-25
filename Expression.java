@@ -96,14 +96,21 @@ public class Expression extends ASTNode {
             String expression = right.generateCode();
 
             /* Only append if generateCode() call made new variables */
-            if (expression.contains(tmpVar)) {
+//            if (expression.contains(tmpVar) || expression.contains("=")) {
+            if (expression.contains("=")) { // works slightly better
                 sb.append(expression);
             }
 
             /* Every op expression resolves the right hand side into one tmpVar.
-            * The following lines assign the current LHS variable name to that tmpVar */
+             * The following lines assign the current LHS variable name to that tmpVar */
             lastTmp = getLastAssignedVar(expression);
-            sb.append(left.id + " = " + lastTmp + ";" + EOL);
+            String newSymbol;
+            if((newSymbol = symbol.replace("=", "")).length() == 0) {
+                sb.append(left.id + " = " + lastTmp + ";" + EOL);
+            } else {
+                sb.append(left.id + " = " + left.id + " " + newSymbol + " " + lastTmp + ";" + EOL);
+            }
+//            sb.append(left.id + " = " + lastTmp + ";" + EOL);
 
             return sb.toString();
         }
