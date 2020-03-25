@@ -19,12 +19,33 @@ public class Statement extends ASTNode {
         public static class WhileStatement extends IterationStatement {
             public Expression bool_expression;
             public Statement statement;
-            public static int whileId = 0; // For naming labels made for while blocks
+            public int thisWhileId = 0; //so this number can be referenced later in generateCode
+            public static int currentWhileId = 0; // For naming labels made for while blocks, can be referenced in children
+
+            public String condTagName;
+            public String bodyTagName;
+            public String endTagName;
             public WhileStatement(ASTNode node) {
                 super(node);
                 this.id = "WhileStatement";
+
+                //add labels to static label map before resolving other nodes, so they can reference labels
+                //this is useful especially for break statements
+                //conditional label
+                condTagName = "while" + currentWhileId + "cond";
+                LabelStatement.labels.put(condTagName, Statement.tagCreator());
+
+                //body label
+                bodyTagName = "while" + currentWhileId + "body";
+                LabelStatement.labels.put(bodyTagName, Statement.tagCreator());
+
+                //end label
+                endTagName = "while" + currentWhileId + "end";
+                LabelStatement.labels.put(endTagName, Statement.tagCreator());
+
                 bool_expression = Expression.ExpressionResolver(node.children.get(2));
                 statement = Statement.StatementResolver(node.children.get(4));
+                thisWhileId = currentWhileId++;
             }
 
             public String printNode(int indentLevel) {
@@ -39,38 +60,36 @@ public class Statement extends ASTNode {
             }
 
             /* Loop conditionals are at the end of the control block to
-            * avoid needing an "else" in the IR. Example:
-            *   goto label1;
-            *   label2:
-            *       // loop body
-            *   label1:
-            *       // if (conditional) goto label2;
-            */
+             * avoid needing an "else" in the IR. Example:
+             *   goto label1;
+             *   label2:
+             *       // loop body
+             *   label1:
+             *       // if (conditional) goto label2;
+             *   label3:
+             *       // where breaks go when they are encountered in loop body
+             */
             public String generateCode() {
                 StringBuilder sb = new StringBuilder();
 
-                /* First make a label for the conditional */
-                String condTagName= this.children.get(0).id + this.whileId + "cond";
-                LabelStatement.labels.put(condTagName, Statement.tagCreator());
+                /* First print a label for the conditional */
                 sb.append("goto " + LabelStatement.labels.get(condTagName) + ";" + EOL);
 
-                /* Now label for the body */
-                String bodyTagName = this.children.get(0).id + this.whileId++ + "body";
-                LabelStatement.labels.put(bodyTagName, Statement.tagCreator());
+                /* Now print the label for the body */
                 sb.append(LabelStatement.labels.get(bodyTagName) + ":" + EOL);
 
                 /* Now the body code */
-                String body = this.statement.generateCode();
-                // remove block braces
-                body = body.replaceAll("[\\{\\}]\\s\\s", "");
-                sb.append(body);
+                sb.append(this.statement.generateCode());
 
                 /* Finally, add "if" IR line, e.g.
-                *  "if i < 10 goto label 2
-                * ONLY SUPPORTS ONE CONDITIONAL, i.e. no "i<10 || j>10" */
+                 *  "if i < 10 goto label 2 */
                 sb.append(LabelStatement.labels.get(condTagName) + ":" + EOL);
                 String conditional = this.bool_expression.printExpression();
                 sb.append("if " + conditional + " goto " + LabelStatement.labels.get(bodyTagName) + ";" + EOL);
+
+                /* Now print the end tag, where breaks will jump*/
+                sb.append(LabelStatement.labels.get(endTagName) + ":" + EOL);
+
                 sb.append(EOL); // Extra space for human readability
                 return sb.toString();
             }
@@ -357,9 +376,11 @@ public class Statement extends ASTNode {
     }
 
     public static class BreakStatement extends Statement {
+        public int thisWhileId;
         public BreakStatement(ASTNode node) {
             super(node);
             this.id = "BreakStatement";
+            thisWhileId = IterationStatement.WhileStatement.currentWhileId;
         }
 
         public String printNode(int indentLevel) {
@@ -367,9 +388,8 @@ public class Statement extends ASTNode {
         }
 
         public String generateCode() {
-            StringBuilder sb = new StringBuilder();
-            
-            return sb.toString();
+            String endTag = LabelStatement.labels.get("while" + thisWhileId + "end");
+            return "goto " + endTag + ";" + EOL;
         }
     }
 
