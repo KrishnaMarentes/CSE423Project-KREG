@@ -78,8 +78,6 @@ public class Expression extends ASTNode {
 
             return sb.toString();
         }
-
-
     }
 
     public static class AssignmentExpression extends Expression {
@@ -335,6 +333,15 @@ public class Expression extends ASTNode {
 
     public String generateCode() {
         return "";
+    }
+
+    /* Used for loop conditionals */
+    public String printExpression() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(this.left.id + " ");
+        sb.append(this.symbol + " ");
+        sb.append(this.right.id);
+        return sb.toString();
     }
 
 }

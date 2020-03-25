@@ -1,5 +1,6 @@
 import javafx.util.Pair;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,6 +19,7 @@ public class Statement extends ASTNode {
         public static class WhileStatement extends IterationStatement {
             public Expression bool_expression;
             public Statement statement;
+            public static int whileId = 0; // For naming labels made for while blocks
             public WhileStatement(ASTNode node) {
                 super(node);
                 this.id = "WhileStatement";
@@ -33,6 +35,39 @@ public class Statement extends ASTNode {
                 sb.append(bool_expression.printNode(indentLevel));
                 sb.append(statement.printNode(indentLevel));
 
+                return sb.toString();
+            }
+
+            /* Loop conditionals are at the end of the control block to
+            * avoid needing an "else" in the IR. Example:
+            *   goto label1;
+            *   label2:
+            *       // loop body
+            *   label1:
+            *       // if (conditional) goto label2;
+            */
+            public String generateCode() {
+                StringBuilder sb = new StringBuilder();
+
+                /* First make a label for the conditional */
+                String condTagName= this.children.get(0).id + this.whileId + "cond";
+                LabelStatement.labels.put(condTagName, Statement.tagCreator());
+                sb.append("goto " + LabelStatement.labels.get(condTagName) + ";" + EOL);
+
+                /* Now label for the body */
+                String bodyTagName = this.children.get(0).id + this.whileId++ + "body";
+                LabelStatement.labels.put(bodyTagName, Statement.tagCreator());
+                sb.append(LabelStatement.labels.get(bodyTagName) + ":" + EOL);
+
+                /* Now the body code */
+                sb.append(this.statement.generateCode());
+
+                /* Finally, add "if" IR line, e.g.
+                *  "if i < 10 goto label 2 */
+                sb.append(LabelStatement.labels.get(condTagName) + ":" + EOL);
+                String conditional = this.bool_expression.printExpression();
+                sb.append("if " + conditional + " goto " + LabelStatement.labels.get(bodyTagName) + ";" + EOL);
+                sb.append(EOL); // Extra space for human readability
                 return sb.toString();
             }
         }
@@ -273,6 +308,12 @@ public class Statement extends ASTNode {
 
         public String printNode(int indentLevel) {
             return ASTNode.lead(indentLevel) + this.id + EOL;
+        }
+
+        public String generateCode() {
+            StringBuilder sb = new StringBuilder();
+            
+            return sb.toString();
         }
     }
 
