@@ -60,10 +60,14 @@ public class Statement extends ASTNode {
                 sb.append(LabelStatement.labels.get(bodyTagName) + ":" + EOL);
 
                 /* Now the body code */
-                sb.append(this.statement.generateCode());
+                String body = this.statement.generateCode();
+                // remove block braces
+                body = body.replaceAll("[\\{\\}]\\s\\s", "");
+                sb.append(body);
 
                 /* Finally, add "if" IR line, e.g.
-                *  "if i < 10 goto label 2 */
+                *  "if i < 10 goto label 2
+                * ONLY SUPPORTS ONE CONDITIONAL, i.e. no "i<10 || j>10" */
                 sb.append(LabelStatement.labels.get(condTagName) + ":" + EOL);
                 String conditional = this.bool_expression.printExpression();
                 sb.append("if " + conditional + " goto " + LabelStatement.labels.get(bodyTagName) + ";" + EOL);
@@ -217,8 +221,8 @@ public class Statement extends ASTNode {
                 ArrayList<Pair<Expression, Statement>> elseIfStatements = new ArrayList<>();
                 ASTNode current_node = node;
                 while(current_node.children.size() != 0) {
-                    Expression expression = Expression.ExpressionResolver(current_node.children.get(4));
-                    Statement statement = Statement.StatementResolver(current_node.children.get(6));
+                    Expression expression = Expression.ExpressionResolver(current_node.children.get(3));
+                    Statement statement = Statement.StatementResolver(current_node.children.get(5));
                     elseIfStatements.add(new Pair<>(expression, statement));
                     current_node = current_node.children.get(0);
                 }
@@ -263,13 +267,65 @@ public class Statement extends ASTNode {
             public String generateCode() {
                 StringBuilder sb = new StringBuilder();
                 ArrayList<String> tagList = new ArrayList<>();
+                int i;
 
                 tagList.add(tagCreator()); //beginning tag
-                tagList.add(tagCreator()); //end tag
-
-                for(int i = 1; i < elseIfList.size(); i++) {
-                    tagList.add(i, tagCreator());
+                // Each elsif has two labels: one if cond is true and one to skip
+                for(i = 0; i < elseIfList.size(); i++) {
+                    tagList.add(tagCreator());
+                    tagList.add(tagCreator());
                 }
+
+                if (this.elseBody != null) {
+                    tagList.add(tagCreator());
+                }
+                tagList.add(tagCreator()); //exit tag (goto after if body execution)
+                String exit = tagList.get(tagList.size()-1); // easy reference
+
+
+                sb.append("if " + this.bool_expression.printExpression() + " ");
+                sb.append("goto " + tagList.get(0) + " else goto " + tagList.get(1) + EOL);
+
+                sb.append(tagList.get(0) + ":" + EOL);
+                String bodyIR = this.body.generateCode();
+                bodyIR = bodyIR.replaceAll("[\\{\\}]\\s\\s", "");
+                sb.append(bodyIR);
+                sb.append("goto " + exit + ";" + EOL);
+
+                String conditional;
+
+                int elsifBlock = 0;
+                // Iterate i by 2 since each elseif has 2 tags
+                for (i = 1; elsifBlock < elseIfList.size(); i += 2, elsifBlock++) {
+                    int bodyTag = i+1;
+                    int elseTag = i+2;
+
+                    // Label to go to this if statement
+                    sb.append(tagList.get(i) + ":" + EOL);
+
+                    conditional = this.elseIfList.get(elsifBlock).getKey().printExpression();
+                    bodyIR = this.elseIfList.get(elsifBlock).getValue().generateCode();
+
+                    // The actual if statement
+                    sb.append("if " + conditional + " goto " + tagList.get(bodyTag));
+                    sb.append(" else goto " + tagList.get(elseTag) + ";" + EOL);
+
+                    // The body if the conditional is true
+                    sb.append(tagList.get(bodyTag) + ":" + EOL);
+                    bodyIR = bodyIR.replaceAll("[\\{\\}]\\s\\s", "");
+                    sb.append(bodyIR);
+                    sb.append("goto " + exit + ";" + EOL);
+                }
+
+                if(this.elseBody != null) {
+                    // last tag is exit, second to last would be the else body
+                    sb.append(tagList.get(tagList.size()-2) + ":" + EOL);
+                    bodyIR = this.elseBody.generateCode();
+                    bodyIR = bodyIR.replaceAll("[\\{\\}]\\s\\s", "");
+                    sb.append((bodyIR));
+                }
+
+                sb.append(exit + ":" + EOL);
 
                 return sb.toString();
             }
