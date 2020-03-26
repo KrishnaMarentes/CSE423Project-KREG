@@ -159,20 +159,33 @@ public class Expression extends ASTNode {
             //MINUSMINUS | PLUSPLUS
             if(left == null) { //constant/mutable/immutable on right side, symbol on left
                 //TODO implement unary prefixes
-                if(this.symbol.equals("++") || this.symbol.equals("--")) {
-                    String right = this.right.generateCode();
-                    sb.append( right+ " = " + right + " " + this.symbol.substring(0,1) + " " + "1" + ";" + EOL);
-                }
-            } else { //symbol on right
-                String left = this.left.generateCode();
+                String right = this.right.generateCode();
+                String lastVar = Expression.getLastAssignedVar(right);
+                String symbol = this.symbol;
+                String var = tmpVar + globalCounter++;
 
-                /* These extra vars seem unnecessary to me..?
-                 * also they didn't work with my edits -becca */
-                //String var1 = tmpVar + globalCounter++;
-                //String var2 = tmpVar + globalCounter++;
-                //sb.append(var1 + " = " + left + ";" + EOL);
+                if(this.symbol.equals("++") || this.symbol.equals("--")) {
+                    sb.append(right + " = " + right + " " + this.symbol.substring(0,1) + " " + "1" + ";" + EOL);
+                } else if(this.symbol.equals("-") || this.symbol.equals("~") || this.symbol.equals("!")) {
+                    if(right.contains("=")) {
+                        sb.append(right);
+                    }
+                    if(this.symbol.equals("!")) {
+                        sb.append(var + " = " + lastVar + " == 0;" + EOL);
+                    } else {
+                        sb.append(var + " = " + symbol + lastVar + ";" + EOL);
+                    }
+                }
+            } else { //symbol on right, can only be ++ or --
+                String left = this.left.generateCode();
+                //for postfix incrementation, there is a temporary variable that is used on the
+                //same line that X++ is used on, which stores the value of the variable, before incrementation.
+                //https://stackoverflow.com/questions/7031326/what-is-the-difference-between-prefix-and-postfix-operators
+                String var1 = tmpVar + globalCounter++;
+                String var2 = tmpVar + globalCounter++;
+                sb.append(var1 + " = " + left + ";" + EOL);
                 sb.append(left + " = " + left + " " + this.symbol.substring(0,1) + " " + "1" + ";" + EOL);
-                //sb.append(var2 + " = " + var1 + ";" + EOL);
+                sb.append(var2 + " = " + var1 + ";" + EOL);
             }
 
             return sb.toString();
