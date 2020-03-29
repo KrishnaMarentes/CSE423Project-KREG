@@ -1,0 +1,63 @@
+function main()
+{
+int i;
+int j;
+
+j = 0;
+goto <KREG.0>;
+i = 5;
+<KREG.0>:
+goto <KREG.1>;
+<KREG.2>:
+{
+j = j * 2;
+KREG.4 = i;
+i = i + 1;
+KREG.5 = KREG.4;
+}
+<KREG.1>:
+if i < 10 goto <KREG.2>;
+<KREG.3>:
+
+if j == 0 goto <KREG.6> else goto <KREG.7>
+<KREG.6>:
+{
+j = 0;
+}
+goto <KREG.12>;
+<KREG.7>:
+if j == 9 goto <KREG.8> else goto <KREG.9>;
+<KREG.8>:
+{
+j = 9;
+i = 200;
+if i < 200 goto <KREG.13> else goto <KREG.14>
+<KREG.13>:
+{
+i = 0;
+}
+goto <KREG.15>;
+<KREG.14>:
+{
+i = 500;
+}
+<KREG.15>:
+}
+goto <KREG.12>;
+<KREG.9>:
+if j == 8 goto <KREG.10> else goto <KREG.11>;
+<KREG.10>:
+{
+j = 8;
+}
+goto <KREG.12>;
+<KREG.11>:
+{
+j = 0;
+}
+<KREG.12>:
+return 0;
+}
+
+
+

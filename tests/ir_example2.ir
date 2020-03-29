@@ -1,0 +1,15 @@
+function main ()
+j = 0
+i = 0
+goto label2
+label1:
+r1 = i % 2
+if r1 == 0 goto label4 else goto label5
+label4:
+j = j + 1
+label5:
+i = i + 1
+label2:
+if i < 10 goto label1 else goto label3
+label3:
+return j
