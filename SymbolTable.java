@@ -5,35 +5,23 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * EX:
- *  : will always be root type: global
- *      SymbolTable Global
- *      String Name: Global
- *      String Return Type: Null (or void?) ( used for forloops as well)
- *      SuperClass parent : Null
- *      List of superclass elements (Table)
- *      : inside:
- *          List of superclass elements (Symbol Table or Entry)
- *              SymbolTable (example) : Main
- *                  String Name: Main
- *                  String Type: INT # check symboltableentry.java for setup for types -> SuperClass
- *                  SuperClass parent : Global
- *
- *                  List of superclass elements
- *
- *
- *              SymbolTable ...
- *                  : Other Functions that can be globally seen :
- *              Entry ...
- *                  : Global variables :
- *
- */
-
 abstract class SymbolTableSuper {
+    /*
     enum SymbolType {
         INT, CHAR, FLOAT, DOUBLE, LONG, UNSIGNED, SIGNED, SHORT, VOID, PNTR;
     }
+     */
+    private ArrayList<String> symbolType = new ArrayList<String>( Arrays.asList(
+            "int",
+            "char",
+            "float",
+            "double",
+            "long",
+            "unsigned",
+            "signed",
+            "short",
+            "void"
+    ));
 
     private String type;
     private String name;
@@ -48,20 +36,16 @@ abstract class SymbolTableSuper {
     }
 
     void setType(String type) {
-        this.type = type;
-        /* THIS TYPE CHECK IS TAKEN CARE OF ALREADY??
-        try {
 
-            this.type = SymbolType.valueOf(type).name();
-        } catch(IllegalArgumentException e) {
-            // This should probably be more formal or print somewhere else but here it is.
-            System.out.println(e.getMessage());
+        if (symbolType.contains(type)) {
+            this.type = type;
+        } else if (type == null) {
+            System.out.println("what?");
+            this.type = type;
+        } else {
             System.out.println("'" + type + "' is not a valid type");
-        } catch(NullPointerException e) {
-            System.out.println(e.getMessage());
+            System.exit(0);
         }
-
-         */
     }
 }
 
@@ -75,15 +59,30 @@ public class SymbolTable extends SymbolTableSuper {
 
     String getEntryType() { return "Table"; }
 
+    /**
+     * Generic constructor for SymbolTable
+     */
     public SymbolTable() {
     }
 
+    /**
+     * Constructor for SymbolTable
+     * @param name Name of symbol table
+     * @param type Return type of symbol table
+     */
     public SymbolTable(String name, String type) {
         this.setName(name);
         this.setType(type);
     }
 
+    /**
+     * Populates the entire Symbol Table
+     * @param rc Rule context to build AST to reference
+     * @param ruleNames Rule names to reference
+     * @return Symbol table that is populated
+     */
     public static SymbolTable populate(RuleContext rc, String[] ruleNames) {
+
         /* List of symbol tables, one for each scope. The first is the global table */
         SymbolTable global = new SymbolTable("global", null);
         List<String> ruleNamesList = Arrays.asList(ruleNames);
@@ -94,7 +93,13 @@ public class SymbolTable extends SymbolTableSuper {
         return global;
     }
 
+    /**
+     * Populates a single symbol table
+     * @param current The current root of the AST being picked for entries
+     * @param st The current symbol table being populated
+     */
     public static void populateTable(ASTNode current, SymbolTable st) {
+
         ASTNode child = null;
 
         for(int i = 0; i < current.children.size(); i++) {

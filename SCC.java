@@ -19,6 +19,7 @@ public class SCC {
         boolean print_ast = false;
         boolean print_ir = false;
         boolean save_output = false;
+        boolean print_symbolt = false;
 
         if(args.length > 0) {
             try {
@@ -41,6 +42,9 @@ public class SCC {
                                 break;
                             case 's':
                                 save_output = true;
+                                break;
+                            case 'l':
+                                print_symbolt = true;
                                 break;
                             default:
                                 System.out.println("Entered a unrecognized option.");
@@ -113,6 +117,11 @@ public class SCC {
                 printIR(tree, parser.getRuleNames(), filename);
             else
                 printIR(tree, parser.getRuleNames(), null);
+        }
+        if (print_symbolt) {
+            System.out.println("printing Symbol Table...");
+            SymbolTable st = SymbolTable.populate(tree, parser.getRuleNames());
+            SymbolTable.printSymbolTable(st);
         }
 
         System.out.println("done!");
