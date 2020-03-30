@@ -60,7 +60,7 @@ public class Statement extends ASTNode {
             }
 
             /* Loop conditionals are at the end of the control block to
-             * avoid needing an "else" in the IR. Example:
+             * avoid needing an "else." Example:
              *   goto label1;
              *   label2:
              *       // loop body
@@ -78,8 +78,10 @@ public class Statement extends ASTNode {
                 /* Now print the label for the body */
                 sb.append(LabelStatement.labels.get(bodyTagName) + ":" + EOL);
 
-                /* Now the body code */
-                sb.append(this.statement.generateCode());
+                /* Now the body code (with curly braces removed) */
+                String bodyIR = this.statement.generateCode();
+                bodyIR = bodyIR.replaceAll("[\\{\\}]\\s\\s", "");
+                sb.append(bodyIR);
 
                 /* Finally, add "if" IR line, e.g.
                  *  "if i < 10 goto label 2 */
@@ -304,7 +306,7 @@ public class Statement extends ASTNode {
 
 
                 sb.append("if " + this.bool_expression.printExpression() + " ");
-                sb.append("goto " + tagList.get(0) + " else goto " + tagList.get(1) + EOL);
+                sb.append("goto " + tagList.get(0) + " else goto " + tagList.get(1)  + ";" + EOL);
 
                 sb.append(tagList.get(0) + ":" + EOL);
                 String bodyIR = this.body.generateCode();

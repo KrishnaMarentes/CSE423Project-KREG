@@ -40,7 +40,7 @@ abstract class SymbolTableSuper {
         if (symbolType.contains(type)) {
             this.type = type;
         } else if (type == null) {
-            System.out.println("what?");
+            //System.out.println("what?");
             this.type = type;
         } else {
             System.out.println("'" + type + "' is not a valid type");

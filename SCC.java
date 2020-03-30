@@ -23,7 +23,6 @@ public class SCC {
         boolean readfile = false;
         boolean print_st = false;
         boolean save_output = false;
-        boolean print_symbolt = false;
 
         Scanner in = new Scanner(System.in);
 
@@ -77,9 +76,6 @@ public class SCC {
                             case 'o': /* replacing 's' with 'o' */
                                 save_output = true;
                                 break;
-                            case 'l':
-                                print_symbolt = true;
-                                break;
                             default:
                                 System.out.println("Entered a unrecognized option.");
                                 usage();
@@ -105,6 +101,7 @@ public class SCC {
         parser.setBuildParseTree(true);
 
         RuleContext tree = parser.program();
+        SymbolTable st = SymbolTable.populate(tree, parser.getRuleNames());
 
         if (save_output) {
             // Destroy output file if it already exists
@@ -150,18 +147,12 @@ public class SCC {
             else
                 printIR(tree, parser.getRuleNames(), null);
         }
-        if (print_symbolt) {
+        if (print_st) {
             System.out.println("printing Symbol Table...");
-            SymbolTable st = SymbolTable.populate(tree, parser.getRuleNames());
             SymbolTable.printSymbolTable(st);
         }
 
         System.out.println("done!");
-
-        /* List of symbol tables, one for each scope. The first is the global table */
-        SymbolTable global = new SymbolTable("global", null);
-
-        // TODO: Make a class/function that walks an AST to populate/add symbol tables
         // TODO: Add error messages when invalid declarations are made
     }
 
