@@ -1,41 +1,34 @@
-import java.util.ArrayList;
+import javafx.util.Pair;
+import org.antlr.v4.runtime.RuleContext;
 
-/**
- * EX:
- *  : will always be root type: global
- *      SymbolTable Global
- *      String Name: Global
- *      String Return Type: Null (or void?) ( used for forloops as well)
- *      SuperClass parent : Null
- *      List of superclass elements (Table)
- *      : inside:
- *          List of superclass elements (Symbol Table or Entry)
- *              SymbolTable (example) : Main
- *                  String Name: Main
- *                  String Type: INT # check symboltableentry.java for setup for types -> SuperClass
- *                  SuperClass parent : Global
- *
- *                  List of superclass elements
- *
- *
- *              SymbolTable ...
- *                  : Other Functions that can be globally seen :
- *              Entry ...
- *                  : Global variables :
- *
- */
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 abstract class SymbolTableSuper {
+    /*
     enum SymbolType {
         INT, CHAR, FLOAT, DOUBLE, LONG, UNSIGNED, SIGNED, SHORT, VOID, PNTR;
     }
+     */
+    private ArrayList<String> symbolType = new ArrayList<String>( Arrays.asList(
+            "int",
+            "char",
+            "float",
+            "double",
+            "long",
+            "unsigned",
+            "signed",
+            "short",
+            "void"
+    ));
 
-    private SymbolType type;
+    private String type;
     private String name;
 
     abstract String getEntryType();
 
-    String getType() { return this.type.name(); }
+    String getType() { return this.type; }
     String getName() { return this.name; }
 
     void setName(String name) {
@@ -43,14 +36,15 @@ abstract class SymbolTableSuper {
     }
 
     void setType(String type) {
-        try {
-            this.type = SymbolType.valueOf(type);
-        } catch(IllegalArgumentException e) {
-            // This should probably be more formal or print somewhere else but here it is.
-            System.out.println(e.getMessage());
+
+        if (symbolType.contains(type)) {
+            this.type = type;
+        } else if (type == null) {
+            System.out.println("what?");
+            this.type = type;
+        } else {
             System.out.println("'" + type + "' is not a valid type");
-        } catch(NullPointerException e) {
-            System.out.println(e.getMessage());
+            System.exit(0);
         }
     }
 }
@@ -65,14 +59,71 @@ public class SymbolTable extends SymbolTableSuper {
 
     String getEntryType() { return "Table"; }
 
+    /**
+     * Generic constructor for SymbolTable
+     */
     public SymbolTable() {
     }
 
+    /**
+     * Constructor for SymbolTable
+     * @param name Name of symbol table
+     * @param type Return type of symbol table
+     */
     public SymbolTable(String name, String type) {
         this.setName(name);
         this.setType(type);
     }
 
+    /**
+     * Populates the entire Symbol Table
+     * @param rc Rule context to build AST to reference
+     * @param ruleNames Rule names to reference
+     * @return Symbol table that is populated
+     */
+    public static SymbolTable populate(RuleContext rc, String[] ruleNames) {
+
+        /* List of symbol tables, one for each scope. The first is the global table */
+        SymbolTable global = new SymbolTable("global", null);
+        List<String> ruleNamesList = Arrays.asList(ruleNames);
+        ASTNode root = TreeUtils.generateAST(rc, ruleNamesList);
+
+        populateTable(root, global);
+
+        return global;
+    }
+
+    /**
+     * Populates a single symbol table
+     * @param current The current root of the AST being picked for entries
+     * @param st The current symbol table being populated
+     */
+    public static void populateTable(ASTNode current, SymbolTable st) {
+
+        ASTNode child = null;
+
+        for(int i = 0; i < current.children.size(); i++) {
+
+            if(current.children.get(i) == null) continue;
+            child = current.children.get(i);
+
+            if(child instanceof FunDeclaration) {
+                st.addTable(((FunDeclaration) child).typeSpecifier.id, ((FunDeclaration) child).functionName);
+
+                for (Pair<TypeSpecifier, String> tmp : ((FunDeclaration) child).params) {
+                    st.addEntry(tmp.getKey().id, tmp.getValue());
+                }
+                populateTable(((FunDeclaration) child).compoundStmt, st);
+
+            } else if(child instanceof VarDeclaration) {
+                for (Pair<String, Expression> tmp : ((VarDeclaration) child).vars) {
+                    st.addEntry(((VarDeclaration) child).type.id, tmp.getKey());
+                }
+            }
+
+        }
+
+    }
 
     /**
      * Adds table to a tables entries
@@ -124,6 +175,46 @@ public class SymbolTable extends SymbolTableSuper {
             check = this.parent;
         }
         return false;
+    }
+
+    /**
+     * Prints the entire symbol table, tab spaced by depth
+     * @param global the root table
+     */
+    public static void printSymbolTable(SymbolTable global) {
+        printTable(global, 0);
+    }
+
+    /**
+     * Pads a print statement
+     * @param num tab size
+     * @return string of spaces
+     */
+    private static String padding(int num) {
+        String space = "";
+        for(int i = 0; i < num; i++){
+            space += " ";
+        }
+        return space;
+    }
+
+    /**
+     * Prints the current table passed in
+     * @param table current symbol table
+     * @param depth depth which the table resides in relation to global
+     */
+    private static void printTable(SymbolTable table, int depth) {
+        System.out.println(padding(depth * 4) + "Table: " + table.getName());
+        System.out.println(padding(depth * 4) + "---------------------");
+        for (SymbolTableSuper entry : table.entries) {
+            if (entry instanceof SymbolTable) {
+                System.out.println("Function: " + entry.getType() + " " + entry.getName());
+                printTable((SymbolTable) entry, ++depth);
+            } else if(entry instanceof SymbolEntry) {
+                System.out.println(padding(depth * 4) + entry.getType() + " " + entry.getName());
+            }
+        }
+
     }
 
 }
