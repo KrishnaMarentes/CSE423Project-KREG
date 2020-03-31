@@ -47,17 +47,18 @@ public class SCC {
                                 break;
                             case 'w': /* write out IR to a file with a specified name */
                                 /* output filename will look: write_filename.out */
+                                /* -w specified_name FILENAME */
                                 writefile = true;
-                                System.out.println("Enter the name of the file to write out to: ");
-                                write_filename = in.nextLine();
+                                write_filename = args[args.length-2];
                                 print_ir = true;
                                 break;
                             case 'r': /* read in an IR specified instead of a source file */
                                 /* will read in any type of file and then output it to the terminal for now */
                                 /* ex of read_filename: src/tests/ex9.c or src/tests/ir_example.ir or src/tests/ir_example2.ast */
                                 readfile = true; /* might need for later */
-                                System.out.println("Enter the name of the IR file to read in: ");
-                                read_filename = in.nextLine();
+                                read_filename = args[args.length-1];
+                                /*System.out.println("enter file to read in: ");
+                                read_filename = in.nextLine();*/
                                 try {
                                     File input = new File(read_filename);
                                     Scanner readF = new Scanner(input);
@@ -246,7 +247,7 @@ public class SCC {
         System.out.println("p: Print the parse tree");
         System.out.println("a: Print the abstract syntax tree");
         System.out.println("i: Print the intermediate representation");
-        System.out.println("w: Write IR out to a file with a specified name");
+        System.out.println("w: Write IR out to a file with a specified name: -w specified_name FILENAME");
         System.out.println("r: Read in an IR specified instead of a source file");
         System.out.println("s: Print the symbol table");
         System.out.println("o: Save all printing to a file named 'FILENAME.out'");
