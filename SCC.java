@@ -57,8 +57,6 @@ public class SCC {
                                 /* ex of read_filename: src/tests/ex9.c or src/tests/ir_example.ir or src/tests/ir_example2.ast */
                                 readfile = true; /* might need for later */
                                 read_filename = args[args.length-1];
-                                /*System.out.println("enter file to read in: ");
-                                read_filename = in.nextLine();*/
                                 try {
                                     File input = new File(read_filename);
                                     Scanner readF = new Scanner(input);
@@ -70,7 +68,7 @@ public class SCC {
                                 } catch (FileNotFoundException e) {
                                     System.out.println("Error: file " + read_filename + " not found.");
                                 }
-                                break;
+                                System.exit(1);
                             case 's': /* print symbol table */
                                 print_st = true;
                                 break;
