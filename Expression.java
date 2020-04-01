@@ -314,12 +314,14 @@ public class Expression extends ASTNode {
                 String expr = this.children.get(i).generateCode();
 
                 /* Only append this argument's IR to output if tmpVars were made  */
-                if (expr.contains(tmpVar)) {
+                if (expr.contains("=")) {
                     sb.append(expr);
+                    lastTmp = getLastAssignedVar(expr);
+                } else {
+                    lastTmp = expr;
                 }
 
                 /* Add the name of the arg to the args list */
-                lastTmp = getLastAssignedVar(expr);
                 args.add(lastTmp);
 
             }

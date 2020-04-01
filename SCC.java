@@ -164,7 +164,7 @@ public class SCC {
 
         if (write_filename != null) {
             try {
-                FileWriter f = new FileWriter(write_file + ".out");
+                FileWriter f = new FileWriter(write_file);
                 BufferedWriter b = new BufferedWriter(f);
                 b.write(ir + "\n\n");
                 b.close();
