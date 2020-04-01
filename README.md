@@ -25,7 +25,7 @@
   a: Print the abstract syntax tree <br />
   s: Print the symbol table <br />
   i: Print the linear IR <br />
-  w: Write the IR to a given filename. Ex: -w ir.out FILENAME <br />
+  w: Write the IR to a given filename. Ex: -w ir FILENAME <br />
   r: Read in an IR instead of C code <br />
   * Do not use -w or -r together <br />
   FILENAME: file path of input C source code (or IR file) <br />
