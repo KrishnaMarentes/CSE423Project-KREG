@@ -1,32 +1,53 @@
-\documentclass{article}
+\documentclass{scrartcl}
 \usepackage[utf8]{inputenc}
 \usepackage{textcomp}
 
-\title{CSE423 Assignment 1 Documentation}
-\author{Rebecca Castillo\\Geoff Knox\\Krishna Marentes\\Elijah Orozco}
-\date{February 16 2020}
+\title{SCC by KREG}
+\subtitle{``Not-very-good C Compiler"}
+\author{\textbf{K}rishna Marentes\\\textbf{R}ebecca Castillo\\\textbf{E}lijah Orozco\\\textbf{G}eoff Knox}
+\date{April 6 2020}
 
 \begin{document}
 
 \maketitle
+\tableofcontents
 
 \section{Program Overview}
-\text{This file serves as the documentation for our compiler, currently in the scanning and parsing stages. Our user guide can be found in ``usage.pdf". Our compiler is written in Java and currently consists of three parts:}
+\text{This file serves as the documentation for our compiler, which currently can scan and parse C code and generate a linear IR. Our user guide can be found in ``usage.pdf". Our compiler is written in Java and currently consists of two parts:}
 \begin{itemize}
-    \item Grammar
-    \item Scanner/Parser Generator
-    \item Driver
+    \item Phase 1: Scanning/Parsing with C Grammar
+    \begin{itemize}
+        \item Input: C code
+        \item Output: Abstract Syntax Tree
+    \end{itemize}
+    \item Phase 2: IR Generation
+    \begin{itemize}
+        \item Input: Abstract Syntax Tree
+        \item Output: Linear intermediate representation
+    \end{itemize}
 \end{itemize}
 \text{A third-party tool, ``Antlr," serves as the scanner/parser generator that takes our Grammar (stored in the .g4 file) as input. Antlr is prompted to generate and run scanning and parsing files with the specified grammar from the Driver file, which handles command line arguments, the compiler/Antlr interface, and general ``main" function duties.}
 
-\section{Design - Antlr}
-Our compiler uses Antlr4, a tool similar to Flex/Bison that can be used for compilers written in Java. Antlr is both a scanner and parser all at once, and uses a simple format for specifying the language to parse.\\
+\section{Scanning and Parsing - Antlr}
+\subsection{Overview}
+Our compiler uses Antlr4, a tool similar to Flex/Bison that can be used for compilers written in Java. Antlr is both a scanner and parser, and uses a simple format for specifying the language to parse.\\
 We originally began our design handwriting our scanner code, with the same plan for the parser. However, Antlr was an attractive choice for us due to the advantages outlined below.
 \subsection{Advantages}
 Antlr allowed us to fast-track our parser development by greatly reducing the amount of code we needed to design and write. Antlr handles the parsing algorithm so that we can avoid writing tedious and error-prone code ourselves. Additionally, the grammar files Antlr uses are simple and easy to write. There is also a convenient plugin for our team's IDE of choice, IntelliJ, that seamlessly incorporates Antlr into our development environment, including a useful dynamic parse tree display.
 \subsection{Disadvantages}
-As simple as Antlr grammar files are and as much function as Antlr provides, there is still the learning curve associated with using and integrating such a complex tool. We are also aware that Antlr grammar files can be difficult to debug, but we are prepared to handle such issues, especially with the tools the IntelliJ Antlr plugin provides.
+As simple as Antlr grammar files are and as much function as Antlr provides, there is still the learning curve associated with using and integrating such a complex tool. We are also aware that Antlr grammar files can be difficult to debug, but we are prepared to handle such issues, especially with the tools the IntelliJ Antlr plugin provides.\\
+\\
+It was discovered when beginning Phase 2 that Antlr left us with no convenient way to convert the automatically-generated parse tree into an abstract syntax tree. Therefore, some extra effort was required to convert Antlr's tree data structure into our own design for AST generation and conversion to IR.
 
+\section{The Syntax Tree}
+\subsection{Overview}
+As discussed before, Antlr generates a thorough parse tree of the source code according to the defined grammar, but leaves no obvious way to use the generated parse tree. Therefore, our compiler defined its own tree data structure and methods to convert the parse tree (defined in Antlr's own tree data structure) into our custom tree design. This conversion also trims the parse tree into an abstract syntax tree (AST) for clarity and convenience for generating the IR later. Tree conversion routines are held in the \verb|ASTNode| class.\\
+\\
+To aid IR generation, each AST node is resolved into the a certain subclass node according to the grammar. For example, a node holding the ``funDeclaration" grammar rule in the parse tree would be resolved into a node of type ``FunDeclaration" in the AST. The AST uses seven subclasses of AST nodes: Program, TypeSpecifier, VarDeclaration, FunDeclaration, StructDeclaration, Expression, and Statement. (Note that the StructDeclaration is not fully implemented in the current version.) Each subclass is a customized node with relevant members (such as ``params" for FunDeclaration) that in some cases reduces the total number of nodes in the AST.\\
+\subsection{Advantages}
+The advantages of this design center on the ease of AST printing and IR generation. IR generation routines are customized for each subclass, so that IR generation can be successfully performed by recursively walking the tree and checking for what instance each node belongs to. This design is also useful when using an IDE debugger, since each node will have relevant members directly in the object, rather then needing to look through layers of child and parent nodes.\\
+\subsection{Disadvantages}
+For all the advantages, disadvantages do exist for our approach. For one, the overall design is somewhat complex. Using the AST requires fairly deep knowledge of each subclass as well as the grammar itself. In addition, it can be confusing to know when to look for information in a node's members or in its children. However, we've found the current design to be sufficiently helpful for IR 
 
 \section{Language Specification}
 \subsection{Introduction}
@@ -38,7 +59,9 @@ Here are the types of the various elements by type font or symbol for the gramma
     \item The symbol $\epsilon$ means the empty string
     \item ``EOF" indicates the end of the file
 \end{itemize}
-The grammar also uses standard regex terms. Symbols indicating regex rules are never bolded so as not to be confused with terminal symbols. Parentheses are also used to avoid confusion. For example, an instance of ``(\textbf{*})*" indicates that the * terminal may be seen zero or more times.
+The grammar also uses standard regex terms. Symbols indicating regex rules are never bolded so as not to be confused with terminal symbols. Parentheses are also used to avoid confusion. For example, an instance of ``(\textbf{*})*" indicates that the * terminal may be seen zero or more times.\\
+\\
+Single-line comments (denoted by ``//") and block comments (denoted by ``/* */") are successfully ignored by the grammar.
 \subsection{Tokens}
 \begin{itemize}
 \item ID $\rightarrow$ 
@@ -376,10 +399,119 @@ The following are not supported by our grammar.
     \item Casting
     \item Ternary operations
 \end{itemize}
-We've attempted to implement the following, but support can be considered to be in ``beta mode" as there may be edge cases that have not been tested.
+We've attempted to implement the following in the grammar, but support can be considered to be in ``beta mode" as there may be edge cases that have not been tested.
 \begin{itemize}
     \item Pointers
     \item Arrays
     \item Strings
 \end{itemize}
+
+\section{Symbol Table}
+Our compiler utilizes a symbol table to keep track of declared variables and functions and their types. The symbol table is built from the complete abstract syntax tree. The general structure of our symbol table with examples is shown:
+\begin{center}
+    \begin{tabular}{c|c}
+         Name & Type \\
+         \hline
+         \hline
+         i    & int  \\
+         \hline
+         c    & char \\
+         \hline
+         main & int  \\
+    \end{tabular}
+\end{center}
+
+The ``Name" field of our symbol table can be of two different types: a plain \verb|SymbolEntry| type for variable declarations, or a \verb|SymbolTable| type for function declarations. This way, function return types are stored in the symbol table belonging to the scope they are declared in, and each function's scoped variables can be found by looking inside the symbol table of the function's name.\\
+\\
+For example, the following C code
+\begin{verbatim}
+    int global_var;
+    char foo() { 
+        char i; 
+        return i;
+    }
+    int main() { 
+        int i; 
+        char j;
+        return i;
+    }
+\end{verbatim}
+produces the following symbol table:
+\begin{center}
+    \begin{tabular}{c|c}
+         Name & Type  \\
+         \hline
+         \hline
+         global\_var & int \\
+         \hline
+         foo & char\\
+         \begin{tabular}{c|c}
+            Name & Type\\
+            \hline \hline
+              i & char 
+         \end{tabular} &\\
+         \hline
+         main & int\\
+         \begin{tabular}{c|c}
+            Name & Type \\
+            \hline \hline
+             i & int\\
+             j & char
+         \end{tabular} 
+    \end{tabular}
+\end{center}
+
+The symbol table mainly serves to check for type and declaration errors in the source code. For example, if the source code tries to reference variable ``i" and ``i" is not found in the symbol table, the compiler will throw an error to the user.
+
+\section{Intermediate Language Design}
+\subsection{Overview}
+Our linear intermediate representation (IR) follows a simple format not far from the original C code. It flattens all loops with \verb|goto| statements, and uses \verb|if| and \verb|else| to handle conditional jumps. Our IR nearly follows the single static assignment (SSA) form.\\
+\\
+Temporary variables and labels are named with the prefix ``KREG" followed by a period and unique integer: ``\verb|KREG.0|". Labels are differentiated from variables by angle brackets: ``\verb|<KREG.0>|". We rely on the period in our temporary variable naming scheme to avoid naming collisions between IR-generated variables and C code variables.\\
+\\
+Statements end with a semicolon, and labels end with a colon. Function bodies are denoted with curly brackets, each on their own line. Function parameters are denoted in parenthesis next to the function name, similar to C. All function declarations are preceded by the keyword ``function".
+Though our algorithm does sometimes result in seemingly redundant temporary variable assignments (see example below) by using pseudo-SSA, we find that this method smoothly and easily breaks the original code down into manageable lines for optimization.\\
+\\
+For the following line of C code:
+\begin{verbatim}
+    i++;
+\end{verbatim}
+our compiler will produce the following IR:
+\begin{verbatim}
+    KREG.1 = i;
+    i = i + 1;
+    KREG.2 = KREG.1;
+\end{verbatim}
+Although in this case our IR unnecessarily inflates the original C code, it has no real impact on the program's function. More importantly, producing the IR in this way allows us to use the proper values of variables for unary expressions. For example, if the C code was changed to
+\begin{verbatim}
+    x = i++;
+\end{verbatim}
+then our IR would produce
+\begin{verbatim}
+    KREG.1 = i;
+    i = i + 1;
+    KREG.2 = KREG.1;
+    x = KREG.2;
+\end{verbatim}
+which correctly assigns the un-incremented value of \verb|i| to \verb|x|.\\
+\\
+Currently, our IR is stored as a single string, with each line of code separated by \textit{EOL}. Design concepts for the best structure to store the IR for optimization and conversion to assembly are currently underway.
+\begin{verbatim}
+    
+\end{verbatim}
+
+\subsection{Limitations}
+The following features, in addition to those not supported by the grammar, are not supported by our IR:
+\begin{itemize}
+    \item For loops
+    \item Pointers
+    \item Strings
+    \item Structures
+    \item Arrays
+    \item Multiple boolean expressions in \verb|if| statements and \verb|while| loops. E.g. 
+    \begin{verbatim}
+        while (i < 10 && j > 10)
+    \end{verbatim}
+\end{itemize}
+Currently, our compiler only supports two levels of symbol scoping: the global scope, and scopes for functions. Therefore, loops do \textit{not} have their own scope.
 \end{document}
