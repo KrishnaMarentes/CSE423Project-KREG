@@ -2,20 +2,26 @@
 \usepackage[utf8]{inputenc}
 \usepackage{textcomp}
 
-\title{CSE423 Assignment 1 Usage}
-\author{Rebecca Castillo\\Geoff Knox\\Krishna Marentes\\Elijah Orozco}
-\date{February 16 2020}
+\title{SCC by KREG - Usage}
+\author{\textbf{K}rishna Marentes\\\textbf{R}ebecca Castillo\\\textbf{E}lijah Orozco\\\textbf{G}eoff Knox}
+\date{April 6 2020}
 
 \begin{document}
 
 \maketitle
 
 \section{Usage}
-At present, our compiler takes input from a .c file, and can output user-specified results to the terminal. Those results include:\\
+At present, our compiler takes input from a .c file, and can output user-specified results to the terminal. Those results include:
 \begin{itemize}
     \item -t Print tokens
     \item -p Print parse tree
+    \item -a Print abstract syntax tree
+    \item -s Print symbol table
+    \item -i Print intermediate representation
+    \item -w [filename] Write the IR to <filename>
+    \item -r [filename] Read in a given IR instead of source code
 \end{itemize}
+Note that options -w and -r should not be used together
 
 \subsection{Run instructions:}
 Ensure that the repository is cloned and unzipped then navigate into the folder.

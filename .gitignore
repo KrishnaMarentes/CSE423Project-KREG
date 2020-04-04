@@ -2,3 +2,4 @@
 *.interp
 *.tokens
 kregGrammar*.java
+.DS_Store

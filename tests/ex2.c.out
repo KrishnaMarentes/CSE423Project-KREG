@@ -1,0 +1,232 @@
+program 
+  declarationList 
+    declaration 
+      funDeclaration 
+        typeSpecifier int
+        main(params)
+        compoundStmt {
+          statementList 
+            statementList 
+              statementList 
+                statementList 
+                  statementList 
+                    statementList 
+                      statementList statementList
+                        varDeclaration 
+                          typeSpecifier int
+                          varDeclList 
+                            varDeclList 
+                              varDeclInitialize 
+                                varDeclId j
+                                =
+                                expression 
+                                  simpleExpression 
+                                    andExpression 
+                                      unaryRelExpression 
+                                        relExpression 
+                                          sumExpression 
+                                            mulExpression 
+                                              unaryExpression 
+                                                factor 
+                                                  immutable 
+                                                    constant 4
+                            ,
+                            varDeclInitialize 
+                              varDeclId m
+                          ;
+                      varDeclaration 
+                        typeSpecifier int
+                        varDeclList 
+                          varDeclInitialize 
+                            varDeclId f
+                            =
+                            expression 
+                              simpleExpression 
+                                andExpression 
+                                  unaryRelExpression 
+                                    relExpression 
+                                      sumExpression 
+                                        mulExpression 
+                                          unaryExpression 
+                                            factor 
+                                              mutable j
+                        ;
+                    varDeclaration 
+                      typeSpecifier int
+                      varDeclList 
+                        varDeclInitialize 
+                          varDeclId m1
+                          =
+                          expression 
+                            immutable 
+                              constant 4
+                            &
+                            expression 
+                              simpleExpression 
+                                andExpression 
+                                  unaryRelExpression 
+                                    relExpression 
+                                      sumExpression 
+                                        mulExpression 
+                                          unaryExpression 
+                                            factor 
+                                              immutable 
+                                                constant 7
+                      ;
+                  varDeclaration 
+                    typeSpecifier int
+                    varDeclList 
+                      varDeclInitialize 
+                        varDeclId k2
+                        =
+                        expression 
+                          immutable 
+                            constant 4
+                          ^
+                          expression 
+                            simpleExpression 
+                              andExpression 
+                                unaryRelExpression 
+                                  relExpression 
+                                    sumExpression 
+                                      mulExpression 
+                                        unaryExpression 
+                                          factor 
+                                            immutable 
+                                              constant 7
+                    ;
+                statement 
+                  expressionStmt 
+                    expression 
+                      mutable k2
+                      ^=
+                      expression 
+                        simpleExpression 
+                          andExpression 
+                            unaryRelExpression 
+                              relExpression 
+                                sumExpression 
+                                  mulExpression 
+                                    unaryExpression 
+                                      factor 
+                                        immutable 
+                                          constant 9
+                    ;
+              statement 
+                expressionStmt 
+                  expression 
+                    simpleExpression 
+                      andExpression 
+                        unaryRelExpression 
+                          relExpression 
+                            sumExpression 
+                              mulExpression 
+                                unaryExpression 
+                                  factor 
+                                    immutable 
+                                      call printf(
+                                        args 
+                                          argList 
+                                            argList 
+                                              expression 
+                                                simpleExpression 
+                                                  andExpression 
+                                                    unaryRelExpression 
+                                                      relExpression 
+                                                        sumExpression 
+                                                          mulExpression 
+                                                            unaryExpression 
+                                                              factor 
+                                                                immutable 
+                                                                  constant "testing out this       %d\n"
+                                            ,
+                                            expression 
+                                              simpleExpression 
+                                                andExpression 
+                                                  unaryRelExpression 
+                                                    relExpression 
+                                                      sumExpression 
+                                                        mulExpression 
+                                                          unaryExpression 
+                                                            unaryop *
+                                                            unaryExpression 
+                                                              factor 
+                                                                mutable f
+                                        )
+                  ;
+            statement 
+              returnStmt return
+                expression 
+                  simpleExpression 
+                    andExpression 
+                      unaryRelExpression 
+                        relExpression 
+                          sumExpression 
+                            mulExpression 
+                              unaryExpression 
+                                factor 
+                                  immutable 
+                                    constant 0
+                ;
+          }
+  <EOF>
+
+program 
+  funDeclaration 
+    typeSpecifier int
+    main
+    varDeclaration 
+      typeSpecifier int
+      varDeclList 
+        varDeclList 
+          varDeclInitialize 
+            varDeclId j
+            =
+            constant 4
+        ,
+        varDeclInitialize 
+          varDeclId m
+    varDeclaration 
+      typeSpecifier int
+      varDeclList 
+        varDeclInitialize 
+          varDeclId f
+          =
+          mutable j
+    varDeclaration 
+      typeSpecifier int
+      varDeclList 
+        varDeclInitialize 
+          varDeclId m1
+          =
+          expression 
+            constant 4
+            &
+            constant 7
+    varDeclaration 
+      typeSpecifier int
+      varDeclList 
+        varDeclInitialize 
+          varDeclId k2
+          =
+          expression 
+            constant 4
+            ^
+            constant 7
+    expression 
+      mutable k2
+      ^=
+      constant 9
+    call printf
+      args 
+        argList 
+          argList 
+            constant "testing out this       %d\n"
+          ,
+          unaryExpression 
+            unaryop *
+            mutable f
+    returnStmt return
+      constant 0
+
+
