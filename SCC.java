@@ -1,12 +1,12 @@
 import org.antlr.v4.runtime.*;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
 import java.util.Scanner;
 
 public class SCC {
+    public static SymbolTable symbolTable;
     public static void main(String[] args) {
         String filename = null;
         String write_filename = null;
@@ -100,7 +100,7 @@ public class SCC {
         parser.setBuildParseTree(true);
 
         RuleContext tree = parser.program();
-        SymbolTable st = SymbolTable.populate(tree, parser.getRuleNames());
+        symbolTable = SymbolTable.populate(tree, parser.getRuleNames());
 
         if (save_output) {
             // Destroy output file if it already exists
@@ -148,7 +148,7 @@ public class SCC {
         }
         if (print_st) {
             System.out.println("printing Symbol Table...");
-            SymbolTable.printSymbolTable(st);
+            SymbolTable.printSymbolTable(symbolTable);
         }
 
         System.out.println("done!");

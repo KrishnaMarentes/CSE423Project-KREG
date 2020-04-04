@@ -47,8 +47,8 @@ public class Expression extends ASTNode {
             // No recursion necessary for either operand
             if((left instanceof Constant || left instanceof Mutable) &&
                     (right instanceof Constant || right instanceof Mutable)) {
-                sb.append(tmpVar + globalCounter++ + " = " + left.id + " " +
-                        this.symbol + " " + right.id + ";" + EOL);
+                sb.append(tmpVar + globalCounter++ + " = " + left.generateCode() + " " +
+                        this.symbol + " " + right.generateCode() + ";" + EOL);
                 return sb.toString();
             }
 
@@ -61,7 +61,7 @@ public class Expression extends ASTNode {
                     // Grab just the last tmp var assigned
                     leftTmp = getLastAssignedVar(leftTmp);
                 } else {
-                    leftTmp = left.id;
+                    leftTmp = left.generateCode();
                 }
                 if(!(right instanceof Constant || right instanceof Mutable)) {
                     rightTmp = right.generateCode();
@@ -69,7 +69,7 @@ public class Expression extends ASTNode {
                     // Grab just the last tmp var assigned
                     rightTmp = getLastAssignedVar(rightTmp);
                 } else {
-                    rightTmp = right.id;
+                    rightTmp = right.generateCode();
                 }
             }
 
@@ -106,9 +106,9 @@ public class Expression extends ASTNode {
             lastTmp = getLastAssignedVar(expression);
             String newSymbol;
             if((newSymbol = symbol.replace("=", "")).length() == 0) {
-                sb.append(left.id + " = " + lastTmp + ";" + EOL);
+                sb.append(left.generateCode() + " = " + lastTmp + ";" + EOL);
             } else {
-                sb.append(left.id + " = " + left.id + " " + newSymbol + " " + lastTmp + ";" + EOL);
+                sb.append(left.generateCode() + " = " + left.generateCode() + " " + newSymbol + " " + lastTmp + ";" + EOL);
             }
 //            sb.append(left.id + " = " + lastTmp + ";" + EOL);
 
@@ -256,6 +256,10 @@ public class Expression extends ASTNode {
         }
 
         public String generateCode() {
+            if(!SCC.symbolTable.lookupEntry(this.id)) {
+                System.out.println("unknown symbol " + this.id);
+                System.exit(1);
+            }
             return this.id;
         }
     }
@@ -306,6 +310,10 @@ public class Expression extends ASTNode {
         }
 
         public String generateCode() {
+            if(!SCC.symbolTable.lookupEntry(funcName)) {
+                System.out.println("function not declared: " + funcName);
+                System.exit(1);
+            }
             StringBuilder sb = new StringBuilder();
             String lastTmp;
             ArrayList<String> args = new ArrayList<>();
@@ -360,9 +368,9 @@ public class Expression extends ASTNode {
     /* Used for loop conditionals */
     public String printExpression() {
         StringBuilder sb = new StringBuilder();
-        sb.append(this.left.id + " ");
+        sb.append(this.left.generateCode() + " ");
         sb.append(this.symbol + " ");
-        sb.append(this.right.id);
+        sb.append(this.right.generateCode());
         return sb.toString();
     }
 
