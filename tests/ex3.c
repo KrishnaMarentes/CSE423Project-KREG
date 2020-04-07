@@ -14,8 +14,8 @@ int main(int argc, char** argv)
 hell:
     ++a;
     a++;
-    m = foo(foo2()) * 2;
-    a2 = m * a;
+    m = foo(foo()) * 2;
+    a = m * a;
     t = m * foo(m*5, f);
 
 

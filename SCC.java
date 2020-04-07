@@ -22,7 +22,7 @@ public class SCC {
         boolean writefile = false;
         boolean readfile = false;
         boolean print_st = false;
-        boolean save_output = false;
+        boolean save_output = true;
 
         Scanner in = new Scanner(System.in);
 
