@@ -1,15 +1,10 @@
-int main() {
-    ///more comment tests
-    /*
-        plz don't break
-    */
-	int j = 4, m;
-	int f = j;
-	int m1 = 4 & 7;
-
-	int k2 = 4 ^ 7;
-	k2 ^= 9;
-
-	printf("testing out this       %d\n", *f);
-	return 0;
+int main()
+{
+        int i, j, k;
+        i = 12;
+        j = (i/2) * 15;
+        k = i/j;
+        k = k + j;
+        i = j - k;
+        return k;
 }

@@ -1,14 +1,25 @@
-#include <stdio.h>
-
 int main() {
-    double a, b, product;
-    printf("Enter two numbers: ");
-    scanf("%lf %lf", &a, &b);
+        int a = 5;
+        int b = 20;
+        int c;
 
-    // Calculating product
-    product = a * b;
-    // Result up to 2 decimal point is displayed using %.2lf
-    printf("Product = %.2lf", product);
+        if (a && b) {
+                c = a + b;
+        }
+        if (a || b) {
+                c = a * b;
+        }
 
-    return 0;
+        a = 0;
+        b = 10;
+
+        if (a && b) {
+                c++;
+        } else {
+                c = a - b;
+        }
+
+        if (a && b) {
+                c++;
+        }
 }
