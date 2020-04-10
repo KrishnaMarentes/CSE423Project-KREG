@@ -23,6 +23,7 @@ public class SCC {
         boolean readfile = false;
         boolean print_st = false;
         boolean save_output = true;
+        boolean print_asm = true;
 
         Scanner in = new Scanner(System.in);
 
@@ -68,12 +69,16 @@ public class SCC {
                                 } catch (FileNotFoundException e) {
                                     System.out.println("Error: file " + read_filename + " not found.");
                                 }
-                                System.exit(1);
+                                //System.exit(1);
+                                break;
                             case 's': /* print symbol table */
                                 print_st = true;
                                 break;
                             case 'o': /* replacing 's' with 'o' */
                                 save_output = true;
+                                break;
+                            case 'S':
+                                print_asm = true;
                                 break;
                             default:
                                 System.out.println("Entered a unrecognized option.");
@@ -95,64 +100,74 @@ public class SCC {
             System.exit(1);
         }
 
-        kregGrammarLexer lexer = new kregGrammarLexer(src_code);
-        kregGrammarParser parser = new kregGrammarParser(new CommonTokenStream(lexer));
-        parser.setBuildParseTree(true);
+        if(!readfile) {
+            kregGrammarLexer lexer = new kregGrammarLexer(src_code);
+            kregGrammarParser parser = new kregGrammarParser(new CommonTokenStream(lexer));
+            parser.setBuildParseTree(true);
 
-        RuleContext tree = parser.program();
-        symbolTable = SymbolTable.populate(tree, parser.getRuleNames());
+            RuleContext tree = parser.program();
+            symbolTable = SymbolTable.populate(tree, parser.getRuleNames());
+            if (save_output) {
+                // Destroy output file if it already exists
+                File out = new File(filename + ".out");
+                if (out.exists())
+                    out.delete();
+                // Create the output file so that output can be appended to a clean file
+                try {
+                    out.createNewFile();
+                } catch (IOException e) {
+                    System.out.println("Error in creating file " + filename + ".out" +
+                            "\nThe output will not be saved.");
+                    save_output = false;
+                }
+            }
 
-        if (save_output) {
-            // Destroy output file if it already exists
-            File out = new File(filename + ".out");
-            if (out.exists())
-                out.delete();
-            // Create the output file so that output can be appended to a clean file
-            try {
-                out.createNewFile();
-            } catch (IOException e) {
-                System.out.println("Error in creating file " + filename + ".out" +
-                        "\nThe output will not be saved.");
-                save_output = false;
+            //TODO: Allow to just save to file without having to also print to terminal
+            if (print_tks) {
+                System.out.println("printing tokens...");
+                if (save_output)
+                    printTokens(parser.getTokenStream(), lexer.getRuleNames(), filename);
+                else
+                    printTokens(parser.getTokenStream(), lexer.getRuleNames(), null);
+            }
+            if (print_pt) {
+                System.out.println("printing parse tree...");
+                if (save_output)
+                    printParseTree(tree, parser.getRuleNames(), filename);
+                else
+                    printParseTree(tree, parser.getRuleNames(), null);
+            }
+            if (print_ast) {
+                System.out.println("printing abstract syntax tree...");
+                if (save_output)
+                    printAST(tree, parser.getRuleNames(), filename);
+                else
+                    printAST(tree, parser.getRuleNames(), null);
+            }
+            if (print_ir) {
+                System.out.println("printing IR...");
+                if (writefile)
+                    printIR(tree, parser.getRuleNames(), write_filename);
+                else
+                    printIR(tree, parser.getRuleNames(), null);
+            }
+            if (print_st) {
+                System.out.println("printing Symbol Table...");
+                SymbolTable.printSymbolTable(symbolTable);
             }
         }
 
-        //TODO: Allow to just save to file without having to also print to terminal
-        if (print_tks) {
-            System.out.println("printing tokens...");
-            if (save_output)
-                printTokens(parser.getTokenStream(), lexer.getRuleNames(), filename);
-            else
-                printTokens(parser.getTokenStream(), lexer.getRuleNames(), null);
-        }
-        if (print_pt) {
-            System.out.println("printing parse tree...");
-            if (save_output)
-                printParseTree(tree, parser.getRuleNames(), filename);
-            else
-                printParseTree(tree, parser.getRuleNames(), null);
-        }
-        if (print_ast) {
-            System.out.println("printing abstract syntax tree...");
-            if (save_output)
-                printAST(tree, parser.getRuleNames(), filename);
-            else
-                printAST(tree, parser.getRuleNames(), null);
-        }
-        if (print_ir) {
-            System.out.println("printing IR...");
-            if (writefile)
-                printIR(tree, parser.getRuleNames(), write_filename);
-            else
-                printIR(tree, parser.getRuleNames(), null);
-        }
-        if (print_st) {
-            System.out.println("printing Symbol Table...");
-            SymbolTable.printSymbolTable(symbolTable);
+        if(print_asm) {
+            System.out.println("printing assembly...");
+
         }
 
         System.out.println("done!");
         // TODO: Add error messages when invalid declarations are made
+    }
+
+    private static void printASM() {
+
     }
 
     private static void printIR(RuleContext rc, String[] ruleNames, String write_filename) {
@@ -166,7 +181,7 @@ public class SCC {
             try {
                 FileWriter f = new FileWriter(write_file);
                 BufferedWriter b = new BufferedWriter(f);
-                b.write(ir + "\n\n");
+                b.write(ir);
                 b.close();
                 f.close();
             } catch (IOException e) {
@@ -207,7 +222,7 @@ public class SCC {
             try {
                 FileWriter f = new FileWriter(filename + ".out", true);
                 BufferedWriter b = new BufferedWriter(f);
-                b.write(prettyTree.toString() + "\n\n");
+                b.write(prettyTree);
                 b.close();
                 f.close();
             } catch (IOException e) {
@@ -229,7 +244,7 @@ public class SCC {
             try {
                 FileWriter f = new FileWriter(filename + ".out", true);
                 BufferedWriter b = new BufferedWriter(f);
-                b.write(output.toString() + "\n\n");
+                b.write(output.toString());
                 b.close();
                 f.close();
             } catch (IOException e) {

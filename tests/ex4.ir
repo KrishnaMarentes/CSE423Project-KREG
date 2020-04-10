@@ -1,0 +1,22 @@
+function calc()
+{
+int f;
+
+f = 0;
+return f;
+}
+
+function main()
+{
+int j;
+float k;
+
+j = 4;
+k = 2;
+KREG.0 = calc();
+KREG.1 = KREG.0 + 2;
+return KREG.1;
+}
+
+
+
