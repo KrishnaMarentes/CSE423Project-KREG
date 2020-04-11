@@ -1,10 +1,18 @@
-# int main() {
-#   return 0;
-# }
-# Gives this assembly in gcc
-
+; int j = 0;
+;
+; int main () {
+;  int k = 2;
+;  return k + j;
+; }
 
 .file	"sample1.c"
+	.globl	j
+	.bss
+	.align 4
+	.type	j, @object
+	.size	j, 4
+j:
+	.zero	4
 	.text
 	.globl	main
 	.type	main, @function
@@ -16,7 +24,10 @@ main:
 	.cfi_offset 6, -16
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register 6
-	movl	$0, %eax
+	movl	$2, -4(%rbp)
+	movl	j(%rip), %edx
+	movl	-4(%rbp), %eax
+	addl	%edx, %eax
 	popq	%rbp
 	.cfi_def_cfa 7, 8
 	ret
