@@ -22,7 +22,8 @@ public class SCC {
         boolean writefile = false;
         boolean readfile = false;
         boolean print_st = false;
-        boolean save_output = true;
+        boolean save_output = false;
+        boolean optimize = false;
 
         Scanner in = new Scanner(System.in);
 
@@ -75,6 +76,9 @@ public class SCC {
                             case 'o': /* replacing 's' with 'o' */
                                 save_output = true;
                                 break;
+                            case 'O': /* carry out all optimizations */
+                                optimize = true;
+                                break;
                             default:
                                 System.out.println("Entered a unrecognized option.");
                                 usage();
@@ -102,6 +106,15 @@ public class SCC {
         RuleContext tree = parser.program();
         symbolTable = SymbolTable.populate(tree, parser.getRuleNames());
 
+        List<String> ruleNamesList = Arrays.asList(parser.getRuleNames());
+        ASTNode an = TreeUtils.generateAST(tree, ruleNamesList);
+        String ir = generateIR(an);
+        String basicblocks; //debugging
+
+        if (optimize) {
+            basicblocks = Optimizations.optimizeIR(ir);
+            System.out.println(basicblocks);
+        }
         if (save_output) {
             // Destroy output file if it already exists
             File out = new File(filename + ".out");
@@ -142,9 +155,9 @@ public class SCC {
         if (print_ir) {
             System.out.println("printing IR...");
             if (writefile)
-                printIR(tree, parser.getRuleNames(), write_filename);
+                printIR(ir, write_filename);
             else
-                printIR(tree, parser.getRuleNames(), null);
+                printIR(ir,null);
         }
         if (print_st) {
             System.out.println("printing Symbol Table...");
@@ -155,11 +168,7 @@ public class SCC {
         // TODO: Add error messages when invalid declarations are made
     }
 
-    private static void printIR(RuleContext rc, String[] ruleNames, String write_filename) {
-        List<String> ruleNamesList = Arrays.asList(ruleNames);
-        ASTNode an = TreeUtils.generateAST(rc, ruleNamesList);
-
-        String ir = generateIR(an);
+    private static void printIR(String ir, String write_filename) {
         String write_file = "src/tests/" + write_filename; /* redirecting to appropriate folder */
 
         if (write_filename != null) {
