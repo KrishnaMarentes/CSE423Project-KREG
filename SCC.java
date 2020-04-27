@@ -1,12 +1,14 @@
+import Optimizer.*;
 import org.antlr.v4.runtime.*;
 
 import java.io.*;
-import java.util.List;
-import java.util.Arrays;
-import java.util.Scanner;
+import java.util.*;
 
 public class SCC {
+
     public static SymbolTable symbolTable;
+    public static int MAX_ROUNDS = 25;
+
     public static void main(String[] args) {
         String filename = null;
         String write_filename = null;
@@ -26,6 +28,7 @@ public class SCC {
         boolean optimize = false;
 
         Scanner in = new Scanner(System.in);
+        ArrayList<String> IRdata = new ArrayList<>();
 
         if(args.length > 0) {
             try {
@@ -54,22 +57,32 @@ public class SCC {
                                 print_ir = true;
                                 break;
                             case 'r': /* read in an IR specified instead of a source file */
-                                /* will read in any type of file and then output it to the terminal for now */
-                                /* ex of read_filename: src/tests/ex9.c or src/tests/ir_example.ir or src/tests/ir_example2.ast */
-                                readfile = true; /* might need for later */
-                                read_filename = args[args.length-1];
-                                try {
+                                /* ex of read_filename: -r src/tests/example2 any_other_filename */
+                                /* any_other_filename is needed so that generating lexer/parser/ir don't break */
+                                /* Only focusing on example2 file contents for optimizations */
+                                readfile = true;
+                                read_filename = args[args.length-2];
+                                /*try {
                                     File input = new File(read_filename);
                                     Scanner readF = new Scanner(input);
+                                    System.out.println("Reading Input File...");
                                     while (readF.hasNextLine()) {
                                         String IRdata = readF.nextLine();
                                         System.out.println(IRdata);
                                     }
                                     readF.close();
+                                    System.out.println("Done Reading Input File...");
                                 } catch (FileNotFoundException e) {
                                     System.out.println("Error: file " + read_filename + " not found.");
+                                }*/
+                                //System.exit(1);
+                                /* Adding input IR into an array list */
+                                try (BufferedReader br = new BufferedReader(new FileReader(read_filename))) {
+                                    while (br.ready()){
+                                        IRdata.add(br.readLine());
+                                    }
                                 }
-                                System.exit(1);
+                                break;
                             case 's': /* print symbol table */
                                 print_st = true;
                                 break;
@@ -110,6 +123,43 @@ public class SCC {
         ASTNode an = TreeUtils.generateAST(tree, ruleNamesList);
         String ir = generateIR(an);
         String basicblocks; //debugging
+
+        /*-------------------------------------------------------*/
+        /*-------------------------------------------------------*/
+        /* only code added for optimizer part */
+        Optimizer op = new Optimizer();
+
+        /* attempting to add generated ir into an array list "code" but using ir data from input file instead for now */
+        /*List<String> code = new ArrayList<>(Arrays.asList(ir.split("\\r?\\n")));
+        System.out.println("Reading code array string..." + code);*/
+        /* need to convert ir lines (already in three-address-code format) into a list of instructions: LHS = RHS_1 OP RHS_2 */
+        ArrayList<Instruction> ins = Optimizer.Build(IRdata); /* this part fails because of Build function */
+
+        // System.out.println("After Instruction Build.."); // debugging
+        for (String s: IRdata){
+            System.out.println(s);
+        }
+
+        //System.out.println(Optimizer.ToText(ins, 1));
+
+        boolean optimized = true;
+        int k = 1;
+
+        if (readfile) {
+            while(optimized && k < MAX_ROUNDS){
+                optimized = false;
+
+                System.out.println("\n\nCode after " + k + " optimization round:");
+                optimized = op.Optimize(ins);
+                System.out.println(Optimizer.ToText(ins, 1));
+                k++;
+            }
+
+            if(optimized) System.out.println("\n\nMaximum number of rounds is limited to " + MAX_ROUNDS);
+        }
+        /* the plan is to print all of this code after using basic blocks code to determine the lines (instructions) to optimize */
+        /*-------------------------------------------------------*/
+        /*-------------------------------------------------------*/
 
         if (optimize) {
             basicblocks = Optimizations.optimizeIR(ir);
