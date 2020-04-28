@@ -1,10 +1,7 @@
 import org.antlr.v4.runtime.*;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Arrays;
-import java.util.Scanner;
+import java.util.*;
 
 public class SCC {
 
@@ -85,6 +82,7 @@ public class SCC {
                                 break;
                             case 'S':
                                 print_asm = true;
+                                readfile = true;
                                 break;
                             default:
                                 System.out.println("Entered a unrecognized option.");
@@ -175,6 +173,7 @@ public class SCC {
 
     private static void printASM(String filename) {
         ASM asmCode = new ASM(input_ir.toString());
+
         try {
             //File input = new File(filename);
             filename = filename.replace(".ir", ".s");
@@ -193,11 +192,13 @@ public class SCC {
         }
         //System.out.println(asmCode.ir_lines);
         //System.out.println(asmCode.functions);
-        for(int i = 0; i < asmCode.functions.size(); i++) {
-            ASMFunction f = asmCode.functions.get(i);
-            System.out.println(f.getName() + " " + f.getArgs());
+        Map<String, List<String>> f = asmCode.functions;
+        for(String key : f.keySet()) {
+            //ASMFunction f = asmCode.functions.get(i);
+            //System.out.println(f.getName() + " " + f.getArgs());
+            System.out.println(key + " : " + f.get(key));
         }
-        System.out.println(asmCode.getASMString());
+        //System.out.println(asmCode.getASMString());
     }
 
     private static void printIR(RuleContext rc, String[] ruleNames, String write_filename) {
