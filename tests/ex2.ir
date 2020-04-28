@@ -1,0 +1,20 @@
+function foo(int f, int t)
+{
+int m;
+
+KREG.0 = 6 + f;
+KREG.1 = KREG.0 + t;
+m = KREG.1;
+KREG.2 = m * 4;
+return KREG.2;
+}
+
+function main()
+{
+int i;
+
+KREG.3 = 12 * 18;
+i = KREG.3;
+return i;
+}
+

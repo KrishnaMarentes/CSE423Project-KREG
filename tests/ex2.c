@@ -1,10 +1,11 @@
+int foo(int f, int t) {
+    int m = 6 + f + t;
+    return m * 4;
+}
+
 int main()
 {
-        int i, j, k;
-        i = 12;
-        j = (i/2) * 15;
-        k = i/j;
-        k = k + j;
-        i = j - k;
-        return k;
+    int i;
+    i = 12 * 18;
+    return i;
 }

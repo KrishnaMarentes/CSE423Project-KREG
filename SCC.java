@@ -7,11 +7,17 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 public class SCC {
+
+    public static final String EOL = System.lineSeparator();
     public static SymbolTable symbolTable;
+    public static StringBuilder input_ir = new StringBuilder();
+    public static String asm_name = null;
+
     public static void main(String[] args) {
         String filename = null;
         String write_filename = null;
         String read_filename = null;
+
 
         CharStream src_code = null;
         char opt;
@@ -23,10 +29,9 @@ public class SCC {
         boolean writefile = false;
         boolean readfile = false;
         boolean print_st = false;
-        boolean save_output = true;
-        boolean print_asm = true;
+        boolean save_output = false;
+        boolean print_asm = false;
 
-        Scanner in = new Scanner(System.in);
 
         if(args.length > 0) {
             try {
@@ -62,15 +67,15 @@ public class SCC {
                                 try {
                                     File input = new File(read_filename);
                                     Scanner readF = new Scanner(input);
+                                    asm_name = input.getName().replace(".ir", ".s");
                                     while (readF.hasNextLine()) {
                                         String IRdata = readF.nextLine();
-                                        System.out.println(IRdata);
+                                        input_ir.append(IRdata).append(EOL); //read in IR file for later use
                                     }
                                     readF.close();
                                 } catch (FileNotFoundException e) {
                                     System.out.println("Error: file " + read_filename + " not found.");
                                 }
-                                //System.exit(1);
                                 break;
                             case 's': /* print symbol table */
                                 print_st = true;
@@ -101,7 +106,7 @@ public class SCC {
             System.exit(1);
         }
 
-        if(!readfile) {
+        if(!readfile) { //didn't read in an IR, read in a C file
             kregGrammarLexer lexer = new kregGrammarLexer(src_code);
             kregGrammarParser parser = new kregGrammarParser(new CommonTokenStream(lexer));
             parser.setBuildParseTree(true);
@@ -156,39 +161,43 @@ public class SCC {
                 System.out.println("printing Symbol Table...");
                 SymbolTable.printSymbolTable(symbolTable);
             }
-        }
-
-        if(print_asm) {
-
-            /*
-             * IR file input example
-             */
-            String ir_filename = args[args.length-1];
-            try {
-                File input = new File(ir_filename);
-                Scanner readF = new Scanner(input);
-                ArrayList<String> irLines = new ArrayList<>();
-                while (readF.hasNextLine()) {
-                    String IRdata = readF.nextLine();
-                    irLines.add(IRdata);
-                }
-                readF.close();
-
-                ASM asmCode = new ASM(irLines);
-                System.out.println(asmCode.ir_lines);
-                System.out.println(asmCode.getASMString());
-
-            } catch (FileNotFoundException e) {
-                System.out.println("Error: file " + read_filename + " not found.");
+        } else { //currently not supporting generating ir -> asm in a single SCC run
+            //SCC has to be run with -w to output ir file, then rerun with -rS to take in an ir and output to asm file
+            if(print_asm) {
+                printASM(args[args.length-1]);
             }
         }
+
 
         System.out.println("done!");
         // TODO: Add error messages when invalid declarations are made
     }
 
-    private static void printASM() {
+    private static void printASM(String filename) {
+        ASM asmCode = new ASM(input_ir.toString());
+        try {
+            //File input = new File(filename);
+            filename = filename.replace(".ir", ".s");
+            FileWriter f = new FileWriter(filename);
+            BufferedWriter b = new BufferedWriter(f);
+            b.write(asmCode.getASMString());
+            b.close();
+            f.close();
 
+        } catch (FileNotFoundException e) {
+            System.out.println("Error: file " + filename + " not found.");
+            e.printStackTrace();
+        } catch (IOException e) {
+            System.out.println("Error writing to file: " + filename);
+            e.printStackTrace();
+        }
+        //System.out.println(asmCode.ir_lines);
+        //System.out.println(asmCode.functions);
+        for(int i = 0; i < asmCode.functions.size(); i++) {
+            ASMFunction f = asmCode.functions.get(i);
+            System.out.println(f.getName() + " " + f.getArgs());
+        }
+        System.out.println(asmCode.getASMString());
     }
 
     private static void printIR(RuleContext rc, String[] ruleNames, String write_filename) {
@@ -196,6 +205,8 @@ public class SCC {
         ASTNode an = TreeUtils.generateAST(rc, ruleNamesList);
 
         String ir = generateIR(an);
+        if(ir != null)
+            input_ir = new StringBuilder(ir);
         String write_file = "src/tests/" + write_filename; /* redirecting to appropriate folder */
 
         if (write_filename != null) {
