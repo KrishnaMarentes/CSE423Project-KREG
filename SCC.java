@@ -159,7 +159,6 @@ public class SCC {
 
         if(print_asm) {
             System.out.println("printing assembly...");
-
         }
 
         System.out.println("done!");
