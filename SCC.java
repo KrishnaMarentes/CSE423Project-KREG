@@ -1,6 +1,7 @@
 import org.antlr.v4.runtime.*;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -158,7 +159,28 @@ public class SCC {
         }
 
         if(print_asm) {
-            System.out.println("printing assembly...");
+
+            /*
+             * IR file input example
+             */
+            String ir_filename = args[args.length-1];
+            try {
+                File input = new File(ir_filename);
+                Scanner readF = new Scanner(input);
+                ArrayList<String> irLines = new ArrayList<>();
+                while (readF.hasNextLine()) {
+                    String IRdata = readF.nextLine();
+                    irLines.add(IRdata);
+                }
+                readF.close();
+
+                ASM asmCode = new ASM(irLines);
+                System.out.println(asmCode.ir_lines);
+                System.out.println(asmCode.getASMString());
+
+            } catch (FileNotFoundException e) {
+                System.out.println("Error: file " + read_filename + " not found.");
+            }
         }
 
         System.out.println("done!");
