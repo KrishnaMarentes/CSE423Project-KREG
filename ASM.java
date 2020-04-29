@@ -26,21 +26,24 @@ public class ASM {
     private static final List<String> ignore_list = Arrays.asList("{", "}", EOL);
     private static final List<String> type_list = Arrays.asList("int");
 
-    //    public ArrayList<ASMFunction> functions; //global list of functions in the ir
     Map<String, List<String>> functions = new HashMap<String, List<String>>();
+
+    String current_function = ""; //store the current function being evaluated for contextual use
+    Map<String, Integer> current_vars = new HashMap<>(); //holds var_name and memory offset
+    Map<String, Integer> passed_args = new HashMap<>(); //holds current function's arguments that were passed to it
+    boolean is_returned = false; //has the current function returned?
+
 
     public ASM(String ir) {
 
         String[] lines = ir.split(EOL);
         ir_lines = new ArrayList(Arrays.asList(lines));
         ir_lines.removeAll(Collections.singleton(""));
-        //functions = new ArrayList<>();
     }
 
     public ASM(ArrayList<String> ir) {
         ir_lines = ir;
         ir_lines.removeAll(Collections.singleton(""));
-        //functions = new ArrayList<>();
     }
 
     public String getASMString() {
@@ -49,14 +52,6 @@ public class ASM {
         Declaration for linker
          */
         asmString.append(".section .text\n");
-        asmString.append("\t.global _start\n\n");
-
-        //not sure if this approach actually works how we're intending it to
-        //we'll probably have to break up assembly generation by each function, then
-        //evaluate what is inside each function and generate the appropriate assembly.
-        //Having the functions in a data structure though will let us know how many
-        //variables need to be placed on the stack though
-        //As it stands, this loop correctly parses functions and places them into the "functions" arraylist
         for(String line : ir_lines) {
             /*
             * Setup for a structure "varStmt" to call individual parts for assembly
@@ -73,7 +68,6 @@ public class ASM {
             if (irStmt.length > 2) {
                 for (int i = 2; i < irStmt.length; i++) {
                     rightside.add(irStmt[i]);
-                    //if (irStmt[i].contains("()")) {
                     if (irStmt[i].matches(".*\\(.*\\);")) {
                         funcCall = true;
                     }
@@ -82,6 +76,7 @@ public class ASM {
 
             /* function declaration */
             if(leftside.equals("function")) {
+                asmString = resetTrackers(asmString); //new function, reset tracking variables
                 System.out.println("FUNCTION");
                 String func = line.split(" ", 2)[1];
                 //func_split is
@@ -89,21 +84,21 @@ public class ASM {
                 //becomes func_split[0] = "main"; func_split[1] = "int argc, char** argv";
                 String[] func_split = func.split("\\(|\\)");
                 String func_name = func_split[0];
-                if(func_name.equals("main")) { //defining entry point
-                    func_name = "_start";
-                }
+                current_function = func_name;
+//                if(func_name.equals("main")) { //defining entry point
+//                    func_name = "_start"; //apparently using 'main' is preferable with cdecl x86
+//                }
                 String[] args;
                 if(func_split.length > 1) {
                     args = func_split[1].split(",");
-                    //functions.add(new ASMFunction(func_name, Arrays.asList(args)));
                     functions.put(func_name, Arrays.asList(args));
 
                 } else {
-                    //functions.add(new ASMFunction(func_name, null));
                     functions.put(func_name, null);
                 }
 
-                if (func_name.compareTo("_start") != 0) {
+                //if (func_name.compareTo("_start") != 0) {
+                if (func_name.compareTo("main") != 0) { //should be main
                     asmString = fun_assm(func_name, asmString);
                 } else {
                     asmString = startFunction(asmString);
@@ -112,20 +107,28 @@ public class ASM {
 
             /* variable declaration */
             } else if(type_list.contains(leftside)) {
-                //it's a var declaration
-                System.out.println("VAR");
+                String var = irStmt[1].replace(";", "");
+                current_vars.put(var, (current_vars.size() * -4) - 4);
             } else if(ignore_list.contains(leftside)) {
                 //ignore?
             } else if(leftside.equals("return")) {
-                //ret eax
+                is_returned = true;
+                String ret_val = irStmt[1].replace(";", "");
+                asmString.append("\tmov ");
+                if(current_vars.containsKey(ret_val)) {//local variable
+                    asmString.append(current_vars.get(ret_val)).append("(%ebp)");
+                } else if(passed_args.containsKey(ret_val)) { //return passed args...if you want
+                    asmString.append(passed_args.get(ret_val)).append("(%ebp)");
+                } else { //probably a number
+                    asmString.append("$").append(ret_val);
+                }
+                asmString.append(", ").append("%eax").append(EOL);
+                asmString.append("\tleave").append(EOL).append("\tret").append(EOL);
             } else if(funcCall) {
-                //functions.containsKey();
                 String callee = null;
                 String[] args = null;
-                //asmString = ASM.functionCall(callee, asmString);
 
                 for (String i : rightside) {
-                    //if (i.contains("()")) {
                     if (i.matches(".*\\(.*\\);")) {
                         //need to handle function arguments somehow
                         callee = i.replaceAll("\\(.*\\);", "");
@@ -136,60 +139,115 @@ public class ASM {
                 asmString = functionCall(callee, args, asmString);
 
                 System.out.println("FUNCALL");
+            } else if(leftside.equals("if")) { //this handles 'while' as well
+                //since 'if' lines are ALWAYS 9 long when split by spaces
+                //AND, since 'while' lines are ALWAYS 6 long when split by spaces
+                //just grab the values you need based on the indices
+                //EXAMPLES
+                //if b == 40 goto <KREG.12> else goto <KREG.13>;    //formatted this way for IF blocks
+                //if i < 3 goto <KREG.4>;                           //formatted this way for WHILE blocks
+                String left = irStmt[1];
+                String op = irStmt[2];
+                String right = irStmt[3];
+                if(irStmt.length == 9) {
+
+                } else if(irStmt.length == 6) {
+
+                }
+            } else if(leftside.matches("<KREG\\..*>:")) { //just print it?
+                String tag = leftside.replaceAll("[<>]", "");
+                asmString.append("\t").append(tag).append(EOL);
+            } else if(leftside.equals("goto")) {
+                String tag = irStmt[1].replaceAll("[<>;]", ""); //goto this tag
+                asmString.append("\tjmp ").append(tag).append(EOL);
             }
         }
+        asmString = resetTrackers(asmString);
         return asmString.toString();
     }
     public StringBuilder functionCall(String callee, String[] args, StringBuilder asmCode) {
 
-        if (functions.get(callee) == null) {
-            // NO NEED TO PUSH TO STACK, NO VARIABLES
-        } else {
-            // Dereference variables and pushl $(value)
-            //need to check here if arg is variable, constant, or temporary variable? (KREG.#)
-            //how are we storing temporary variables??
-            // create space on %esp by 4s for ints, check callee space needed by values
+        if (functions.get(callee) != null) {
+            for(int i = args.length - 1; i >= 0; i--) { //backwards, as is tradition
+                if(current_vars.containsKey(args[i])) {
+                    asmCode.append("\tpush ").append(current_vars.get(args[i])).append("(%ebp)").append(EOL);
+                } else {
+                    asmCode.append("\tpush $").append(args[i]).append(EOL);
+                }
+            }
         }
-        asmCode.append("\tcall " + callee + "\n");
+        asmCode.append("\tcall " + callee).append(EOL);
         return asmCode;
     }
     public StringBuilder fun_assm(String callee, StringBuilder asmCode) {
 
-        asmCode.append(callee).append(":\n");
-        /* loop through parameters to pull in. Max used in 3 */
+        asmCode.append(".global ").append(callee).append(EOL);
+        asmCode.append(callee).append(":").append(EOL);
+        /* loop through parameters to pull in. Max used is SO MANY */
         int register = 0;
         System.out.println(callee);
         int p_size = 0;
+        List<String> params = null;
         if (functions.get(callee) != null) {
             p_size = functions.get(callee).size();
-        }
-        
-        if (p_size < 4) {
-            for (int i = 4; i < (p_size * 4); i = i * 4) {
-                asmCode.append("\tmovl ");
-                if (register == 0) {
-                    asmCode.append("%eax, ");
-                } else if (register == 1){
-                    asmCode.append("%ebx, ");
-                } else if (register == 2) {
-                    asmCode.append("%ecx, ");
-                } else if (register == 3) {
-                    asmCode.append("%edx, ");
-                }
-                asmCode.append(i).append("(%esp)\n");
-                register++;
+            params = functions.get(callee);
+            for(int i = 0; i < params.size(); i++) {
+                String param_i = params.get(i).replaceAll("int ", "");
+                passed_args.put(param_i, ((i + 1) * 4) + 4);
             }
         }
 
+        asmCode.append("\tpush %ebp").append(EOL);
+        asmCode.append("\tmov %esp, %ebp").append(EOL);
+        asmCode.append("\tsub %NUMVARS%, %esp").append(EOL); //replace in string later, the number of variables declared in function
+
+        //using the cdecl approach, we can just grab everything from the stack
+//        if (p_size < 4) {
+//            for (int i = 4; i < (p_size * 4); i = i * 4) {
+//                asmCode.append("\tmovl ");
+//                if (register == 0) {
+//                    asmCode.append("%eax, ");
+//                } else if (register == 1){
+//                    asmCode.append("%ebx, ");
+//                } else if (register == 2) {
+//                    asmCode.append("%ecx, ");
+//                } else if (register == 3) {
+//                    asmCode.append("%edx, ");
+//                }
+//                asmCode.append(i).append("(%esp)\n");
+//                register++;
+//            }
+//        }
+
         
-        asmCode.append("\tmovl %esp, %ebp\n\tpopl %ebp\n\tret\n"); // Callee must restore ESP can EBP to their old values
+        //asmCode.append("\tmovl %esp, %ebp\n\tpopl %ebp\n\tret\n"); // Callee must restore ESP can EBP to their old values
+        //'leave' restores old values
         return asmCode;
     }
 
      public StringBuilder startFunction(StringBuilder asmCode) {
-        asmCode.append("_start: \n");
+        asmCode.append(".global main").append(EOL);
+        asmCode.append("main:").append(EOL);
+        asmCode.append("\tpush %ebp").append(EOL);
+        asmCode.append("\tmov %esp, %ebp").append(EOL);
+        asmCode.append("\tsub %NUMVARS%, %esp").append(EOL);
 
-        
+
         return asmCode;
+     }
+
+     //these structures just hold all the data that I am tracking per each function being built.
+     //resetting them between each function and doing some small string operations is all this does
+     public StringBuilder resetTrackers(StringBuilder sb) {
+         String var_size = "$" + Integer.toString(current_vars.size() * 4);
+         sb = new StringBuilder(sb.toString().replace("%NUMVARS%", var_size));
+         if(!is_returned && !current_function.equals("")) {
+             sb.append("\tleave").append(EOL).append("\tret").append(EOL);
+         }
+         current_function = "";
+         current_vars.clear();
+         passed_args.clear();
+         is_returned = false;
+         return sb;
      }
 }

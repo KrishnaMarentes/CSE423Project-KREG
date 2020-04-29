@@ -1,9 +1,13 @@
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class Expression extends ASTNode {
 
     public static int globalCounter = 0;
     public static final String tmpVar = "KREG.";
+
+    public static Queue<String> tmpVarQueue = new LinkedList<>();
 
     public ASTNode left;
     public ASTNode right;
@@ -47,7 +51,8 @@ public class Expression extends ASTNode {
             // No recursion necessary for either operand
             if((left instanceof Constant || left instanceof Mutable) &&
                     (right instanceof Constant || right instanceof Mutable)) {
-                sb.append(tmpVar + globalCounter++ + " = " + left.generateCode() + " " +
+                //sb.append(tmpVar + globalCounter++ + " = " + left.generateCode() + " " +
+                sb.append(newTmpVar() + " = " + left.generateCode() + " " +
                         this.symbol + " " + right.generateCode() + ";" + EOL);
                 return sb.toString();
             }
@@ -73,7 +78,8 @@ public class Expression extends ASTNode {
                 }
             }
 
-            sb.append(tmpVar + globalCounter++ + " = " +
+            //sb.append(tmpVar + globalCounter++ + " = " +
+            sb.append(newTmpVar() + " = " +
                     leftTmp + " " + this.symbol + " " + rightTmp + ";" + EOL);
 
             return sb.toString();
@@ -95,8 +101,6 @@ public class Expression extends ASTNode {
 
             String expression = right.generateCode();
 
-            /* Only append if generateCode() call made new variables */
-//            if (expression.contains(tmpVar) || expression.contains("=")) {
             if (expression.contains("=")) { // works slightly better
                 sb.append(expression);
             }
@@ -110,8 +114,6 @@ public class Expression extends ASTNode {
             } else {
                 sb.append(left.generateCode() + " = " + left.generateCode() + " " + newSymbol + " " + lastTmp + ";" + EOL);
             }
-//            sb.append(left.id + " = " + lastTmp + ";" + EOL);
-
             return sb.toString();
         }
     }
@@ -162,7 +164,8 @@ public class Expression extends ASTNode {
                 String right = this.right.generateCode();
                 String lastVar = Expression.getLastAssignedVar(right);
                 String symbol = this.symbol;
-                String var = tmpVar + globalCounter++;
+//                String var = tmpVar + globalCounter++;
+                String var = newTmpVar();
 
                 if(this.symbol.equals("++") || this.symbol.equals("--")) {
                     sb.append(right + " = " + right + " " + this.symbol.substring(0,1) + " " + "1" + ";" + EOL);
@@ -181,8 +184,10 @@ public class Expression extends ASTNode {
                 //for postfix incrementation, there is a temporary variable that is used on the
                 //same line that X++ is used on, which stores the value of the variable, before incrementation.
                 //https://stackoverflow.com/questions/7031326/what-is-the-difference-between-prefix-and-postfix-operators
-                String var1 = tmpVar + globalCounter++;
-                String var2 = tmpVar + globalCounter++;
+//                String var1 = tmpVar + globalCounter++;
+//                String var2 = tmpVar + globalCounter++;
+                String var1 = newTmpVar();
+                String var2 = newTmpVar();
                 sb.append(var1 + " = " + left + ";" + EOL);
                 sb.append(left + " = " + left + " " + this.symbol.substring(0,1) + " " + "1" + ";" + EOL);
                 sb.append(var2 + " = " + var1 + ";" + EOL);
@@ -334,7 +339,8 @@ public class Expression extends ASTNode {
 
             }
 
-            sb.append(tmpVar + globalCounter++ + " = ");
+            //sb.append(tmpVar + globalCounter++ + " = ");
+            sb.append(newTmpVar() + " = ");
 
             sb.append(funcName + "(");
             for(int i = 0; i < args.size(); i++) {
@@ -372,6 +378,12 @@ public class Expression extends ASTNode {
         sb.append(this.symbol + " ");
         sb.append(this.right.generateCode());
         return sb.toString();
+    }
+
+    public String newTmpVar() {
+        String var = tmpVar + globalCounter++;
+        tmpVarQueue.add("int " + var + ";"); //store these for later
+        return var;
     }
 
 }

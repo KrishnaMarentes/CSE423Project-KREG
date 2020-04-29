@@ -89,7 +89,7 @@ public class FunDeclaration extends ASTNode {
             sb.append(params.get(i).getKey().id + params.get(i).getKey().pointerLevel + " ");
             sb.append(params.get(i).getValue());
             if(i < params.size() - 1) {
-                sb.append(", ");
+                sb.append(",");
             }
         }
         sb.append(")");
