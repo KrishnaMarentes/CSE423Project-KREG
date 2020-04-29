@@ -340,7 +340,7 @@ public class Expression extends ASTNode {
             for(int i = 0; i < args.size(); i++) {
                 sb.append(args.get(i));
                 if(i != args.size() - 1) {
-                    sb.append(", ");
+                    sb.append(",");
                 }
             }
             sb.append(");" + EOL);

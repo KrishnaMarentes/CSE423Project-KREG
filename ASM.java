@@ -73,7 +73,8 @@ public class ASM {
             if (irStmt.length > 2) {
                 for (int i = 2; i < irStmt.length; i++) {
                     rightside.add(irStmt[i]);
-                    if (irStmt[i].contains("()")) {
+                    //if (irStmt[i].contains("()")) {
+                    if (irStmt[i].matches(".*\\(.*\\);")) {
                         funcCall = true;
                     }
                 }
@@ -120,28 +121,33 @@ public class ASM {
             } else if(funcCall) {
                 //functions.containsKey();
                 String callee = null;
+                String[] args = null;
                 //asmString = ASM.functionCall(callee, asmString);
 
                 for (String i : rightside) {
-                    if (i.contains("()")) {
-                        callee = i.replace("()", "");
-                        callee = callee.replace(";", "");
+                    //if (i.contains("()")) {
+                    if (i.matches(".*\\(.*\\);")) {
+                        //need to handle function arguments somehow
+                        callee = i.replaceAll("\\(.*\\);", "");
+                        args = i.replaceAll(".*\\(|\\)|;", "").split(",");
                         System.out.println(functions.get(callee));
                     }
                 }
-                asmString = functionCall(callee, asmString);
+                asmString = functionCall(callee, args, asmString);
 
                 System.out.println("FUNCALL");
             }
         }
         return asmString.toString();
     }
-    public StringBuilder functionCall(String callee, StringBuilder asmCode) {
+    public StringBuilder functionCall(String callee, String[] args, StringBuilder asmCode) {
 
         if (functions.get(callee) == null) {
             // NO NEED TO PUSH TO STACK, NO VARIABLES
         } else {
             // Dereference variables and pushl $(value)
+            //need to check here if arg is variable, constant, or temporary variable? (KREG.#)
+            //how are we storing temporary variables??
             // create space on %esp by 4s for ints, check callee space needed by values
         }
         asmCode.append("\tcall " + callee + "\n");

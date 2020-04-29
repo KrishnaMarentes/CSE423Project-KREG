@@ -1,19 +1,20 @@
-function foo(int f, int t)
+function foo(int f, int m)
 {
 int m;
 
 KREG.0 = 6 + f;
-KREG.1 = KREG.0 + t;
-m = KREG.1;
-KREG.2 = m * 4;
-return KREG.2;
+m = KREG.0;
+KREG.1 = m * 4;
+return KREG.1;
 }
 
 function main()
 {
 int i;
 
-KREG.3 = 12 * 18;
+KREG.2 = 12 * 18;
+i = KREG.2;
+KREG.3 = foo(1,25);
 i = KREG.3;
 return i;
 }
