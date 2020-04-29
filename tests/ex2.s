@@ -3,7 +3,7 @@
 foo:
 	push %ebp
 	mov %esp, %ebp
-	sub $8, %esp
+	sub $12, %esp
 	mov -4(%ebp), %eax
 	leave
 	ret
@@ -12,7 +12,7 @@ main:
 	push %ebp
 	mov %esp, %ebp
 	sub $32, %esp
-	push $
+	push $6
 	call foo
 	jmp KREG.3
 	KREG.4:

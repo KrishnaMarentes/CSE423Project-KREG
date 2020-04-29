@@ -24,7 +24,7 @@ KREG.7 = 12 * 18;
 i = KREG.7;
 KREG.8 = 2 + 4;
 b = KREG.8;
-KREG.9 = foo();
+KREG.9 = foo(6);
 i = KREG.9;
 goto <KREG.3>;
 <KREG.4>:

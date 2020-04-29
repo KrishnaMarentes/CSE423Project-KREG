@@ -9,7 +9,7 @@ int main()
     int i, b;
     i = 12 * 18;
     b = 2 + 4;
-    i = foo();
+    i = foo(6);
     while(i < 3) {
         if(i > 1) {
             i++;
