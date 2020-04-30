@@ -190,15 +190,6 @@ public class SCC {
             System.out.println("Error writing to file: " + filename);
             e.printStackTrace();
         }
-        //System.out.println(asmCode.ir_lines);
-        //System.out.println(asmCode.functions);
-        Map<String, List<String>> f = asmCode.functions;
-        for(String key : f.keySet()) {
-            //ASMFunction f = asmCode.functions.get(i);
-            //System.out.println(f.getName() + " " + f.getArgs());
-            System.out.println(key + " : " + f.get(key));
-        }
-        //System.out.println(asmCode.getASMString());
     }
 
     private static void printIR(RuleContext rc, String[] ruleNames, String write_filename) {

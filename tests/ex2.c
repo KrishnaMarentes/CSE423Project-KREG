@@ -1,24 +1,14 @@
-int foo(int i) {
-    int m = 6 + i;
-    int j;
-    return m;
+int foo(int t, int g)
+{
+    int f = t + g;
+    return f;
 }
 
 int main()
 {
-    int i, b;
-    i = 12 * 18;
-    b = 2 + 4;
-    i = foo(6);
-    while(i < 3) {
-        if(i > 1) {
-            i++;
-        } else if(b == 40) {
-            --i;
-        }
-        if(b < 0) {
-            b = 4;
-        }
-    }
-    return b;
+    int i, j = 3 << 4;
+    i = 16 | j;
+    int k = 4 + ~i;
+    i += foo(j, k);
+    return i;
 }

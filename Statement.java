@@ -197,17 +197,29 @@ public class Statement extends ASTNode {
 
         public String generateCode() {
             StringBuilder sb = new StringBuilder();
-            String expression = this.children.get(0).generateCode();
-            String lastVar;
 
-            // if no tmpvar was made in last expr, just take the first term
-            if (!expression.contains("=")) { //working better in the case of "return j+=3;" and many others
-                lastVar = expression.split(" ")[0];
+            String expression = null;
+            String lastVar = null;
+
+            if(this.children.get(0) != null) {
+                expression = this.children.get(0).generateCode();
+                // if no tmpvar was made in last expr, just take the first term
+                if (!expression.contains("=")) { //working better in the case of "return j+=3;" and many others
+                    lastVar = expression.split(" ")[0];
+                } else {
+                    lastVar = Expression.getLastAssignedVar(expression);
+                    sb.append(expression);
+                }
             } else {
-                lastVar = Expression.getLastAssignedVar(expression);
-                sb.append(expression);
+                expression = null;
             }
-            sb.append("return " + lastVar + ";" + EOL);
+
+
+            if(lastVar != null) {
+                sb.append("return " + lastVar + ";" + EOL);
+            } else {
+                sb.append("return;" + EOL);
+            }
 
             return sb.toString();
         }

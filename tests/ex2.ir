@@ -1,54 +1,33 @@
-function foo(int i)
+function foo(int t,int g)
 {
-int m;
-int j;
-int KREG.6;
+int f;
+int KREG.0;
 
-KREG.6 = 6 + i;
-m = KREG.6;
-return m;
+KREG.0 = t + g;
+f = KREG.0;
+return f;
 }
 
 function main()
 {
 int i;
-int b;
-int KREG.7;
-int KREG.8;
-int KREG.9;
-int KREG.14;
-int KREG.15;
-int KREG.16;
+int j;
+int k;
+int KREG.1;
+int KREG.2;
+int KREG.3;
+int KREG.4;
+int KREG.5;
 
-KREG.7 = 12 * 18;
-i = KREG.7;
-KREG.8 = 2 + 4;
-b = KREG.8;
-KREG.9 = foo(6);
-i = KREG.9;
-goto <KREG.3>;
-<KREG.4>:
-if i > 1 goto <KREG.10> else goto <KREG.11>;
-<KREG.10>:
-KREG.14 = i;
-i = i + 1;
-KREG.15 = KREG.14;
-goto <KREG.13>;
-<KREG.11>:
-if b == 40 goto <KREG.12> else goto <KREG.13>;
-<KREG.12>:
-i = i - 1;
-goto <KREG.13>;
-<KREG.13>:
-if b < 0 goto <KREG.17> else goto <KREG.18>;
-<KREG.17>:
-b = 4;
-goto <KREG.18>;
-<KREG.18>:
-<KREG.3>:
-if i < 3 goto <KREG.4>;
-<KREG.5>:
-
-return b;
+KREG.1 = 3 << 4;
+j = KREG.1;
+KREG.2 = 16 | j;
+i = KREG.2;
+KREG.3 = ~i;
+KREG.4 = 4 + KREG.3;
+k = KREG.4;
+KREG.5 = foo(j,k);
+i = i + KREG.5;
+return i;
 }
 

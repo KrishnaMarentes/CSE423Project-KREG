@@ -1,5 +1,7 @@
 import java.lang.reflect.Array;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ASM {
     /*
@@ -27,12 +29,14 @@ public class ASM {
     private static final List<String> type_list = Arrays.asList("int");
 
     Map<String, List<String>> functions = new HashMap<String, List<String>>();
+    Map<String, String> comparisons = populateComparisonOperators();
+    Map<String, String> operators = populateArithmeticOperators();
+    Map<String, Boolean> registers = populateRegisters();
 
     String current_function = ""; //store the current function being evaluated for contextual use
     Map<String, Integer> current_vars = new HashMap<>(); //holds var_name and memory offset
     Map<String, Integer> passed_args = new HashMap<>(); //holds current function's arguments that were passed to it
     boolean is_returned = false; //has the current function returned?
-
 
     public ASM(String ir) {
 
@@ -46,20 +50,56 @@ public class ASM {
         ir_lines.removeAll(Collections.singleton(""));
     }
 
+    private static Map<String, String> populateArithmeticOperators() {
+        Map<String, String> retMap;
+        retMap = Stream.of(new String[][]{
+                {"+", "\tadd "},
+                {"-", "\tsub "},
+                {"*", "\timul "},
+                {"/", "\tdiv "},
+                {"%", "\tdiv "},
+                {"<<", "\tshl "},
+                {">>", "\tshr "},
+                {"&", "\tand "},
+                {"|", "\tor "},
+                {"^", "\txor "}
+        }).collect(Collectors.collectingAndThen(
+                Collectors.toMap(data -> data[0], data -> data[1]), Collections::unmodifiableMap));
+
+        return retMap;
+    }
+
+    private static Map<String, String> populateComparisonOperators() {
+        Map<String, String> retMap;
+        retMap = Stream.of(new String[][]{
+                {"<", "\tjl "},
+                {">", "\tjg "},
+                {"==", "\tje "},
+                {"!=", "\tjne "},
+                {">=", "\tjge "},
+                {"<=", "\tjle "}
+        }).collect(Collectors.collectingAndThen(
+                Collectors.toMap(data -> data[0], data -> data[1]), Collections::unmodifiableMap));
+
+        return retMap;
+    }
+
+    private static Map<String, Boolean> populateRegisters() {
+        Map<String, Boolean> retMap = new HashMap<>();
+        retMap.put("%eax", true);
+        retMap.put("%ebx", true);
+        retMap.put("%ecx", true);
+        retMap.put("%edx", true);
+        retMap.put("%esi", true);
+        retMap.put("%edi", true);
+        return retMap;
+    }
+
     public String getASMString() {
         StringBuilder asmString = new StringBuilder();
-        /*
-        Declaration for linker
-         */
-        asmString.append(".section .text\n");
+
+        asmString.append(".section .text").append(EOL);
         for(String line : ir_lines) {
-            /*
-            * Setup for a structure "varStmt" to call individual parts for assembly
-            *   if varstatement is true, there is an equal sign. Set of operations for this
-            *   if varstatement is false, this is a var declaration, fun delcaration w/o vars, or return
-            */
-            /* Should be a single instance every loop time */
-            //Map<String, List<String>> varStmt = new HashMap<String, List<String>>();
             String[] irStmt = line.split(" ");
             String leftside = irStmt[0];
             ArrayList<String> rightside = new ArrayList<>();
@@ -76,18 +116,11 @@ public class ASM {
 
             /* function declaration */
             if(leftside.equals("function")) {
-                asmString = resetTrackers(asmString); //new function, reset tracking variables
-                System.out.println("FUNCTION");
+                asmString = resetTrackers(asmString); //new function found, reset tracking variables
                 String func = line.split(" ", 2)[1];
-                //func_split is
-                //main(int argc, char** argv)
-                //becomes func_split[0] = "main"; func_split[1] = "int argc, char** argv";
-                String[] func_split = func.split("\\(|\\)");
+                String[] func_split = func.split("[()]");
                 String func_name = func_split[0];
                 current_function = func_name;
-//                if(func_name.equals("main")) { //defining entry point
-//                    func_name = "_start"; //apparently using 'main' is preferable with cdecl x86
-//                }
                 String[] args;
                 if(func_split.length > 1) {
                     args = func_split[1].split(",");
@@ -97,13 +130,11 @@ public class ASM {
                     functions.put(func_name, null);
                 }
 
-                //if (func_name.compareTo("_start") != 0) {
                 if (func_name.compareTo("main") != 0) { //should be main
                     asmString = fun_assm(func_name, asmString);
                 } else {
                     asmString = startFunction(asmString);
                 }
-
 
             /* variable declaration */
             } else if(type_list.contains(leftside)) {
@@ -114,15 +145,12 @@ public class ASM {
             } else if(leftside.equals("return")) {
                 is_returned = true;
                 String ret_val = irStmt[1].replace(";", "");
-                asmString.append("\tmov ");
-                if(current_vars.containsKey(ret_val)) {//local variable
-                    asmString.append(current_vars.get(ret_val)).append("(%ebp)");
-                } else if(passed_args.containsKey(ret_val)) { //return passed args...if you want
-                    asmString.append(passed_args.get(ret_val)).append("(%ebp)");
-                } else { //probably a number
-                    asmString.append("$").append(ret_val);
-                }
+                asmString.append("\tmov ").append(getValue(ret_val));
                 asmString.append(", ").append("%eax").append(EOL);
+                useRegister("%eax");
+                asmString.append("\tleave").append(EOL).append("\tret").append(EOL);
+            } else if(leftside.equals("return;")) {
+                asmString.append("\tnop").append(EOL); //this is how gcc did it
                 asmString.append("\tleave").append(EOL).append("\tret").append(EOL);
             } else if(funcCall) {
                 String callee = null;
@@ -133,38 +161,111 @@ public class ASM {
                         //need to handle function arguments somehow
                         callee = i.replaceAll("\\(.*\\);", "");
                         args = i.replaceAll(".*\\(|\\)|;", "").split(",");
-                        System.out.println(functions.get(callee));
+                        //System.out.println(functions.get(callee));
                     }
                 }
                 asmString = functionCall(callee, args, asmString);
+                asmString.append("\tmov %eax, ").append(getValue(leftside)).append(EOL);
+                freeRegister("%eax");
 
-                System.out.println("FUNCALL");
+                //System.out.println("FUNCALL");
             } else if(leftside.equals("if")) { //this handles 'while' as well
-                //since 'if' lines are ALWAYS 9 long when split by spaces
-                //AND, since 'while' lines are ALWAYS 6 long when split by spaces
-                //just grab the values you need based on the indices
-                //EXAMPLES
-                //if b == 40 goto <KREG.12> else goto <KREG.13>;    //formatted this way for IF blocks
-                //if i < 3 goto <KREG.4>;                           //formatted this way for WHILE blocks
                 String left = irStmt[1];
                 String op = irStmt[2];
                 String right = irStmt[3];
+                String label1 = irStmt[5].replaceAll("[<>;]", "");
+
+                String firstRegister = getFirstAvailableRegister();
+                String secondRegister = getFirstAvailableRegister();
+                asmString.append("\tmov ").append(getValue(left)).append(", ").append(firstRegister).append(EOL);
+                asmString.append("\tmov ").append(getValue(right)).append(", ").append(secondRegister).append(EOL);
+                asmString.append("\tcmp ").append("%edx, %ecx").append(EOL);
+                freeRegister(firstRegister);
+                freeRegister(secondRegister);
+
+                asmString.append(comparisons.get(op)).append(label1).append(EOL);
                 if(irStmt.length == 9) {
-
-                } else if(irStmt.length == 6) {
-
+                    String label2 = irStmt[8].replaceAll("[<>;]", "");
+                    asmString.append("\tjmp ").append(label2).append(EOL);
                 }
             } else if(leftside.matches("<KREG\\..*>:")) { //just print it?
                 String tag = leftside.replaceAll("[<>]", "");
-                asmString.append("\t").append(tag).append(EOL);
+                asmString.append(tag).append(EOL);
             } else if(leftside.equals("goto")) {
                 String tag = irStmt[1].replaceAll("[<>;]", ""); //goto this tag
                 asmString.append("\tjmp ").append(tag).append(EOL);
+            } else if(irStmt.length > 1 && irStmt[1].equals("=")) {
+                if(irStmt.length == 3) { //set var to something
+                    String right = irStmt[2].replace(";", "");
+                    String right_check = irStmt[2].replaceAll("[-~;]", "");
+                    String left = irStmt[0];
+
+                    if(right.startsWith("-") && variableExists(right_check)) {
+                        right = getValue(right_check);
+                        asmString.append("\tmov ").append(right).append(", ").append("%eax").append(EOL);
+                        asmString.append("\tneg %eax").append(EOL);
+                        asmString.append("\tmov ").append("%eax").append(", ").append(right).append(EOL);
+                    } else if(right.startsWith("~") && variableExists(right_check)) {
+                        right = getValue(right_check);
+                        asmString.append("\tmov ").append(right).append(", ").append("%eax").append(EOL);
+                        asmString.append("\txor 0xFFFFFFFF, %eax").append(EOL);
+                        asmString.append("\tmov ").append("%eax").append(", ").append(right).append(EOL);
+                    } else {
+                        right = getValue(right);
+                    }
+                    left = getValue(left);
+
+
+                    if(isMem(right) && isMem(left)) {
+                        String reg = getFirstAvailableRegister();
+                        asmString.append("\tmov ").append(right).append(", ").append(reg).append(EOL);
+                        asmString.append("\tmov ").append(reg).append(", ").append(left).append(EOL);
+                        freeRegister(reg);
+                    } else {
+                        //asmString.append("\tmov ").append(right);
+                        asmString.append("\tmov").append(isNum(right) ? "l " + right : " " + right);
+                        asmString.append(", ").append(left).append(EOL);
+                    }
+                } else if(irStmt.length == 5) { //operation performed
+                    String receiver = irStmt[0];
+                    String left = irStmt[2];
+                    String op = irStmt[3];
+                    String right = irStmt[4].replace(";", "");
+
+                    receiver = getValue(receiver);
+                    left = getValue(left);
+                    if(operators.containsKey(op)) {
+                        op = operators.get(op);
+                    } else {
+                        System.out.println("missing operator");
+                        System.exit(1);
+                    }
+                    right = getValue(right);
+
+                    if(op.contains("div")) { //div covers / and %
+                        //left is dividend
+                        //right is divisor
+                        //quotient is stored in eax
+                        //remainder stored in edx, edx must be xor'd before dividing or else FP error happens
+                        asmString.append("\tmov ").append(left).append(", ").append("%eax").append(EOL);
+                        asmString.append("\tmov ").append(right).append(", ").append("%ecx").append(EOL);
+                        asmString.append("\txor %edx, %edx").append(EOL);
+                        asmString.append(op).append("%ecx").append(EOL);
+                        asmString.append("\tmov ").append(irStmt[3].equals("/") ? "%eax, " : "%edx, ").append(receiver).append(EOL);
+                    } else {
+                        asmString.append("\tmov ").append(left).append(", ").append("%ecx").append(EOL);
+                        asmString.append("\tmov ").append(right).append(", ").append("%edx").append(EOL);
+                        asmString.append(op).append("%ecx").append(", ").append("%edx").append(EOL);
+                        asmString.append("\tmov ").append("%edx, ").append(receiver).append(EOL);
+                    }
+                }
             }
         }
         asmString = resetTrackers(asmString);
+        System.out.println("Assembly generated successfully");
         return asmString.toString();
     }
+
     public StringBuilder functionCall(String callee, String[] args, StringBuilder asmCode) {
 
         if (functions.get(callee) != null) {
@@ -179,13 +280,15 @@ public class ASM {
         asmCode.append("\tcall " + callee).append(EOL);
         return asmCode;
     }
+
+    //generate generic assembly function
     public StringBuilder fun_assm(String callee, StringBuilder asmCode) {
 
         asmCode.append(".global ").append(callee).append(EOL);
         asmCode.append(callee).append(":").append(EOL);
         /* loop through parameters to pull in. Max used is SO MANY */
         int register = 0;
-        System.out.println(callee);
+//        System.out.println(callee);
         int p_size = 0;
         List<String> params = null;
         if (functions.get(callee) != null) {
@@ -201,31 +304,11 @@ public class ASM {
         asmCode.append("\tmov %esp, %ebp").append(EOL);
         asmCode.append("\tsub %NUMVARS%, %esp").append(EOL); //replace in string later, the number of variables declared in function
 
-        //using the cdecl approach, we can just grab everything from the stack
-//        if (p_size < 4) {
-//            for (int i = 4; i < (p_size * 4); i = i * 4) {
-//                asmCode.append("\tmovl ");
-//                if (register == 0) {
-//                    asmCode.append("%eax, ");
-//                } else if (register == 1){
-//                    asmCode.append("%ebx, ");
-//                } else if (register == 2) {
-//                    asmCode.append("%ecx, ");
-//                } else if (register == 3) {
-//                    asmCode.append("%edx, ");
-//                }
-//                asmCode.append(i).append("(%esp)\n");
-//                register++;
-//            }
-//        }
-
-        
-        //asmCode.append("\tmovl %esp, %ebp\n\tpopl %ebp\n\tret\n"); // Callee must restore ESP can EBP to their old values
-        //'leave' restores old values
         return asmCode;
     }
 
-     public StringBuilder startFunction(StringBuilder asmCode) {
+    //generate entry function
+    public StringBuilder startFunction(StringBuilder asmCode) {
         asmCode.append(".global main").append(EOL);
         asmCode.append("main:").append(EOL);
         asmCode.append("\tpush %ebp").append(EOL);
@@ -234,20 +317,71 @@ public class ASM {
 
 
         return asmCode;
-     }
+    }
 
-     //these structures just hold all the data that I am tracking per each function being built.
-     //resetting them between each function and doing some small string operations is all this does
-     public StringBuilder resetTrackers(StringBuilder sb) {
-         String var_size = "$" + Integer.toString(current_vars.size() * 4);
-         sb = new StringBuilder(sb.toString().replace("%NUMVARS%", var_size));
-         if(!is_returned && !current_function.equals("")) {
-             sb.append("\tleave").append(EOL).append("\tret").append(EOL);
-         }
-         current_function = "";
-         current_vars.clear();
-         passed_args.clear();
-         is_returned = false;
-         return sb;
-     }
+    //return string formatted to memory based on passed arguments, local variables, or a number
+    public String getValue(String in) {
+        String out = "";
+        if(current_vars.containsKey(in)) {
+            out = current_vars.get(in) + "(%ebp)";
+        } else if(passed_args.containsKey(in)) {
+            out = passed_args.get(in) + "(%ebp)";
+        } else {
+            out = "$" + in;
+        }
+        return out;
+    }
+
+    //these structures just hold all the data that I am tracking per each function being built.
+    //resetting them between each function and doing some small string operations is all this does
+    private StringBuilder resetTrackers(StringBuilder sb) {
+        String var_size = "$" + Integer.toString(current_vars.size() * 4);
+        sb = new StringBuilder(sb.toString().replace("%NUMVARS%", var_size));
+        if(!is_returned && !current_function.equals("")) {
+            sb.append("\tleave").append(EOL).append("\tret").append(EOL);
+        }
+        current_function = "";
+        current_vars.clear();
+        passed_args.clear();
+        is_returned = false;
+        return sb;
+    }
+
+    //checks in general if a variable is in scope
+    private boolean variableExists(String in)
+    {
+        return current_vars.containsKey(in) || passed_args.containsKey(in);
+    }
+
+    private boolean isMem(String in) {
+        return in.contains("%ebp");
+    }
+
+    private boolean isReg(String in) {
+        return registers.containsKey(in);
+    }
+
+    private boolean isNum(String in) {
+        return !(isMem(in) || isReg(in));
+    }
+
+    private void useRegister(String reg) {
+        registers.put(reg, false);
+    }
+
+    private void freeRegister(String reg) {
+        registers.put(reg, true);
+    }
+
+    private String getFirstAvailableRegister() {
+        for(Map.Entry<String, Boolean> m : registers.entrySet()) {
+            if(m.getValue()) {
+                String reg = m.getKey();
+                useRegister(reg);
+                return reg;
+            }
+        }
+        return null;
+    }
+
 }
