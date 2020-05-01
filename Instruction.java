@@ -1,5 +1,3 @@
-package Optimizer;
-
 public class Instruction {
     public String LHS, OP, RHS_1, RHS_2;
     public boolean isTemp;

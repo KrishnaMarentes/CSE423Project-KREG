@@ -13,17 +13,11 @@ public class Optimizations {
      * represented as a Block with Block.start = 10 and Block.end = 16
      */
     static class Block {
-        final int start;
-        final int end;
+        int start;
+        int end;
         Block(final int s, final int e) {
             this.start = s;
             this.end = e;
-        }
-        int getStart() {
-            return this.start;
-        }
-        int getEnd() {
-            return this.end;
         }
         public String toString() {
             return "<" + start + "," + end + ">";
@@ -33,9 +27,8 @@ public class Optimizations {
     public static String optimizeIR(String ir) {
         ArrayList<Block> basicblocks = new ArrayList<Block>();
         basicblocks = findBasicBlocks(ir);
-        basicblocks = cleanBlocks(basicblocks);
 
-        /* For each basic block, perform optimizations */
+        /* For each basic block, perform optimizations here */
 
         return basicblocks.toString(); // print this in SCC to check if it's right
     }
@@ -97,15 +90,35 @@ public class Optimizations {
             }
             start++;
         }
-        return blocks;
+        return cleanBlocks(blocks, ir);
     }
 
     /* Remove leading, trailing, and standalone "empty" lines (e.g. "","{", etc) */
-    static ArrayList<Block> cleanBlocks(ArrayList<Block> blocks) {
+    static ArrayList<Block> cleanBlocks(ArrayList<Block> blocks, String ir) {
+        final String EOL = System.lineSeparator();
+        String[] lines = ir.split(EOL);
         /* For each block
          *  if a one-line block, check if it's empty and if so, remove it
          *  if a multi-line block
          *   check if first and/or last line is empty, if so remove */
+        int i = 0;
+        Block block;
+        String line;
+        for (i = 0; i < blocks.size()-1; i++) {
+            block = blocks.get(i);
+            line = lines[block.start];
+            if (line.equals("") || line.equals("{") || line.equals("}")) {
+                // Single line block, often need to be removed
+                if (block.start == block.end) {
+                        blocks.remove(i);
+                } else  { // Multi-line block, might need to trim start and/or end
+                    block.start++;
+                    if (line.equals(block.end)) {
+                        block.end--;
+                    }
+                }
+            }
+        }
         return blocks;
     }
 }
