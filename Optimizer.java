@@ -5,6 +5,8 @@ public class Optimizer {
 
     int count = 1;
     boolean optimized;
+    final static String EOL = System.lineSeparator();
+
 
     /* Custom class for a Block - basically Pair but for only primitive int
      * Each Block holds the start and end indices of the starting and ending
@@ -15,6 +17,9 @@ public class Optimizer {
     static class Block {
         int start;
         int end;
+
+        Block() {}
+
         Block(final int s, final int e) {
             this.start = s;
             this.end = e;
@@ -24,13 +29,50 @@ public class Optimizer {
         }
     }
 
-    public static String optimizeIR(String ir) {
-        ArrayList<Optimizations.Block> basicblocks = new ArrayList<Optimizations.Block>();
-        basicblocks = findBasicBlocks(ir);
+    /**
+     * Main method to call from SCC to optimize a plain string of IR
+     * @param ir Long-ass string, returned from generateIR or from reading in IR
+     * @return Also a long-ass string, but now the IR is optimized.
+     */
+    public String optimizeIR(String ir) {
+        ArrayList<Block> blockIndices = findBasicBlocks(ir);
+
+        String[] lines = ir.split(EOL);
+        ArrayList<String> codeBlocks = extractBasicBlocks(blockIndices, lines);
 
         /* For each basic block, perform optimizations here */
+        int i;
+        for (i = 0; i < codeBlocks.size(); i++) {
+            ArrayList<Instruction> blockIns = build(codeBlocks);
+        }
 
-        return basicblocks.toString(); // print this in SCC to check if it's right
+        // This is a dummy debug return. Should actually return IR code
+        return blockIndices.toString(); // print this in SCC to check if it's right
+    }
+
+    /**
+     * Create a list of Strings, where each string is one basic block of IR
+     * Each block can be one or more lines of code
+     * @param blockIndices List of Blocks, which hold indices of basic blocks
+     * @param lines String array of each line of plain IR code
+     * @return List of basic block code in string format
+     */
+    private ArrayList<String> extractBasicBlocks(ArrayList<Block> blockIndices, String[] lines) {
+        ArrayList<String> codeBlocks = new ArrayList<String>();
+        Block block = new Block();
+        StringBuilder codeBlock;
+        int i;
+        int j;
+        for (i = 0; i < blockIndices.size(); i++) {
+            block = blockIndices.get(i);
+            j = block.start;
+            codeBlock = new StringBuilder(lines[j]);
+            for (j = j+1 ; j <= block.end; j++) {
+                codeBlock.append(lines[j]); // Important: Only semicolons (;) separate lines
+            }
+            codeBlocks.add(codeBlock.toString());
+        }
+        return codeBlocks;
     }
 
     /* Return a list of all the basic blocks in the IR
@@ -39,8 +81,7 @@ public class Optimizer {
      * separated by EOL
      * @return ArrayList of basic blocks
      */
-    static ArrayList<Optimizations.Block> findBasicBlocks(String ir) {
-        final String EOL = System.lineSeparator();
+    static ArrayList<Block> findBasicBlocks(String ir) {
         String[] lines = ir.split(EOL);
 
         /* to be used as regexes */
@@ -49,7 +90,7 @@ public class Optimizer {
         final String entry = ".*function.*|<KREG.\\d*>:.*";
         final String exit = ".*goto.*|.*return.*";
 
-        ArrayList<Optimizations.Block> blocks = new ArrayList<Optimizations.Block>();
+        ArrayList<Block> blocks = new ArrayList<Block>();
 
         int start = 0;
         int end = 1;
@@ -70,7 +111,7 @@ public class Optimizer {
                         // immediately a label after loops. But good to cover our bases if we add more features -becca
                         if (Pattern.matches("if ", lines[end]) && !Pattern.matches(" else ", lines[end])) {
                             /* Record the last block, mark the fall through start, and go directly to end search */
-                            blocks.add(new Optimizations.Block(start, end-1));
+                            blocks.add(new Block(start, end-1));
                             start = end+1;
                             end = end+2;
                             continue;
@@ -84,7 +125,7 @@ public class Optimizer {
                     start = end+1;
                     continue;
                 }
-                blocks.add(new Optimizations.Block(start, end-1)); // Don't include exit lines in block
+                blocks.add(new Block(start, end-1)); // Don't include exit lines in block
                 start = end+1; // Start new search after last exit point
                 continue;
             }
@@ -94,15 +135,14 @@ public class Optimizer {
     }
 
     /* Remove leading, trailing, and standalone "empty" lines (e.g. "","{", etc) */
-    static ArrayList<Optimizations.Block> cleanBlocks(ArrayList<Optimizations.Block> blocks, String ir) {
-        final String EOL = System.lineSeparator();
+    static ArrayList<Block> cleanBlocks(ArrayList<Block> blocks, String ir) {
         String[] lines = ir.split(EOL);
         /* For each block
          *  if a one-line block, check if it's empty and if so, remove it
          *  if a multi-line block
          *   check if first and/or last line is empty, if so remove */
         int i = 0;
-        Optimizations.Block block;
+        Block block;
         String line;
         for (i = 0; i < blocks.size()-1; i++) {
             block = blocks.get(i);
@@ -124,17 +164,25 @@ public class Optimizer {
 
     public Optimizer(){
     }
-    // This function needs debugging - could probably use Expression class instead but don't want to mess with other code
-    public static ArrayList<Instruction> Build(ArrayList<String> lines){
+
+    /**
+     * Converts ArrayList of lines of IR code to list of Instructions
+     * @param lines One basic block of IR code as a String list of lines
+     * @return The same basic block, but each line stored as an Instruction object
+     */
+    public static ArrayList<Instruction> build(ArrayList<String> lines){
         ArrayList<Instruction> code = new ArrayList<>();
         System.out.println("Inside of Build Function...");
         String[] s = null;
 
         for(String exp : lines){
-            ArrayList<Instruction> i = new ArrayList<>();
+
+            /* split */
             s = exp.split(".$"); // regex that removes the last character - in this case, the ";"
 
+            /* for each line of code in the block */
             for (int w = 0; w < s.length; w++){
+                code.add(new Instruction(s[w]));
                 System.out.println(s[w]);
             }
 

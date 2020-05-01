@@ -121,26 +121,9 @@ public class SCC {
         List<String> ruleNamesList = Arrays.asList(parser.getRuleNames());
         ASTNode an = TreeUtils.generateAST(tree, ruleNamesList);
         String ir = generateIR(an);
-        String basicblocks; //debugging
 
-        /*-------------------------------------------------------*/
-        /*-------------------------------------------------------*/
-        /* only code added for optimizer part */
-        Optimizer op = new Optimizer();
 
-        /* attempting to add generated ir into an array list "code" but using ir data from input file instead for now */
-        /*List<String> code = new ArrayList<>(Arrays.asList(ir.split("\\r?\\n")));
-        System.out.println("Reading code array string..." + code);*/
-        /* need to convert ir lines (already in three-address-code format) into a list of instructions: LHS = RHS_1 OP RHS_2 */
-        ArrayList<Instruction> ins = Optimizer.Build(IRdata); /* this part fails because of Build function */
-
-        // System.out.println("After Instruction Build.."); // debugging
-        for (String s: IRdata){
-            System.out.println(s);
-        }
-
-        //System.out.println(Optimizer.ToText(ins, 1));
-
+        /* ******************* MOVE THIS INTO OPTIMIZER CLASS WHERE IT MAKES SENSE
         boolean optimized = true;
         int k = 1;
 
@@ -156,13 +139,18 @@ public class SCC {
 
             if(optimized) System.out.println("\n\nMaximum number of rounds is limited to " + MAX_ROUNDS);
         }
-        /* the plan is to print all of this code after using basic blocks code to determine the lines (instructions) to optimize */
-        /*-------------------------------------------------------*/
-        /*-------------------------------------------------------*/
+        * the plan is to print all of this code after using basic blocks code to determine the lines (instructions) to optimize
+        */
+
+
 
         if (optimize) {
-            basicblocks = Optimizations.optimizeIR(ir);
-            System.out.println(basicblocks);
+            Optimizer op = new Optimizer();
+            // Goal: one method call to Optimizer object.
+            // All optimizing work done in the Optimizer object methods.
+            ir = op.optimizeIR(ir);
+            System.out.println("Optimized IR:");
+            System.out.println(ir);
         }
         if (save_output) {
             // Destroy output file if it already exists
