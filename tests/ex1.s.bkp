@@ -1,5 +1,4 @@
 .section .text
-
 .global foo
 foo:
 	push %ebp
@@ -17,9 +16,12 @@ foo:
 main:
 	push %ebp
 	mov %esp, %ebp
-	sub $4, %esp
+	sub $8, %esp
 	push $
 	call foo
-	mov %eax, -4(%ebp)
+	mov %eax, -8(%ebp)
+	mov -8(%ebp), %ebx
+	mov %ebx, -4(%ebp)
+	mov -4(%ebp), %eax
 	leave
 	ret

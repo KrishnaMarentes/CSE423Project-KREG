@@ -1,33 +1,24 @@
 function foo(int t,int g)
 {
 int f;
-int KREG.0;
+int k;
+int m;
+int i;
 
-KREG.0 = t + g;
-f = KREG.0;
+f = 2;
+k = 1;
+m = 3;
+i = m;
 return f;
 }
 
 function main()
 {
 int i;
-int j;
-int k;
-int KREG.1;
-int KREG.2;
-int KREG.3;
-int KREG.4;
-int KREG.5;
+int KREG.0;
 
-KREG.1 = 3 << 4;
-j = KREG.1;
-KREG.2 = 16 | j;
-i = KREG.2;
-KREG.3 = ~i;
-KREG.4 = 4 + KREG.3;
-k = KREG.4;
-KREG.5 = foo(j,k);
-i = i + KREG.5;
+KREG.0 = foo();
+i = KREG.0;
 return i;
 }
 

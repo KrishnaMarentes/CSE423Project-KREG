@@ -1,14 +1,14 @@
 int foo(int t, int g)
 {
-    int f = t + g;
+    int f = 2;
+    int k = 1;
+    int m = 3;
+    int i = m;
     return f;
 }
 
 int main()
 {
-    int i, j = 3 << 4;
-    i = 16 | j;
-    int k = 4 + ~i;
-    i += foo(j, k);
+    int i = foo();
     return i;
 }

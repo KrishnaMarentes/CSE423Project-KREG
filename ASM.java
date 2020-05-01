@@ -1,3 +1,5 @@
+import com.sun.org.apache.bcel.internal.generic.ANEWARRAY;
+
 import java.lang.reflect.Array;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,6 +30,7 @@ public class ASM {
     private static final List<String> ignore_list = Arrays.asList("{", "}", EOL);
     private static final List<String> type_list = Arrays.asList("int");
 
+    StringBuilder fullAsmString = new StringBuilder();
     Map<String, List<String>> functions = new HashMap<String, List<String>>();
     Map<String, String> comparisons = populateComparisonOperators();
     Map<String, String> operators = populateArithmeticOperators();
@@ -37,6 +40,7 @@ public class ASM {
     Map<String, Integer> current_vars = new HashMap<>(); //holds var_name and memory offset
     Map<String, Integer> passed_args = new HashMap<>(); //holds current function's arguments that were passed to it
     boolean is_returned = false; //has the current function returned?
+    int vars_removed = 0;
 
     public ASM(String ir) {
 
@@ -98,7 +102,7 @@ public class ASM {
     public String getASMString() {
         StringBuilder asmString = new StringBuilder();
 
-        asmString.append(".section .text").append(EOL);
+        fullAsmString.append(".section .text").append(EOL);
         for(String line : ir_lines) {
             String[] irStmt = line.split(" ");
             String leftside = irStmt[0];
@@ -179,7 +183,7 @@ public class ASM {
                 String secondRegister = getFirstAvailableRegister();
                 asmString.append("\tmov ").append(getValue(left)).append(", ").append(firstRegister).append(EOL);
                 asmString.append("\tmov ").append(getValue(right)).append(", ").append(secondRegister).append(EOL);
-                asmString.append("\tcmp ").append("%edx, %ecx").append(EOL);
+                asmString.append("\tcmp ").append(firstRegister).append(", ").append(secondRegister).append(EOL);
                 freeRegister(firstRegister);
                 freeRegister(secondRegister);
 
@@ -262,8 +266,9 @@ public class ASM {
             }
         }
         asmString = resetTrackers(asmString);
+        //asmString = optimizeMovs(asmString);
         System.out.println("Assembly generated successfully");
-        return asmString.toString();
+        return fullAsmString.toString();
     }
 
     public StringBuilder functionCall(String callee, String[] args, StringBuilder asmCode) {
@@ -307,6 +312,64 @@ public class ASM {
         return asmCode;
     }
 
+    //it attempts to anyway
+    private StringBuilder optimizeMovs(StringBuilder in)
+    {
+        StringBuilder ret = new StringBuilder();
+        ArrayList<String> lines = new ArrayList<>(Arrays.asList(in.toString().split(EOL)));
+        int maxIndex = lines.size() - 1;
+
+        for(int i = 0; i <= maxIndex; ++i) {
+            if(i + 1 <= maxIndex && lines.get(i).startsWith("\tmov") && lines.get(i + 1).startsWith("\tmov")) {
+                String[] line1 = lines.get(i).replace(",", "").split(" ");
+                String[] line2 = lines.get(i + 1).replace(",", "").split(" ");
+                String src1 = line1[1];
+                String dest1 = line1[2];
+                String src2 = line2[1];
+                String dest2 = line2[2];
+
+                if(dest1.equals(src2) && isMem(dest1) && isMem(src2) && isTemp(dest1) && isTemp(src2)) {
+                    String newString = String.format("%s %s, %s", line1[0], src1, dest2);
+                    lines.set(i, newString);
+                    lines.remove(i + 1);
+                    --i;
+                    --maxIndex;
+                    ++vars_removed;
+                } else if(dest1.equals(src2) && isReg(dest1) && isReg(src2) && !(isMem(src1) && isMem(dest2))) {
+                    String newString = String.format("%s %s, %s", line1[0], src1, dest2);
+                    lines.set(i, newString);
+                    lines.remove(i + 1);
+                    --i;
+                    --maxIndex;
+                } else if(dest1.equals(src2) && src1.equals(dest2)) { //weird that this happens
+                    lines.remove(i + 1);
+                    --i;
+                    --maxIndex;
+                }
+            }
+        }
+
+//        for(int i = 0; i <= maxIndex; ++i) {
+//                if(i + 1 <= maxIndex && lines.get(i).startsWith("\tmov") && lines.get(i + 1).startsWith("\tmov")) {
+//                    String[] line1 = lines.get(i).replace(",", "").split(" ");
+//                    String[] line2 = lines.get(i + 1).replace(",", "").split(" ");
+//                    String src1 = line1[1];
+//                    String dest1 = line1[2];
+//                    String src2 = line2[1];
+//                    String dest2 = line2[2];
+//
+//
+//                }
+//            }
+
+
+        for(String line : lines) {
+            ret.append(line).append(EOL);
+        }
+
+        return ret;
+    }
+
     //generate entry function
     public StringBuilder startFunction(StringBuilder asmCode) {
         asmCode.append(".global main").append(EOL);
@@ -335,15 +398,18 @@ public class ASM {
     //these structures just hold all the data that I am tracking per each function being built.
     //resetting them between each function and doing some small string operations is all this does
     private StringBuilder resetTrackers(StringBuilder sb) {
-        String var_size = "$" + Integer.toString(current_vars.size() * 4);
-        sb = new StringBuilder(sb.toString().replace("%NUMVARS%", var_size));
+        sb = optimizeMovs(sb);
+        String var_size = "$" + Integer.toString((current_vars.size() - vars_removed) * 4);
         if(!is_returned && !current_function.equals("")) {
             sb.append("\tleave").append(EOL).append("\tret").append(EOL);
         }
+        vars_removed = 0;
         current_function = "";
         current_vars.clear();
         passed_args.clear();
         is_returned = false;
+        fullAsmString.append(sb.toString().replace("%NUMVARS%", var_size));
+        sb = new StringBuilder();
         return sb;
     }
 
@@ -351,6 +417,17 @@ public class ASM {
     private boolean variableExists(String in)
     {
         return current_vars.containsKey(in) || passed_args.containsKey(in);
+    }
+
+    //checks if the local variable has the name of KREG.#
+    private boolean isTemp(String in) {
+        Integer mem_offset = Integer.parseInt(in.replaceAll("\\(.*\\)", ""));
+        for(Map.Entry<String, Integer> var : current_vars.entrySet()) {
+            if(var.getValue().equals(mem_offset) && var.getKey().matches("KREG\\..*")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean isMem(String in) {
