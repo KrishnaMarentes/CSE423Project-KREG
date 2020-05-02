@@ -6,7 +6,6 @@ import java.util.*;
 public class SCC {
 
     public static SymbolTable symbolTable;
-    public static int MAX_ROUNDS = 25;
 
     public static void main(String[] args) {
         String filename = null;
@@ -122,28 +121,6 @@ public class SCC {
         ASTNode an = TreeUtils.generateAST(tree, ruleNamesList);
         String ir = generateIR(an);
 
-
-        /* ******************* MOVE THIS INTO OPTIMIZER CLASS WHERE IT MAKES SENSE
-        boolean optimized = true;
-        int k = 1;
-
-        if (readfile) {
-            while(optimized && k < MAX_ROUNDS){
-                optimized = false;
-
-                System.out.println("\n\nCode after " + k + " optimization round:");
-                optimized = op.Optimize(ins);
-                System.out.println(Optimizer.ToText(ins, 1));
-                k++;
-            }
-
-            if(optimized) System.out.println("\n\nMaximum number of rounds is limited to " + MAX_ROUNDS);
-        }
-        * the plan is to print all of this code after using basic blocks code to determine the lines (instructions) to optimize
-        */
-
-
-
         if (optimize) {
             Optimizer op = new Optimizer();
             // Goal: one method call to Optimizer object.
@@ -152,6 +129,7 @@ public class SCC {
             System.out.println("Optimized IR:");
             System.out.println(ir);
         }
+
         if (save_output) {
             // Destroy output file if it already exists
             File out = new File(filename + ".out");

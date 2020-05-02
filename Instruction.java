@@ -1,34 +1,47 @@
 public class Instruction {
     public String LHS, OP, RHS_1, RHS_2;
-    public boolean isTemp;
+    public boolean isNull;
 
-    public Instruction(String LHS, String OP, String RHS_1, String RHS_2, boolean isTemp){
+    public Instruction(String LHS, String OP, String RHS_1, String RHS_2, boolean isNull){
         this.LHS = LHS;
         this.OP = OP;
         this.RHS_1 = RHS_1;
         this.RHS_2 = RHS_2;
-        this.isTemp = isTemp;
+        this.isNull = isNull; // Used if asked to create Ins obj for var declaration
     }
 
     /**
-     * Constructor to parse a line of code for you
+     * "Wrapper" constructor to parse a line of code for you
      * @param line One line of IR code in 3 address format
-     * TODO Finish this
+     * @return New Instruction object
      */
-    public Instruction(String line) {
+    public static Instruction strToInstruction(String line) {
         String[] splitEq = line.split(" = ");
+        if (splitEq.length == 1) { // Variable declaration
+            return new Instruction(null, null, null, null, true);
+        }
         String lhs = splitEq[0];
         String rhs = splitEq[1];
+        String op;
+        String rhs1;
+        String rhs2;
 
-        /* Use a regex that actually works to split on any possible op
+        /* Use a regex to split on any possible op
          (including spaces left and right of op) */
-        //rhs = rhs.split(" [+-*%^&\\\] ");
+        String splitrhs[] = rhs.split(" ");
+        if (splitrhs.length == 1) {
+            op = "";
+            rhs1 = splitrhs[0];
+            rhs2 = "";
+        } else {
+            rhs1 = splitrhs[0];
+            op = splitrhs[1];
+            rhs2 = splitrhs[2];
+        }
 
-        /* If the split was successful, assign appropriate op, rhs1, and rh2
-         Otherwise it might be a function call..? Have to check what
-         the basic block code does for those ( e.g. i = foo(); ) */
+        /* Check back for dealing with function calls...?*/
 
-        // I was gonna do constructor chaining here but java doesn't like it..
+        return new Instruction(lhs, op, rhs1, rhs2, false);
     }
 
     @Override
