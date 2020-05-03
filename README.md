@@ -3,14 +3,17 @@
 **Krishna Marentes** <br />
 **Elijah Orozco** <br />
 
+A Complete C Compiler! (to assembly)
 
-### **Project Assignment 2** *(IR Generation)*:
+### **Project Assignment 3** *(Assembly Generation)*:
 * Implementation of scanner and parser using Java and Antlr, a third-party tool
   * Antlr serves as both a scanner and parser all at once
 * Grammar is written specifically for the use of Antlr, as kregGrammar.g4, but a .txt file is also included
-* **NEW** The abstract syntax tree can be displayed with option -a
-* **NEW** The symbol table can be displayed with -s
-* **NEW** Linear IR be displayed with the option -i
+* The abstract syntax tree can be displayed with option -a
+* The symbol table can be displayed with -s
+* Linear IR be displayed with the option -i
+* **NEW** Optimizations can be performed with -O
+* **NEW** x86 AT&T assembly generated with -S
 * Necessary documentation is included
   * See documentation.pdf
   * Command line arguments are supported
@@ -18,17 +21,20 @@
 * Usage <br />
   * See usage.pdf
   * Clone repository <br />
-  usage: java [OPTS] FILENAME <br />
+  usage: java [OPTS] SOURCEFILE [OUTPUTFILE] <br />
   OPTS: [t, p, a, s, i, w, r] <br />
   t: Print the tokens <br />
   p: Print the parse tree <br />
   a: Print the abstract syntax tree <br />
   s: Print the symbol table <br />
   i: Print the linear IR <br />
-  w: Write the IR to a given filename. Ex: -w ir FILENAME <br />
-  r: Read in an IR instead of C code <br />
+  w: Write the IR to a given filename. Ex: -w file.c output.ir <br />
+  r: Read in an IR instead of C code; **MUST** have ".ir" extension <br />
+  O: Perform optimizations
+  S: Generate assembly code. Will be saved in SOURCEFILE.s (Cannot specify file name) 
   * Do not use -w or -r together <br />
-  FILENAME: file path of input C source code (or IR file) <br />
+  * -r cannot be used with options that require C code: t, p, a, s
+  SOURCEFILE: file path of input C source code (or IR file) <br />
   
   **Run instructions** <br />
   
