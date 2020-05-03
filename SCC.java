@@ -5,6 +5,7 @@ import java.util.*;
 
 public class SCC {
 
+
     public static final String EOL = System.lineSeparator();
     public static SymbolTable symbolTable;
     public static StringBuilder input_ir = new StringBuilder();
@@ -28,6 +29,10 @@ public class SCC {
         boolean print_st = false;
         boolean save_output = false;
         boolean print_asm = false;
+        boolean optimize = false;
+
+        Scanner in = new Scanner(System.in);
+        ArrayList<String> IRdata = new ArrayList<>();
 
 
         if(args.length > 0) {
@@ -57,21 +62,32 @@ public class SCC {
                                 print_ir = true;
                                 break;
                             case 'r': /* read in an IR specified instead of a source file */
-                                /* will read in any type of file and then output it to the terminal for now */
-                                /* ex of read_filename: src/tests/ex9.c or src/tests/ir_example.ir or src/tests/ir_example2.ast */
-                                readfile = true; /* might need for later */
-                                read_filename = args[args.length-1];
-                                try {
+                                /* ex of read_filename: -r src/tests/example2 any_other_filename */
+                                /* any_other_filename is needed so that generating lexer/parser/ir don't break */
+                                /* Only focusing on example2 file contents for optimizations */
+                                readfile = true;
+                                read_filename = args[args.length-2];
+                                /*try {
                                     File input = new File(read_filename);
                                     Scanner readF = new Scanner(input);
+
                                     asm_name = input.getName().replace(".ir", ".s");
+
                                     while (readF.hasNextLine()) {
                                         String IRdata = readF.nextLine();
                                         input_ir.append(IRdata).append(EOL); //read in IR file for later use
                                     }
                                     readF.close();
+                                    System.out.println("Done Reading Input File...");
                                 } catch (FileNotFoundException e) {
                                     System.out.println("Error: file " + read_filename + " not found.");
+                                }*/
+                                //System.exit(1);
+                                /* Adding input IR into an array list */
+                                try (BufferedReader br = new BufferedReader(new FileReader(read_filename))) {
+                                    while (br.ready()){
+                                        IRdata.add(br.readLine());
+                                    }
                                 }
                                 break;
                             case 's': /* print symbol table */
@@ -83,6 +99,8 @@ public class SCC {
                             case 'S':
                                 print_asm = true;
                                 readfile = true;
+                            case 'O': /* carry out all optimizations */
+                                optimize = true;
                                 break;
                             default:
                                 System.out.println("Entered a unrecognized option.");
@@ -126,46 +144,72 @@ public class SCC {
                 }
             }
 
-            //TODO: Allow to just save to file without having to also print to terminal
-            if (print_tks) {
-                System.out.println("printing tokens...");
-                if (save_output)
-                    printTokens(parser.getTokenStream(), lexer.getRuleNames(), filename);
-                else
-                    printTokens(parser.getTokenStream(), lexer.getRuleNames(), null);
+        List<String> ruleNamesList = Arrays.asList(parser.getRuleNames());
+        ASTNode an = TreeUtils.generateAST(tree, ruleNamesList);
+        String ir = generateIR(an);
+
+        if (optimize) {
+            Optimizer op = new Optimizer();
+            // Goal: one method call to Optimizer object.
+            // All optimizing work done in the Optimizer object methods.
+            ir = op.optimizeIR(ir);
+            System.out.println("Optimized IR:");
+            System.out.println(ir);
+        }
+
+        if (save_output) {
+            // Destroy output file if it already exists
+            File out = new File(filename + ".out");
+            if (out.exists())
+                out.delete();
+            // Create the output file so that output can be appended to a clean file
+            try {
+                out.createNewFile();
+            } catch (IOException e) {
+                System.out.println("Error in creating file " + filename + ".out" +
+                        "\nThe output will not be saved.");
+                save_output = false;
             }
-            if (print_pt) {
-                System.out.println("printing parse tree...");
-                if (save_output)
-                    printParseTree(tree, parser.getRuleNames(), filename);
-                else
-                    printParseTree(tree, parser.getRuleNames(), null);
-            }
-            if (print_ast) {
-                System.out.println("printing abstract syntax tree...");
-                if (save_output)
-                    printAST(tree, parser.getRuleNames(), filename);
-                else
-                    printAST(tree, parser.getRuleNames(), null);
-            }
-            if (print_ir) {
-                System.out.println("printing IR...");
-                if (writefile)
-                    printIR(tree, parser.getRuleNames(), write_filename);
-                else
-                    printIR(tree, parser.getRuleNames(), null);
-            }
-            if (print_st) {
-                System.out.println("printing Symbol Table...");
-                SymbolTable.printSymbolTable(symbolTable);
-            }
+        }
+
+        //TODO: Allow to just save to file without having to also print to terminal
+        if (print_tks) {
+            System.out.println("printing tokens...");
+            if (save_output)
+                printTokens(parser.getTokenStream(), lexer.getRuleNames(), filename);
+            else
+                printTokens(parser.getTokenStream(), lexer.getRuleNames(), null);
+        }
+        if (print_pt) {
+            System.out.println("printing parse tree...");
+            if (save_output)
+                printParseTree(tree, parser.getRuleNames(), filename);
+            else
+                printParseTree(tree, parser.getRuleNames(), null);
+        }
+        if (print_ast) {
+            System.out.println("printing abstract syntax tree...");
+            if (save_output)
+                printAST(tree, parser.getRuleNames(), filename);
+            else
+                printAST(tree, parser.getRuleNames(), null);
+        }
+        if (print_ir) {
+            System.out.println("printing IR...");
+            if (writefile)
+                printIR(ir, write_filename);
+            else
+                printIR(ir,null);
+        }
+        if (print_st) {
+            System.out.println("printing Symbol Table...");
+            SymbolTable.printSymbolTable(symbolTable);
         } else { //currently not supporting generating ir -> asm in a single SCC run
             //SCC has to be run with -w to output ir file, then rerun with -rS to take in an ir and output to asm file
             if(print_asm) {
                 printASM(args[args.length-1]);
             }
         }
-
 
         System.out.println("done!");
         // TODO: Add error messages when invalid declarations are made
@@ -199,6 +243,7 @@ public class SCC {
         String ir = generateIR(an);
         if(ir != null)
             input_ir = new StringBuilder(ir);
+
         String write_file = "src/tests/" + write_filename; /* redirecting to appropriate folder */
 
         if (write_filename != null) {
