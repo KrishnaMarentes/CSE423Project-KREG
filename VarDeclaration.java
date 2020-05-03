@@ -1,5 +1,3 @@
-import javafx.util.Pair;
-
 import java.util.ArrayList;
 
 public class VarDeclaration extends ASTNode {

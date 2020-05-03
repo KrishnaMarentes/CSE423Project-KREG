@@ -5,12 +5,17 @@ import java.util.*;
 
 public class SCC {
 
+
+    public static final String EOL = System.lineSeparator();
     public static SymbolTable symbolTable;
+    public static StringBuilder input_ir = new StringBuilder();
+    public static String asm_name = null;
 
     public static void main(String[] args) {
         String filename = null;
         String write_filename = null;
         String read_filename = null;
+
 
         CharStream src_code = null;
         char opt;
@@ -23,10 +28,12 @@ public class SCC {
         boolean readfile = false;
         boolean print_st = false;
         boolean save_output = false;
+        boolean print_asm = false;
         boolean optimize = false;
 
         Scanner in = new Scanner(System.in);
         ArrayList<String> IRdata = new ArrayList<>();
+
 
         if(args.length > 0) {
             try {
@@ -63,10 +70,12 @@ public class SCC {
                                 /*try {
                                     File input = new File(read_filename);
                                     Scanner readF = new Scanner(input);
-                                    System.out.println("Reading Input File...");
+
+                                    asm_name = input.getName().replace(".ir", ".s");
+
                                     while (readF.hasNextLine()) {
                                         String IRdata = readF.nextLine();
-                                        System.out.println(IRdata);
+                                        input_ir.append(IRdata).append(EOL); //read in IR file for later use
                                     }
                                     readF.close();
                                     System.out.println("Done Reading Input File...");
@@ -87,6 +96,9 @@ public class SCC {
                             case 'o': /* replacing 's' with 'o' */
                                 save_output = true;
                                 break;
+                            case 'S':
+                                print_asm = true;
+                                readfile = true;
                             case 'O': /* carry out all optimizations */
                                 optimize = true;
                                 break;
@@ -110,12 +122,27 @@ public class SCC {
             System.exit(1);
         }
 
-        kregGrammarLexer lexer = new kregGrammarLexer(src_code);
-        kregGrammarParser parser = new kregGrammarParser(new CommonTokenStream(lexer));
-        parser.setBuildParseTree(true);
+        if(!readfile) { //didn't read in an IR, read in a C file
+            kregGrammarLexer lexer = new kregGrammarLexer(src_code);
+            kregGrammarParser parser = new kregGrammarParser(new CommonTokenStream(lexer));
+            parser.setBuildParseTree(true);
 
-        RuleContext tree = parser.program();
-        symbolTable = SymbolTable.populate(tree, parser.getRuleNames());
+            RuleContext tree = parser.program();
+            symbolTable = SymbolTable.populate(tree, parser.getRuleNames());
+            if (save_output) {
+                // Destroy output file if it already exists
+                File out = new File(filename + ".out");
+                if (out.exists())
+                    out.delete();
+                // Create the output file so that output can be appended to a clean file
+                try {
+                    out.createNewFile();
+                } catch (IOException e) {
+                    System.out.println("Error in creating file " + filename + ".out" +
+                            "\nThe output will not be saved.");
+                    save_output = false;
+                }
+            }
 
         List<String> ruleNamesList = Arrays.asList(parser.getRuleNames());
         ASTNode an = TreeUtils.generateAST(tree, ruleNamesList);
@@ -177,20 +204,53 @@ public class SCC {
         if (print_st) {
             System.out.println("printing Symbol Table...");
             SymbolTable.printSymbolTable(symbolTable);
+        } else { //currently not supporting generating ir -> asm in a single SCC run
+            //SCC has to be run with -w to output ir file, then rerun with -rS to take in an ir and output to asm file
+            if(print_asm) {
+                printASM(args[args.length-1]);
+            }
         }
 
         System.out.println("done!");
         // TODO: Add error messages when invalid declarations are made
     }
 
-    private static void printIR(String ir, String write_filename) {
+    private static void printASM(String filename) {
+        ASM asmCode = new ASM(input_ir.toString());
+
+        try {
+            //File input = new File(filename);
+            filename = filename.replace(".ir", ".s");
+            FileWriter f = new FileWriter(filename);
+            BufferedWriter b = new BufferedWriter(f);
+            b.write(asmCode.getASMString());
+            b.close();
+            f.close();
+
+        } catch (FileNotFoundException e) {
+            System.out.println("Error: file " + filename + " not found.");
+            e.printStackTrace();
+        } catch (IOException e) {
+            System.out.println("Error writing to file: " + filename);
+            e.printStackTrace();
+        }
+    }
+
+    private static void printIR(RuleContext rc, String[] ruleNames, String write_filename) {
+        List<String> ruleNamesList = Arrays.asList(ruleNames);
+        ASTNode an = TreeUtils.generateAST(rc, ruleNamesList);
+
+        String ir = generateIR(an);
+        if(ir != null)
+            input_ir = new StringBuilder(ir);
+
         String write_file = "src/tests/" + write_filename; /* redirecting to appropriate folder */
 
         if (write_filename != null) {
             try {
                 FileWriter f = new FileWriter(write_file);
                 BufferedWriter b = new BufferedWriter(f);
-                b.write(ir + "\n\n");
+                b.write(ir);
                 b.close();
                 f.close();
             } catch (IOException e) {
@@ -231,7 +291,7 @@ public class SCC {
             try {
                 FileWriter f = new FileWriter(filename + ".out", true);
                 BufferedWriter b = new BufferedWriter(f);
-                b.write(prettyTree.toString() + "\n\n");
+                b.write(prettyTree);
                 b.close();
                 f.close();
             } catch (IOException e) {
@@ -253,7 +313,7 @@ public class SCC {
             try {
                 FileWriter f = new FileWriter(filename + ".out", true);
                 BufferedWriter b = new BufferedWriter(f);
-                b.write(output.toString() + "\n\n");
+                b.write(output.toString());
                 b.close();
                 f.close();
             } catch (IOException e) {

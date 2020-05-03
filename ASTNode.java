@@ -1,8 +1,4 @@
-import javafx.util.Pair;
-
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class ASTNode {
     public static final String EOL = System.lineSeparator();
@@ -99,15 +95,6 @@ public class ASTNode {
             }
         }
         return sb.toString();
-    }
-
-    public static String[] ArrayReverse(String[] array) {
-        for(int i = 0; i < array.length/2; i++) {
-            String tmp = array[i];
-            array[i] = array[array.length - i - 1];
-            array[array.length - i - 1] = tmp;
-        }
-        return array;
     }
 
 }
