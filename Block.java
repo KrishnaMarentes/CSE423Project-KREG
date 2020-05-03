@@ -69,6 +69,7 @@ public class Block {
                     start = end+1;
                     continue;
                 }
+
                 blocks.add(new Block(start, end-1)); // Don't include exit lines in block
 
                 /* If statements can be part of a basic block, but they themselves are exit points*/
@@ -131,9 +132,9 @@ public class Block {
         for (i = 0; i < blockIndices.size(); i++) {
             block = blockIndices.get(i);
             j = block.start;
-            codeBlock = new StringBuilder(lines[j]);
+            codeBlock = new StringBuilder(lines[j] + EOL);
             for (j = j+1 ; j <= block.end; j++) {
-                codeBlock.append(lines[j]);
+                codeBlock.append(lines[j]+EOL);
             }
             codeBlocks.add(codeBlock.toString());
         }
@@ -172,16 +173,16 @@ public class Block {
             startblock = block.start;
 
             for (j = endblock+1; j < startblock; j++) {
-                sb.append(ir[j]);
+                sb.append(ir[j] + EOL);
             }
-            nonblocks.add(sb.toString() + EOL);
+            nonblocks.add(sb.toString());
             sb.setLength(0);
         }
 
         // Get any ir left after last block
         endblock = block.end;
         for (j = endblock+1; j < ir.length; j++) {
-            sb.append(ir[j]);
+            sb.append(ir[j]+EOL);
         }
         nonblocks.add(sb.toString());
 

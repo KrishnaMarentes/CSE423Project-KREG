@@ -6,13 +6,13 @@ int main() {
     i = j - k;
 
     if (i < 10) {
-        i = 10;
+        i++;
     } else {
-        i = 5;
+        i--;
     }
 
     while (i < 10) {
-        i = 5 * 9;
+        i++;
     }
 
     return i;

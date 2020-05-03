@@ -99,14 +99,18 @@ public class Optimizer {
         AlgebraicSimplification(ins);
         ConstantPropagation(ins);
         Delete_Identity(ins);
-        RemoveDeadCode(ins);
+        //RemoveDeadCode(ins); Needs to check return statements, which isn't supported rn
 
         count++;
 
         return optimized;
     }
 
-    /* expecting expressions to already be in three-address-code format */
+    /** Performs operations for constant folding
+     * Has potential for conditionals (e.g. 0 < 10) but not yet implemented
+     * @param exp Format: operand (space) operator (space) operand
+     * @return Result when exp is evaluated
+     */
     public int eval(String exp){
         int result = 0;
 
@@ -140,6 +144,12 @@ public class Optimizer {
 
     }
 
+    /**
+     * Removes lines that assign a variable that is never used
+     * NOT IN USE: Requires a way to check if a variable is used
+     * in a return statement, which is not supported
+     * @param ins Basic block to look for dead code in
+     */
     public void RemoveDeadCode(ArrayList<Instruction> ins){
         for(int i = 0; i < ins.size(); i++){
             if (ins.get(i).isNull) {
@@ -198,14 +208,15 @@ public class Optimizer {
                 continue;
             }
             try{
-                int r1 = eval(line.RHS_1);
-                int r2 = eval(line.RHS_2);
-                line.RHS_1 = "" + eval(r1 + line.OP + r2);
+                int r1 = Integer.parseInt(line.RHS_1);
+                int r2 = Integer.parseInt(line.RHS_2);
+                line.RHS_1 = "" + eval(r1 + " " + line.OP + " " + r2);
                 line.OP = "";
                 line.RHS_2 = "";
                 optimized = true;
+            } catch(Exception ignored) {
+
             }
-            catch(Exception ex){}
         }
     }
 
