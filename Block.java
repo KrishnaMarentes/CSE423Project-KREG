@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
-/* Custom class for a Block - basically Pair but for only primitive int
+/* Basic Blocks - basically Pair but for only primitive int
  * Each Block holds the start and end indices of the starting and ending
  * lines for the basic block in the IR. (Inclusive)
  * e.g. If basic blocks exist from lines 10 to 16 in the IR, it would be
@@ -32,7 +32,7 @@ public class Block {
         //final Pattern entry = Pattern.compile(".*function.*|.*KREG\\d*:.*");
         //final Pattern exit = Pattern.compile(".*goto.*|.*return.*");
         final String entry = ".*function.*|<KREG.\\d*>:.*";
-        final String exit = ".*goto.*|.*return.*";
+        final String exit = "goto.*|.*return.*";
 
         ArrayList<Block> blocks = new ArrayList<Block>();
 
@@ -70,12 +70,21 @@ public class Block {
                     continue;
                 }
                 blocks.add(new Block(start, end-1)); // Don't include exit lines in block
-                start = end+1; // Start new search after last exit point
+
+                /* If statements can be part of a basic block, but they themselves are exit points*/
+                if (Pattern.matches("if.*", lines[end-1])) {
+                    end--; // Negate the "-1" on "end" when adding this block to the list
+                }
+                //start = end+1; // Start new search after last exit point
+                start = end;
                 continue;
             }
             start++;
         }
-        return cleanBlocks(blocks, ir);
+        //return cleanBlocks(blocks, ir); These lines are important for the actual end result
+        System.out.println("Basic Block Indices:");
+        System.out.println(blocks.toString());
+        return blocks;
     }
 
     /** Remove leading, trailing, and standalone "empty" lines (e.g. "","{", etc) */
@@ -124,8 +133,6 @@ public class Block {
             j = block.start;
             codeBlock = new StringBuilder(lines[j]);
             for (j = j+1 ; j <= block.end; j++) {
-                // Important: Only semicolons (;) separate lines
-                // Semicolons are used as the separator in Optimizer$build
                 codeBlock.append(lines[j]);
             }
             codeBlocks.add(codeBlock.toString());
@@ -133,6 +140,55 @@ public class Block {
         return codeBlocks;
     }
 
+    /**
+     * The non-basic block code is important too! This gets a list of
+     * "non-basic blocks" in String format so they can easily be pasted in later
+     * @param ir Original IR in line format (i.e. each element of String array is a line)
+     * @param indices Whatever findBasicBlocks returned (list of Blocks)
+     * @return List of non-basic blocks, each one a String
+     */
+    public static ArrayList<String> getNonBlocks(String[] ir, ArrayList<Block> indices) {
+        ArrayList<String> nonblocks = new ArrayList<>();
+        Block block = indices.get(0);
+        StringBuilder sb = new StringBuilder();
+        int i;
+        int j;
+        int endblock;
+        int startblock;
+
+        // Get the code before the first block
+        if (block.start > 0) {
+            for (j = 0; j < block.start; j++) {
+                sb.append(ir[j] + EOL);
+            }
+        }
+        nonblocks.add(sb.toString());
+        sb.setLength(0);
+
+        // For each pair of blocks, get the code between them
+        for (i = 0; i < indices.size()-1; i++) {
+            endblock = block.end;
+            block = indices.get(i+1);
+            startblock = block.start;
+
+            for (j = endblock+1; j < startblock; j++) {
+                sb.append(ir[j]);
+            }
+            nonblocks.add(sb.toString() + EOL);
+            sb.setLength(0);
+        }
+
+        // Get any ir left after last block
+        endblock = block.end;
+        for (j = endblock+1; j < ir.length; j++) {
+            sb.append(ir[j]);
+        }
+        nonblocks.add(sb.toString());
+
+        return nonblocks;
+    }
+
+    @Override
     public String toString() {
         return "<" + start + "," + end + ">";
     }

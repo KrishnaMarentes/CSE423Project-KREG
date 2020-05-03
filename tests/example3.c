@@ -5,6 +5,16 @@ int main() {
     k = k + j;
     i = j - k;
 
+    if (i < 10) {
+        i = 10;
+    } else {
+        i = 5;
+    }
+
+    while (i < 10) {
+        i = 5 * 9;
+    }
+
     return i;
 }
 

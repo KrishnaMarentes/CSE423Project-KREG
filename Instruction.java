@@ -1,4 +1,5 @@
 public class Instruction {
+    final static String EOL = System.lineSeparator();
     public String LHS, OP, RHS_1, RHS_2;
     public boolean isNull;
 
@@ -17,8 +18,9 @@ public class Instruction {
      */
     public static Instruction strToInstruction(String line) {
         String[] splitEq = line.split(" = ");
-        if (splitEq.length == 1) { // Variable declaration
-            return new Instruction(null, null, null, null, true);
+        if (splitEq.length == 1) { // Variable declaration, empty line, or curly bracket
+            // Save the line in LHS so we can still print it later
+            return new Instruction(line, null, null, null, true);
         }
         String lhs = splitEq[0];
         String rhs = splitEq[1];
@@ -28,7 +30,7 @@ public class Instruction {
 
         /* Use a regex to split on any possible op
          (including spaces left and right of op) */
-        String splitrhs[] = rhs.split(" ");
+        String[] splitrhs = rhs.split(" ");
         if (splitrhs.length == 1) {
             op = "";
             rhs1 = splitrhs[0];
@@ -46,7 +48,13 @@ public class Instruction {
 
     @Override
     public String toString(){
-        return String.format("%s = %s %s %s", LHS, RHS_1, OP, RHS_2);
+        if (this.isNull) {
+            return this.LHS + EOL;
+        }
+        if (OP.isEmpty()) {
+            return String.format("%s = %s;%s", LHS, RHS_1, EOL);
+        }
+        return String.format("%s = %s %s %s;%s", LHS, RHS_1, OP, RHS_2, EOL);
     }
 
     @Override

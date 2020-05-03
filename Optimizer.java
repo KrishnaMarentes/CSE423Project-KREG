@@ -18,35 +18,40 @@ public class Optimizer {
      */
     public String optimizeIR(String ir) {
         ArrayList<Block> blockIndices = Block.findBasicBlocks(ir);
-
         String[] lines = ir.split(EOL);
+
+        ArrayList<String> nonBlocks = Block.getNonBlocks(lines, blockIndices);
+
         // Each element of codeBlocks is one basic block in String format
         ArrayList<String> codeBlocks = Block.extractBasicBlocks(blockIndices, lines);
+        StringBuilder sb = new StringBuilder(); // will hold new IR
+
+        System.out.println("Original IR: \n" + ir);
+
+        // Record any non-optimized lines
+        sb.append(nonBlocks.get(0));
 
         int i;
         int k;
         String block;
-        StringBuilder sb = new StringBuilder();
         /* For each basic block, perform optimizations here */
         for (i = 0; i < codeBlocks.size(); i++) {
             block = codeBlocks.get(i);
             ArrayList<Instruction> blockIns = build(block);
             optimized = true;
             k = 0;
-            System.out.println("Code before optimization:\n" + ToText(blockIns));
+            //System.out.println("Code before optimization:\n" + ToText(blockIns));
             while(optimized && k < MAX_ROUNDS){
                 optimized = false;
                 optimized = optimize(blockIns);
 
                 k++;
-                System.out.println("\nCode after " + k + " optimization round:");
-                System.out.println(ToText(blockIns));
+                //System.out.println("\nCode after " + k + " optimization round:");
+                //System.out.println(ToText(blockIns));
             }
             sb.append(insBlkToString(blockIns));
+            sb.append(nonBlocks.get(i+1));
         }
-
-
-
 
         // This is a dummy debug return. Should actually return IR code
         //return blockIndices.toString(); // print this in SCC to check if it's right
@@ -57,7 +62,7 @@ public class Optimizer {
     public String insBlkToString(ArrayList<Instruction> block) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < block.size(); i++) {
-            sb.append(block.get(i).toString() + EOL);
+            sb.append(block.get(i).toString());
         }
         return sb.toString();
     }
@@ -71,20 +76,17 @@ public class Optimizer {
      */
     public static ArrayList<Instruction> build(String lines){
         ArrayList<Instruction> code = new ArrayList<>();
-        System.out.println("Inside of Build Function...");
         String[] s = null;
 
         /* split */
-        s = lines.split(";"); // Semicolons the only line separator
+        //s = lines.split(";"); // Semicolons the only line separator
+        s = lines.split(EOL); // EOL is separator; some lines may be empty or curly bracket
 
         /* for each line of code in the block */
         Instruction i;
-        for (int w = 0; w < s.length; w++){
-            i = Instruction.strToInstruction(s[w]);
-            // Code blocks might have var decls, i.isNull will be true; ignore them
-            if (!i.isNull) {
-                code.add(i);
-            }
+        for (String value : s) {
+            i = Instruction.strToInstruction(value);
+            code.add(i);
         }
 
         return code;
@@ -140,13 +142,20 @@ public class Optimizer {
 
     public void RemoveDeadCode(ArrayList<Instruction> ins){
         for(int i = 0; i < ins.size(); i++){
+            if (ins.get(i).isNull) {
+                continue;
+            }
             String l = ins.get(i).LHS;
             //<KREG.\d*>:.* example of other regex option
             if(l.matches("KREG.[1-9][0-9]*")){
                 boolean found = false;
 
-                for(int j = i + 1; j < ins.size() && !found; j++)
-                    if(ins.get(j).RHS_1.equals(l) || ins.get(j).RHS_2.equals(l)) found = true;
+                for(int j = i + 1; j < ins.size(); j++) {
+                    if (ins.get(j).RHS_1.equals(l) || ins.get(j).RHS_2.equals(l)) {
+                        found = true;
+                        break;
+                    }
+                }
                 if(!found){
                     ins.remove(ins.get(i));
                     optimized = true;
@@ -156,36 +165,44 @@ public class Optimizer {
     }
 
     public void AlgebraicSimplification(ArrayList<Instruction> ins){
-
+        Instruction line;
         for (int i = 0; i < ins.size(); i++){
-            String OP = ins.get(i).OP;
-            String r1 = ins.get(i).RHS_1;
-            String r2 = ins.get(i).RHS_2;
+            line = ins.get(i);
+            if (line.isNull) {
+                continue;
+            }
+            String OP = line.OP;
+            String r1 = line.RHS_1;
+            String r2 = line.RHS_2;
 
             if ((OP.equals("*") && (r1.equals("0") || r2.equals("0"))) || (OP.equals("-") && r1.equals(r2))){
-                ins.get(i).RHS_1 = "0";
-                ins.get(i).OP = "";
-                ins.get(i).RHS_2 = "";
+                line.RHS_1 = "0";
+                line.OP = "";
+                line.RHS_2 = "";
                 optimized = true;
             }
             if(OP.equals("/") && r1.equals(r2)){
-                ins.get(i).RHS_1 = "1";
-                ins.get(i).OP = "";
-                ins.get(i).RHS_2 = "";
+                line.RHS_1 = "1";
+                line.OP = "";
+                line.RHS_2 = "";
                 optimized = true;
             }
         }
     }
 
     public void ConstantFolding(ArrayList<Instruction> ins){
-
+        Instruction line;
         for(int i = 0; i < ins.size(); i++){
+            line = ins.get(i);
+            if (line.isNull) {
+                continue;
+            }
             try{
-                int r1 = eval(ins.get(i).RHS_1);
-                int r2 = eval(ins.get(i).RHS_2);
-                ins.get(i).RHS_1 = "" + eval(r1 + ins.get(i).OP + r2);
-                ins.get(i).OP = "";
-                ins.get(i).RHS_2 = "";
+                int r1 = eval(line.RHS_1);
+                int r2 = eval(line.RHS_2);
+                line.RHS_1 = "" + eval(r1 + line.OP + r2);
+                line.OP = "";
+                line.RHS_2 = "";
                 optimized = true;
             }
             catch(Exception ex){}
@@ -193,12 +210,16 @@ public class Optimizer {
     }
 
     public void ConstantPropagation(ArrayList<Instruction> ins){
-
+        Instruction line;
         for(int i = 0; i < ins.size(); i++){
-            String LHS = ins.get(i).LHS;
-            String r1 = ins.get(i).RHS_1;
+            line = ins.get(i);
+            if (line.isNull) {
+                continue;
+            }
+            String LHS = line.LHS;
+            String r1 = line.RHS_1;
 
-            if(ins.get(i).OP.length() == 0){
+            if(line.OP.length() == 0){
                 int lastIndex;
                 boolean found = false;
 
@@ -216,43 +237,50 @@ public class Optimizer {
     }
 
     public void Delete_Identity(ArrayList<Instruction> ins){
+        Instruction line;
         for(int i = 0; i < ins.size(); i++){
-            String OP = ins.get(i).OP;
-            String r1 = ins.get(i).RHS_1;
-            String r2 = ins.get(i).RHS_2;
+            line = ins.get(i);
+            if (line.isNull) {
+                continue;
+            }
+            String OP = line.OP;
+            String r1 = line.RHS_1;
+            String r2 = line.RHS_2;
 
             if(OP.equals("+") || OP.equals("-")){
                 if(r1.equals("0")){
-                    ins.get(i).RHS_1 = r2;
-                    ins.get(i).OP = "";
-                    ins.get(i).RHS_2 = "";
+                    line.RHS_1 = r2;
+                    line.OP = "";
+                    line.RHS_2 = "";
                     optimized = true;
                 }
                 else if(r2.equals("0")){
-                    ins.get(i).OP = "";
-                    ins.get(i).RHS_2 = "";
+                    line.OP = "";
+                    line.RHS_2 = "";
                     optimized = true;
                 }
             }
             else if(OP.equals("*") || OP.equals("/")){
                 if(r1.equals("1")){
-                    ins.get(i).RHS_1 = r2;
-                    ins.get(i).OP = "";
-                    ins.get(i).RHS_2 = "";
+                    line.RHS_1 = r2;
+                    line.OP = "";
+                    line.RHS_2 = "";
                     optimized = true;
                 }
                 else if(r2.equals("1")){
-                    ins.get(i).OP = "";
-                    ins.get(i).RHS_2 = "";
+                    line.OP = "";
+                    line.RHS_2 = "";
                     optimized = true;
                 }
             }
         }
 
         for(int i = 0; i < ins.size(); i++){
-            if(ins.get(i).OP.length() == 0){
-                if(ins.get(i).LHS.equals(ins.get(i).RHS_1)){
-                    ins.remove(ins.get(i));
+            line = ins.get(i);
+            if (line.isNull) continue;
+            if(line.OP.length() == 0){
+                if(line.LHS.equals(line.RHS_1)){
+                    ins.remove(i);
                     optimized = true;
                 }
             }
@@ -261,14 +289,20 @@ public class Optimizer {
 
     public static String ToText(ArrayList<Instruction> ins){
         StringBuilder sb = new StringBuilder();
+        Instruction line;
         for(int i = 0; i < ins.size(); i++){
-            sb.append(ins.get(i).LHS);
+            line = ins.get(i);
+            if (line.isNull) {
+                sb.append(line.LHS);
+                continue;
+            }
+            sb.append(line.LHS);
             sb.append(" = ");
-            sb.append(ins.get(i).RHS_1);
+            sb.append(line.RHS_1);
             sb.append(" ");
-            sb.append(ins.get(i).OP);
+            sb.append(line.OP);
             sb.append(" ");
-            sb.append(ins.get(i).RHS_2);
+            sb.append(line.RHS_2);
             if(i != ins.size() - 1) sb.append("\n");
         }
         return sb.toString();
