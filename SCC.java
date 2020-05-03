@@ -31,7 +31,6 @@ public class SCC {
         boolean print_asm = false;
         boolean optimize = false;
 
-        Scanner in = new Scanner(System.in);
         ArrayList<String> IRdata = new ArrayList<>();
 
 
@@ -99,6 +98,7 @@ public class SCC {
                             case 'S':
                                 print_asm = true;
                                 readfile = true;
+                                break;
                             case 'O': /* carry out all optimizations */
                                 optimize = true;
                                 break;
@@ -143,73 +143,74 @@ public class SCC {
                     save_output = false;
                 }
             }
+                List<String> ruleNamesList = Arrays.asList(parser.getRuleNames());
+                ASTNode an = TreeUtils.generateAST(tree, ruleNamesList);
+                String ir = generateIR(an);
 
-        List<String> ruleNamesList = Arrays.asList(parser.getRuleNames());
-        ASTNode an = TreeUtils.generateAST(tree, ruleNamesList);
-        String ir = generateIR(an);
+                if (optimize) {
+                    Optimizer op = new Optimizer();
+                    // Goal: one method call to Optimizer object.
+                    // All optimizing work done in the Optimizer object methods.
+                    ir = op.optimizeIR(ir);
+                    System.out.println("Optimized IR:");
+                    System.out.println(ir);
+                }
 
-        if (optimize) {
-            Optimizer op = new Optimizer();
-            // Goal: one method call to Optimizer object.
-            // All optimizing work done in the Optimizer object methods.
-            ir = op.optimizeIR(ir);
-            System.out.println("Optimized IR:");
-            System.out.println(ir);
-        }
+                if (save_output) {
+                    // Destroy output file if it already exists
+                    File out = new File(filename + ".out");
+                    if (out.exists())
+                        out.delete();
+                    // Create the output file so that output can be appended to a clean file
+                    try {
+                        out.createNewFile();
+                    } catch (IOException e) {
+                        System.out.println("Error in creating file " + filename + ".out" +
+                                "\nThe output will not be saved.");
+                        save_output = false;
+                    }
+                }
 
-        if (save_output) {
-            // Destroy output file if it already exists
-            File out = new File(filename + ".out");
-            if (out.exists())
-                out.delete();
-            // Create the output file so that output can be appended to a clean file
-            try {
-                out.createNewFile();
-            } catch (IOException e) {
-                System.out.println("Error in creating file " + filename + ".out" +
-                        "\nThe output will not be saved.");
-                save_output = false;
+                //TODO: Allow to just save to file without having to also print to terminal
+                if (print_tks) {
+                    System.out.println("printing tokens...");
+                    if (save_output)
+                        printTokens(parser.getTokenStream(), lexer.getRuleNames(), filename);
+                    else
+                        printTokens(parser.getTokenStream(), lexer.getRuleNames(), null);
+                }
+                if (print_pt) {
+                    System.out.println("printing parse tree...");
+                    if (save_output)
+                        printParseTree(tree, parser.getRuleNames(), filename);
+                    else
+                        printParseTree(tree, parser.getRuleNames(), null);
+                }
+                if (print_ast) {
+                    System.out.println("printing abstract syntax tree...");
+                    if (save_output)
+                        printAST(tree, parser.getRuleNames(), filename);
+                    else
+                        printAST(tree, parser.getRuleNames(), null);
+                }
+                if (print_ir) {
+                    System.out.println("printing IR...");
+                    if (writefile)
+                        printIR(ir, write_filename);
+                    else
+                        printIR(ir,null);
+                }
+                if (print_st) {
+                    System.out.println("printing Symbol Table...");
+                    SymbolTable.printSymbolTable(symbolTable);
+            } else { //currently not supporting generating ir -> asm in a single SCC run
+                //SCC has to be run with -w to output ir file, then rerun with -rS to take in an ir and output to asm file
+                if(print_asm) {
+                    printASM(args[args.length-1]);
+                }
             }
         }
 
-        //TODO: Allow to just save to file without having to also print to terminal
-        if (print_tks) {
-            System.out.println("printing tokens...");
-            if (save_output)
-                printTokens(parser.getTokenStream(), lexer.getRuleNames(), filename);
-            else
-                printTokens(parser.getTokenStream(), lexer.getRuleNames(), null);
-        }
-        if (print_pt) {
-            System.out.println("printing parse tree...");
-            if (save_output)
-                printParseTree(tree, parser.getRuleNames(), filename);
-            else
-                printParseTree(tree, parser.getRuleNames(), null);
-        }
-        if (print_ast) {
-            System.out.println("printing abstract syntax tree...");
-            if (save_output)
-                printAST(tree, parser.getRuleNames(), filename);
-            else
-                printAST(tree, parser.getRuleNames(), null);
-        }
-        if (print_ir) {
-            System.out.println("printing IR...");
-            if (writefile)
-                printIR(ir, write_filename);
-            else
-                printIR(ir,null);
-        }
-        if (print_st) {
-            System.out.println("printing Symbol Table...");
-            SymbolTable.printSymbolTable(symbolTable);
-        } else { //currently not supporting generating ir -> asm in a single SCC run
-            //SCC has to be run with -w to output ir file, then rerun with -rS to take in an ir and output to asm file
-            if(print_asm) {
-                printASM(args[args.length-1]);
-            }
-        }
 
         System.out.println("done!");
         // TODO: Add error messages when invalid declarations are made
@@ -236,21 +237,14 @@ public class SCC {
         }
     }
 
-    private static void printIR(RuleContext rc, String[] ruleNames, String write_filename) {
-        List<String> ruleNamesList = Arrays.asList(ruleNames);
-        ASTNode an = TreeUtils.generateAST(rc, ruleNamesList);
-
-        String ir = generateIR(an);
-        if(ir != null)
-            input_ir = new StringBuilder(ir);
-
+    private static void printIR(String ir, String write_filename) {
         String write_file = "src/tests/" + write_filename; /* redirecting to appropriate folder */
 
         if (write_filename != null) {
             try {
                 FileWriter f = new FileWriter(write_file);
                 BufferedWriter b = new BufferedWriter(f);
-                b.write(ir);
+                b.write(ir + "\n\n");
                 b.close();
                 f.close();
             } catch (IOException e) {
