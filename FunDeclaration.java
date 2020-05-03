@@ -1,5 +1,3 @@
-import javafx.util.Pair;
-
 import java.util.ArrayList;
 
 public class FunDeclaration extends ASTNode {
@@ -37,19 +35,24 @@ public class FunDeclaration extends ASTNode {
         );
     }
 
+    //hotfix implemented here, be wary of spooky things that might become of this
     public ArrayList<Pair<TypeSpecifier, String>> paramResolver(ASTNode node) {
         ArrayList<Pair<TypeSpecifier, String>> p = new ArrayList<>();
         if(node.id.equals("params")) {
             for(int i = 0; i < node.children.size(); i++) {
                 if(node.children.get(i) == null || node.children.get(i).id.equals(",")) continue;
-                TypeSpecifier t = TypeSpecifier.TypeSpecifierResolver(node.children.get(i).children.get(0));
-                String param = node.children.get(i).children.get(1).id;
-                p.add(new Pair<TypeSpecifier, String>(t, param));
+                if(node.children.get(i).id.equals("params")) {
+                    p.addAll(paramResolver(node.children.get(i)));
+                } else {
+                    TypeSpecifier t = TypeSpecifier.TypeSpecifierResolver(node.children.get(i).children.get(0));
+                    String param = node.children.get(i).children.get(1).id;
+                    p.add(new Pair<>(t, param));
+                }
             }
         } else { //id = parameter?
             TypeSpecifier t = TypeSpecifier.TypeSpecifierResolver(node.children.get(0));
             String param = node.children.get(1).id;
-            p.add(new Pair<TypeSpecifier, String>(t, param));
+            p.add(new Pair<>(t, param));
         }
         return p;
     }
@@ -86,7 +89,7 @@ public class FunDeclaration extends ASTNode {
             sb.append(params.get(i).getKey().id + params.get(i).getKey().pointerLevel + " ");
             sb.append(params.get(i).getValue());
             if(i < params.size() - 1) {
-                sb.append(", ");
+                sb.append(",");
             }
         }
         sb.append(")");

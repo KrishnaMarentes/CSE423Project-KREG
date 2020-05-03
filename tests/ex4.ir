@@ -1,0 +1,20 @@
+function calc()
+{
+int f;
+
+f = 0;
+return f;
+}
+
+function main()
+{
+int j;
+
+j = 4;
+KREG.0 = calc();
+KREG.1 = KREG.0 + 2;
+return KREG.1;
+}
+
+
+

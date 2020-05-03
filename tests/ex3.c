@@ -9,7 +9,7 @@ int main(int argc, char** argv)
     int m, a;
     float t, f;
     goto hell;
-    int unreachable = 10;
+    int unreachable = 10 * 10;
 
 hell:
     ++a;
