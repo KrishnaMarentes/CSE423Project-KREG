@@ -8,7 +8,6 @@ public class SCC {
 
     public static final String EOL = System.lineSeparator();
     public static SymbolTable symbolTable;
-    public static StringBuilder input_ir = new StringBuilder();
     public static String asm_name = null;
 
     public static void main(String[] args) {
@@ -149,7 +148,7 @@ public class SCC {
         RuleContext tree = null;
         List<String> ruleNamesList;
         ASTNode an;
-        String ir;
+        String ir = "";
         if (!readfile) {
             lexer = new kregGrammarLexer(src_code);
             parser = new kregGrammarParser(new CommonTokenStream(lexer));
@@ -162,10 +161,10 @@ public class SCC {
             an = TreeUtils.generateAST(tree, ruleNamesList);
             ir = generateIR(an);
         } else {
-            ir = IRdata.toString();
+            for(String line : IRdata) {
+                ir += line + EOL;
+            }
         }
-
-        input_ir = new StringBuilder(ir);
 
         if (optimize) {
              Optimizer op = new Optimizer();
@@ -215,12 +214,11 @@ public class SCC {
 
     private static void printASM(String ir, String filename) {
 
-        //ASM asmCode = new ASM(ir);
-        ASM asmCode = new ASM(input_ir.toString());
+        ASM asmCode = new ASM(ir);
 
         try {
             //File input = new File(filename);
-            filename = filename.replace(".ir", ".s");
+            filename = filename.replaceAll("\\.ir|\\.c", ".s");
             FileWriter f = new FileWriter(filename);
             BufferedWriter b = new BufferedWriter(f);
             b.write(asmCode.getASMString());
