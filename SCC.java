@@ -54,34 +54,13 @@ public class SCC {
                                 print_ir = true;
                                 break;
                             case 'w': /* write out IR to a file with a specified name */
-                                /* output filename will look: write_filename.out */
-                                /* -w specified_name FILENAME */
                                 writefile = true;
                                 write_filename = args[args.length-2];
                                 print_ir = true;
                                 break;
                             case 'r': /* read in an IR specified instead of a source file */
-                                /* ex of read_filename: -r src/tests/example2 any_other_filename */
-                                /* any_other_filename is needed so that generating lexer/parser/ir don't break */
-                                /* Only focusing on example2 file contents for optimizations */
                                 readfile = true;
                                 read_filename = args[args.length-2];
-                                /*try {
-                                    File input = new File(read_filename);
-                                    Scanner readF = new Scanner(input);
-
-                                    asm_name = input.getName().replace(".ir", ".s");
-
-                                    while (readF.hasNextLine()) {
-                                        String IRdata = readF.nextLine();
-                                        input_ir.append(IRdata).append(EOL); //read in IR file for later use
-                                    }
-                                    readF.close();
-                                    System.out.println("Done Reading Input File...");
-                                } catch (FileNotFoundException e) {
-                                    System.out.println("Error: file " + read_filename + " not found.");
-                                }*/
-                                //System.exit(1);
                                 /* Adding input IR into an array list */
                                 try (BufferedReader br = new BufferedReader(new FileReader(read_filename))) {
                                     while (br.ready()){
@@ -327,6 +306,8 @@ public class SCC {
         System.out.println("r: Read in an IR specified instead of a source file");
         System.out.println("s: Print the symbol table");
         System.out.println("o: Save all printing to a file named 'FILENAME.out'");
+        System.out.println("S: Output a final assembly file");
+        System.out.println("O: Turn on optimizations");
         System.out.println("FILENAME: file path");
     }
 }
