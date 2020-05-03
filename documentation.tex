@@ -5,7 +5,7 @@
 \title{SCC by KREG}
 \subtitle{``Not-very-good C Compiler"}
 \author{\textbf{K}rishna Marentes\\\textbf{R}ebecca Castillo\\\textbf{E}lijah Orozco\\\textbf{G}eoff Knox}
-\date{April 6 2020}
+\date{May 3, 2020}
 
 \begin{document}
 
@@ -13,7 +13,7 @@
 \tableofcontents
 
 \section{Program Overview}
-\text{This file serves as the documentation for our compiler, which currently can scan and parse C code and generate a linear IR. Our user guide can be found in ``usage.pdf". Our compiler is written in Java and currently consists of two parts:}
+\text{This file serves as the documentation for our compiler, which currently can scan and parse C code and generate a linear IR. Our user guide can be found in ``usage.pdf". Our compiler is written in Java and consists of three parts:}
 \begin{itemize}
     \item Phase 1: Scanning/Parsing with C Grammar
     \begin{itemize}
@@ -24,6 +24,11 @@
     \begin{itemize}
         \item Input: Abstract Syntax Tree
         \item Output: Linear intermediate representation
+    \end{itemize}
+    \item Phase 3: Optimization and Assembly Generation
+    \begin{itemize}
+        \item Input: Linear intermediate representation
+        \item Output: Optimized IR, x86 AT\&T assembly
     \end{itemize}
 \end{itemize}
 \text{A third-party tool, ``Antlr," serves as the scanner/parser generator that takes our Grammar (stored in the .g4 file) as input. Antlr is prompted to generate and run scanning and parsing files with the specified grammar from the Driver file, which handles command line arguments, the compiler/Antlr interface, and general ``main" function duties.}
@@ -495,10 +500,7 @@ then our IR would produce
 \end{verbatim}
 which correctly assigns the un-incremented value of \verb|i| to \verb|x|.\\
 \\
-Currently, our IR is stored as a single string, with each line of code separated by \textit{EOL}. Design concepts for the best structure to store the IR for optimization and conversion to assembly are currently underway.
-\begin{verbatim}
-    
-\end{verbatim}
+Currently, the IR is stored as a single string, which each line delineated by the running system's \textit{End of Line} marker. 
 
 \subsection{Limitations}
 The following features, in addition to those not supported by the grammar, are not supported by our IR:
@@ -514,4 +516,39 @@ The following features, in addition to those not supported by the grammar, are n
     \end{verbatim}
 \end{itemize}
 Currently, our compiler only supports two levels of symbol scoping: the global scope, and scopes for functions. Therefore, loops do \textit{not} have their own scope.
+
+\section{Optimizations}
+Our compiler performs the following optimizations on the linear IR: constant folding, constant propagation, algebraic simplification, and identity removal. In addition, removal of "dead code" is mostly implemented, but technical issues prevent its use (see Details below.)
+
+\subsection{Basic Blocks}
+The SCC Optimizer relies on isolating basic blocks of execution from the IR. The instructions in a basic block can be optimized together, but each block is examined separately; no code outside the block can impact optimizations.\\
+\\
+Basic blocks are identified as blocks with only one entry point and one exit point. These points are defined in SCC as follows:\\
+\indent\indent Entry points: Functions, labels, if statement fall-throughs\\
+\indent\indent Exit points: Return statements, Goto's, if statements*\\
+\\
+Entry and exit points are not included in the basic block, with the exception of if statements because the conditional in an if statement has the opportunity for optimization.
+
+\subsection{Details}
+The extent of each optimization's utility is described below:\\
+\\
+Constant Folding: %DESCRIBE HERE \\
+Constant Propagation: %DESCRIBE HERE% \\
+Algebraic Simplification: %DESCRIBE HERE% \\
+Identity Removal: %DESCRIBE HERE% \\
+Dead Code Removal: %DESCRIBE HERE% \\
+\\
+Unfortunately, the current dead code removal scheme cannot be used in the current version due to complications in the optimization design. In the current design, return statements are not included in a basic block, so a variable that is used only in a return statement could be removed by this optimization, which is incorrect.\\
+
+It should be noted that, while these optimizations do apply to if statement conditionals, the conditionals themselves are limited. For example, if "i < 10" were optimized to "0 < 10", the conditional would be left in this state.
+
+\section{Assembly Generation}
+% Specify x86, AT&T, uses cdecl, right?
+% Talk about register allocation scheme
+% Also, stack allocation/setup and stuff.
+\subsection{Limitations}
+\begin{itemize}
+    \item Only int is supported
+    \item % OTHERS %
+\end{itemize}
 \end{document}
