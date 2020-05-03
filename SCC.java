@@ -63,7 +63,7 @@ public class SCC {
                             case 'i': /* print intermediate representation */
                                 print_ir = true;
                                 break;
-                            case 'w': /* write out IR to a file */
+                            case 'w': /* write out IR to a file with a specified name */
                                 writefile = true;
                                 // File name not specified
                                 if (args.length < 3) {
@@ -293,8 +293,8 @@ public class SCC {
         System.out.println("r: Read in an IR specified instead of a source file");
         System.out.println("s: Print the symbol table");
         System.out.println("o: Save all printing to a file named 'FILENAME.out'");
-        System.out.println("O: Perform optimizations");
-        System.out.println("S: Generate assembly code. MUST be used with -rS (Needs input IR file)");
+        System.out.println("S: Output a final assembly file");
+        System.out.println("O: Turn on optimizations");
         System.out.println("FILENAME: file path");
     }
 }
