@@ -22,7 +22,7 @@ A Complete C Compiler! (to assembly)
   * See usage.pdf
   * Clone repository <br />
   usage: java [OPTS] SOURCEFILE [OUTPUTFILE] <br />
-  OPTS: [t, p, a, s, i, w, r] <br />
+  OPTS: [t, p, a, s, i, w, r, O, S] <br />
   t: Print the tokens <br />
   p: Print the parse tree <br />
   a: Print the abstract syntax tree <br />
