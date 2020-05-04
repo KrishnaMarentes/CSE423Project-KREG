@@ -37,6 +37,37 @@ This file serves as the documentation for our compiler, which currently can scan
 \end{itemize}
 A third-party tool, ``Antlr," serves as the scanner/parser generator that takes our Grammar (stored in the .g4 file) as input. Antlr is prompted to generate and run scanning and parsing files with the specified grammar from the Driver file, which handles command line arguments, the compiler/Antlr interface, and general ``main" function duties.
 
+\section{Compiler Capabilities and Limitations}
+\subsection{Capabilities}
+The following list states everything that our compiler supports
+\begin{itemize}
+    \item Identifiers, variables, functions
+    \item Keywords
+    \item Arithmetic expressions
+    \item Assignment
+    \item Boolean expressions (excluding $||$ and \&\&)
+    \item Goto statement
+    \item If / else control flow (nesting works also)
+    \item Unary operators (-,\texttildelow)
+    \item Return statements
+    \item While loops
+    \item ++, --, -=, +=, etc
+    \item Binary operators and assignment ($<<$, $<<=$, $|$, $|=$, \& etc)
+\end{itemize}
+\subsection{Limitations}
+The following states what our compiler can not do
+\begin{itemize}
+	\item Types other than integers. Originally this was supported during scanning, parsing, and IR generation, but it was not something we could convert into assembly with the time we had remaining.
+	\item For loops. This was supported during scanning and parsing, but dropped in subsequent projects.
+	\item Switch statements. Supported during scanning and parsing, dropped in subsequent projects.
+	\item Pointers, arrays, strings. Somewhat implemented in scanning and parsing, no longer pursued in project 2 and later.
+	\item Struct, enum. Same as above.
+	\item Casting, type promotion. Never implemented in any project.
+	\item Multiple boolean expressions not allowed in if/else blocks or while loops. For example, $if(i<7 || f > 2)$ is not allowed. However, $if(i > 7)$ is completely fine.
+	
+\end{itemize}
+
+
 \section{Scanning and Parsing - Antlr}
 \subsection{Overview}
 Our compiler uses Antlr4, a tool similar to Flex/Bison that can be used for compilers written in Java. Antlr is both a scanner and parser, and uses a simple format for specifying the language to parse.\\
@@ -618,9 +649,8 @@ For example, if "i $<$ 10" were optimized to \\
 % Specify x86, AT&T, uses cdecl, right?
 % Talk about register allocation scheme
 % Also, stack allocation/setup and stuff.
-\subsection{Limitations}
-\begin{itemize}
-    \item Only int is supported
-    \item % OTHERS %
-\end{itemize}
+\subsection{Calling Convention}
+The compiler generates assembly in x86 AT\&T and uses the cdecl calling convention. When a function is called, the function arguments are placed on the stack in reverse order, which allows the callee to reference the input arguments from the offset of EBP. When the function assembly is being generated, the compiler will count the number of local variables that the function uses, and will insert the correct size to decrement the stack pointer before any instructions are generated. Local variables are also referenced in relation to the EBP. Before the function exits, if a return is required then the return value will be placed into eax. On function exit, $leave$ and $ret$ are called to gracefully exit the function.
+\subsection{Register Allocation}
+In terms of register allocation, the approach taken was a very simple one. During assembly generation, there is a list of registers that are currently not being used. When one is needed, a function is called to return the first free register, which is then marked as being in use. When the register is done being used in the context that it was called, the register is freed for later use.
 \end{document}

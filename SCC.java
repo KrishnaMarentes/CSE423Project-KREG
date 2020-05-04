@@ -69,7 +69,7 @@ public class SCC {
                                     write_filename = args[1];
                                     write_filename = write_filename.replace(".c", ".ir");
                                 } else {
-                                    write_filename = args[2];
+                                    write_filename = "src/tests/" + args[2];
                                 }
                                 break;
                             case 'r': /* read in an IR specified instead of a source file */
@@ -235,7 +235,7 @@ public class SCC {
     }
 
     private static void printIR(String ir, String write_filename) {
-        String write_file = "src/tests/" + write_filename; /* redirecting to appropriate folder */
+        String write_file = write_filename; /* redirecting to appropriate folder */
 
         if (write_filename != null) {
             try {

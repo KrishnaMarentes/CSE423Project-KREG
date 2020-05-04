@@ -331,7 +331,7 @@ public class ASM {
                     lines.remove(i + 1);
                     --i;
                     --maxIndex;
-                    ++vars_removed;
+                    //++vars_removed;
                 } else if(dest1.equals(src2) && isReg(dest1) && isReg(src2) && !(isMem(src1) && isMem(dest2))) {
                     String newString = String.format("%s %s, %s", line1[0], src1, dest2);
                     lines.set(i, newString);
