@@ -1,11 +1,10 @@
-import javafx.util.Pair;
-
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Statement extends ASTNode {
+
+    //static boolean ignoreCompound = false;
+    static Queue<Boolean> ignoreCompound = new LinkedList<>();
+
     public Statement(ASTNode node) {
         super(node.id);
         this.children = node.children;
@@ -71,6 +70,7 @@ public class Statement extends ASTNode {
              */
             public String generateCode() {
                 StringBuilder sb = new StringBuilder();
+                ignoreCompound.add(true);
 
                 /* First print a label for the conditional */
                 sb.append("goto " + LabelStatement.labels.get(condTagName) + ";" + EOL);
@@ -93,6 +93,7 @@ public class Statement extends ASTNode {
                 sb.append(LabelStatement.labels.get(endTagName) + ":" + EOL);
 
                 sb.append(EOL); // Extra space for human readability
+                ignoreCompound.remove();
                 return sb.toString();
             }
         }
@@ -122,6 +123,7 @@ public class Statement extends ASTNode {
 
         public String generateCode() {
             StringBuilder sb = new StringBuilder();
+            StringBuilder sb2 = new StringBuilder();
             sb.append("{" + EOL);
 
             //just print variable declarations
@@ -132,7 +134,7 @@ public class Statement extends ASTNode {
             }
 
             if(sb.length() > ("{"+EOL).length()) {
-                sb.append(EOL);
+                sb2.append(EOL);
             }
 
             for(int i = 0; i < this.children.size(); i++) {
@@ -147,20 +149,24 @@ public class Statement extends ASTNode {
                         /* Either we need to print all the tmpVars generated in the
                         * expression, then assign the variable name to the last tmpVar..*/
                         if (expression.contains("KREG")) { // hacky using string literal but whatever
-                            sb.append(expression);
+                            sb2.append(expression);
                             String lastVar = Expression.getLastAssignedVar(expression);
-                            sb.append(v.vars.get(j).getKey() + " = " + lastVar + ";" + EOL);
+                            sb2.append(v.vars.get(j).getKey() + " = " + lastVar + ";" + EOL);
                         } else { /* Or just print the variable and its original value */
-                            sb.append(v.vars.get(j).getKey() + " = " +
+                            sb2.append(v.vars.get(j).getKey() + " = " +
                                     v.vars.get(j).getValue().id + ";" + EOL);
                         }
                     }
                 } else {
-                    sb.append(this.children.get(i).generateCode());
+                    sb2.append(this.children.get(i).generateCode());
                 }
             }
 
-            sb.append("}" + EOL);
+            sb2.append("}" + EOL);
+            while(Expression.tmpVarQueue.size() != 0 && ignoreCompound.size() == 0) {
+                sb.append(Expression.tmpVarQueue.remove()).append(EOL);
+            }
+            sb.append(sb2.toString());
             return sb.toString();
         }
 
@@ -191,18 +197,29 @@ public class Statement extends ASTNode {
 
         public String generateCode() {
             StringBuilder sb = new StringBuilder();
-            String expression = this.children.get(0).generateCode();
-            String lastVar;
 
-            // if no tmpvar was made in last expr, just take the first term
-//            if (!expression.contains("KREG")) { //old, left here just in case something terrible happens
-            if (!expression.contains("=")) { //working better in the case of "return j+=3;" and many others
-                lastVar = expression.split(" ")[0];
+            String expression = null;
+            String lastVar = null;
+
+            if(this.children.get(0) != null) {
+                expression = this.children.get(0).generateCode();
+                // if no tmpvar was made in last expr, just take the first term
+                if (!expression.contains("=")) { //working better in the case of "return j+=3;" and many others
+                    lastVar = expression.split(" ")[0];
+                } else {
+                    lastVar = Expression.getLastAssignedVar(expression);
+                    sb.append(expression);
+                }
             } else {
-                lastVar = Expression.getLastAssignedVar(expression);
-                sb.append(expression);
+                expression = null;
             }
-            sb.append("return " + lastVar + ";" + EOL);
+
+
+            if(lastVar != null) {
+                sb.append("return " + lastVar + ";" + EOL);
+            } else {
+                sb.append("return;" + EOL);
+            }
 
             return sb.toString();
         }
@@ -288,6 +305,7 @@ public class Statement extends ASTNode {
 
             public String generateCode() {
                 StringBuilder sb = new StringBuilder();
+                ignoreCompound.add(true);
                 ArrayList<String> tagList = new ArrayList<>();
                 int i;
 
@@ -349,6 +367,7 @@ public class Statement extends ASTNode {
 
                 sb.append(exit + ":" + EOL);
 
+                ignoreCompound.remove();
                 return sb.toString();
             }
 

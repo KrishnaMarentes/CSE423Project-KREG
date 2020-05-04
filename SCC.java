@@ -1,16 +1,20 @@
 import org.antlr.v4.runtime.*;
 
 import java.io.*;
-import java.util.List;
-import java.util.Arrays;
-import java.util.Scanner;
+import java.util.*;
 
 public class SCC {
+
+
+    public static final String EOL = System.lineSeparator();
     public static SymbolTable symbolTable;
+    public static String asm_name = null;
+
     public static void main(String[] args) {
-        String filename = null;
+        String filename = null; // Input, usually C source code
         String write_filename = null;
         String read_filename = null;
+        String output = null;
 
         CharStream src_code = null;
         char opt;
@@ -22,10 +26,23 @@ public class SCC {
         boolean writefile = false;
         boolean readfile = false;
         boolean print_st = false;
-        boolean save_output = true;
+        boolean save_output = false;
+        boolean print_asm = false;
+        boolean optimize = false;
 
-        Scanner in = new Scanner(System.in);
+        ArrayList<String> IRdata = new ArrayList<>();
 
+        /* Three ways to use arguments (filenames are just examples)
+        * 1. ./SCC -[opts] source.c
+        *       Does whatever opts say to source.c -S will save to source.asm
+        * 2. ./SCC -[ops w] source.c output.ir
+        *       Does whatever opts say to source.c, save IR to output.ir
+        *       If output.ir not given, save to source.ir
+        * 3. ./SCC -[opts r] output.ir
+        *       Does whatever applicable opts to given IR. -S saves to output.asm
+        * This means that the file to read from will always be args[1]. If w is
+        * used, then that will be in args[2].
+        * */
         if(args.length > 0) {
             try {
                 /* Command line arguments for file name */
@@ -46,34 +63,42 @@ public class SCC {
                                 print_ir = true;
                                 break;
                             case 'w': /* write out IR to a file with a specified name */
-                                /* output filename will look: write_filename.out */
-                                /* -w specified_name FILENAME */
                                 writefile = true;
-                                write_filename = args[args.length-2];
-                                print_ir = true;
+                                // File name not specified
+                                if (args.length < 3) {
+                                    write_filename = args[1];
+                                    write_filename = write_filename.replace(".c", ".ir");
+                                } else {
+                                    write_filename = "src/tests/" + args[2];
+                                }
                                 break;
                             case 'r': /* read in an IR specified instead of a source file */
-                                /* will read in any type of file and then output it to the terminal for now */
-                                /* ex of read_filename: src/tests/ex9.c or src/tests/ir_example.ir or src/tests/ir_example2.ast */
-                                readfile = true; /* might need for later */
-                                read_filename = args[args.length-1];
-                                try {
-                                    File input = new File(read_filename);
-                                    Scanner readF = new Scanner(input);
-                                    while (readF.hasNextLine()) {
-                                        String IRdata = readF.nextLine();
-                                        System.out.println(IRdata);
-                                    }
-                                    readF.close();
-                                } catch (FileNotFoundException e) {
-                                    System.out.println("Error: file " + read_filename + " not found.");
+                                readfile = true;
+                                print_asm = true;
+                                save_output = true;
+                                if (args.length < 2) {
+                                    System.out.println("Option -r used but no source file given.");
+                                    usage();
+                                    System.exit(1);
                                 }
-                                System.exit(1);
+                                read_filename = args[1];
+                                /* Adding input IR into an array list */
+                                try (BufferedReader br = new BufferedReader(new FileReader(read_filename))) {
+                                    while (br.ready()){
+                                        IRdata.add(br.readLine());
+                                    }
+                                }
+                                break;
                             case 's': /* print symbol table */
                                 print_st = true;
                                 break;
-                            case 'o': /* replacing 's' with 'o' */
+                            case 'S': /* Generate assembly, save in given filename*/
+                                print_asm = true;
                                 save_output = true;
+                                //readfile = true;
+                                break;
+                            case 'O': /* carry out all optimizations */
+                                optimize = true;
                                 break;
                             default:
                                 System.out.println("Entered a unrecognized option.");
@@ -83,7 +108,12 @@ public class SCC {
                         }
                     }
                 }
-                filename = args[args.length-1];
+                if (args.length < 2) {
+                    System.out.println("No source file given.");
+                    usage();
+                    System.exit(1);
+                }
+                filename = args[1];
                 src_code = CharStreams.fromFileName(filename);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -95,72 +125,125 @@ public class SCC {
             System.exit(1);
         }
 
-        kregGrammarLexer lexer = new kregGrammarLexer(src_code);
-        kregGrammarParser parser = new kregGrammarParser(new CommonTokenStream(lexer));
-        parser.setBuildParseTree(true);
-
-        RuleContext tree = parser.program();
-        symbolTable = SymbolTable.populate(tree, parser.getRuleNames());
-
-        if (save_output) {
-            // Destroy output file if it already exists
-            File out = new File(filename + ".out");
-            if (out.exists())
-                out.delete();
-            // Create the output file so that output can be appended to a clean file
-            try {
-                out.createNewFile();
-            } catch (IOException e) {
-                System.out.println("Error in creating file " + filename + ".out" +
-                        "\nThe output will not be saved.");
-                save_output = false;
+        /* Check for bad option combinations */
+        if (readfile) {
+            if (print_tks || print_pt || print_ast || print_st) {
+                System.out.println("Bad option combination. Cannot perform requested" +
+                        " functions without C source code.");
+                print_tks = false;
+                print_pt = false;
+                print_ast = false;
+                print_st = false;
             }
         }
 
-        //TODO: Allow to just save to file without having to also print to terminal
+        if (save_output) {
+            if (readfile) {
+                output = read_filename.replace(".ir", ".s");
+            } else {
+                output = filename.replace(".c", ".s");
+            }
+        }
+
+        kregGrammarLexer lexer = null;
+        kregGrammarParser parser = null;
+        RuleContext tree = null;
+        List<String> ruleNamesList;
+        ASTNode an;
+        String ir = "";
+        if (!readfile) {
+            lexer = new kregGrammarLexer(src_code);
+            parser = new kregGrammarParser(new CommonTokenStream(lexer));
+            parser.setBuildParseTree(true);
+
+            tree = parser.program();
+            symbolTable = SymbolTable.populate(tree, parser.getRuleNames());
+
+            ruleNamesList = Arrays.asList(parser.getRuleNames());
+            an = TreeUtils.generateAST(tree, ruleNamesList);
+            ir = generateIR(an);
+        } else {
+            for(String line : IRdata) {
+                ir += line + EOL;
+            }
+        }
+
+        if (optimize) {
+             Optimizer op = new Optimizer();
+             ir = op.optimizeIR(ir);
+             System.out.println("Optimized IR:");
+             System.out.println(ir);
+        }
+
+        /* should never be true with a null lexer*/
         if (print_tks) {
             System.out.println("printing tokens...");
-            if (save_output)
-                printTokens(parser.getTokenStream(), lexer.getRuleNames(), filename);
-            else
-                printTokens(parser.getTokenStream(), lexer.getRuleNames(), null);
+            printTokens(parser.getTokenStream(), lexer.getRuleNames());
         }
+
+        /* should never be true with a null parser */
         if (print_pt) {
             System.out.println("printing parse tree...");
-            if (save_output)
-                printParseTree(tree, parser.getRuleNames(), filename);
-            else
-                printParseTree(tree, parser.getRuleNames(), null);
+            printParseTree(tree, parser.getRuleNames());
         }
+
+        /* should never be true with a null tree*/
         if (print_ast) {
             System.out.println("printing abstract syntax tree...");
-            if (save_output)
-                printAST(tree, parser.getRuleNames(), filename);
-            else
-                printAST(tree, parser.getRuleNames(), null);
+            printAST(tree, parser.getRuleNames());
         }
-        if (print_ir) {
-            System.out.println("printing IR...");
-            if (writefile)
-                printIR(tree, parser.getRuleNames(), write_filename);
-            else
-                printIR(tree, parser.getRuleNames(), null);
-        }
+
+        /* should never be true with a null symbolTable */
         if (print_st) {
             System.out.println("printing Symbol Table...");
             SymbolTable.printSymbolTable(symbolTable);
         }
 
+        if (print_ir) {
+            System.out.println("printing IR...");
+            if (writefile) {
+                printIR(ir, write_filename);
+                writefile = false;
+            }
+            else
+                printIR(ir,null);
+        }
+
+        //if you want to write an ir to a file without printing it
+        if (writefile)
+            printIR(ir, write_filename);
+
+        if(print_asm) {
+            printASM(ir, output);
+        }
+
         System.out.println("done!");
-        // TODO: Add error messages when invalid declarations are made
     }
 
-    private static void printIR(RuleContext rc, String[] ruleNames, String write_filename) {
-        List<String> ruleNamesList = Arrays.asList(ruleNames);
-        ASTNode an = TreeUtils.generateAST(rc, ruleNamesList);
+    private static void printASM(String ir, String filename) {
 
-        String ir = generateIR(an);
-        String write_file = "src/tests/" + write_filename; /* redirecting to appropriate folder */
+        ASM asmCode = new ASM(ir);
+
+        try {
+            //File input = new File(filename);
+            filename = filename.replaceAll("\\.ir|\\.c", ".s");
+            FileWriter f = new FileWriter(filename);
+            BufferedWriter b = new BufferedWriter(f);
+            b.write(asmCode.getASMString());
+            b.close();
+            f.close();
+
+        } catch (FileNotFoundException e) {
+            System.out.println("Error: file " + filename + " not found.");
+            e.printStackTrace();
+        } catch (IOException e) {
+            System.out.println("Error writing to file: " + filename);
+            e.printStackTrace();
+        }
+    }
+
+    private static void printIR(String ir, String write_filename) {
+        String write_file = write_filename; /* redirecting to appropriate folder */
 
         if (write_filename != null) {
             try {
@@ -176,71 +259,38 @@ public class SCC {
             System.out.println(ir);
     }
 
-    private static void printAST(RuleContext rc, String[] ruleNames, String filename) {
+    private static void printAST(RuleContext rc, String[] ruleNames) {
         List<String> ruleNamesList = Arrays.asList(ruleNames);
         ASTNode an = TreeUtils.generateAST(rc, ruleNamesList);
 
         String prettyAST = ASTNode.toPrettyASTString(an);
         System.out.println(prettyAST);
-        if (filename != null) {
-            try {
-                FileWriter f = new FileWriter(filename + ".out", true);
-                BufferedWriter b = new BufferedWriter(f);
-                b.write(prettyAST + "\n\n");
-                b.close();
-                f.close();
-            } catch (IOException e) {
-                System.out.println("An error occurred when attempting to save the output to a file");
-            }
-        }
     }
 
     private static String generateIR(ASTNode node) {
         return node.generateCode();
     }
 
-    private static void printParseTree(RuleContext rc, String[] ruleNames, String filename) {
+    private static void printParseTree(RuleContext rc, String[] ruleNames) {
         List<String> ruleNamesList = Arrays.asList(ruleNames);
         String prettyTree = TreeUtils.toPrettyTree(rc, ruleNamesList);
         System.out.println(prettyTree);
-        if (filename != null) {
-            try {
-                FileWriter f = new FileWriter(filename + ".out", true);
-                BufferedWriter b = new BufferedWriter(f);
-                b.write(prettyTree.toString() + "\n\n");
-                b.close();
-                f.close();
-            } catch (IOException e) {
-                System.out.println("An error occurred when attempting to save the output to a file");
-            }
-        }
     }
 
-    private static void printTokens(TokenStream ts, String[] ruleNames, String filename) {
+    private static void printTokens(TokenStream ts, String[] ruleNames) {
         StringBuilder output = new StringBuilder();
         for(int i = 0; i < ts.size() - 1; i++) {
             String t = ts.get(i).getText();
             int line = ts.get(i).getLine(); //get line that token is on
             String type = ruleNames[ts.get(i).getType() - 1]; //type of token, integer only
-            output.append("< ").append(t).append(" , ").append(type).append(" >");
+            output.append("< ").append(t).append(" , ").append(type).append(" >").append(EOL);
         }
         System.out.println(output);
-        if (filename != null) {
-            try {
-                FileWriter f = new FileWriter(filename + ".out", true);
-                BufferedWriter b = new BufferedWriter(f);
-                b.write(output.toString() + "\n\n");
-                b.close();
-                f.close();
-            } catch (IOException e) {
-                System.out.println("An error occurred when attempting to save the output to a file");
-            }
-        }
     }
 
     private static void usage() {
         System.out.println("usage: java [OPTS] FILENAME");
-        System.out.println("OPTS: [t, p, a, i, w, r, s, o]");
+        System.out.println("OPTS: [t, p, a, i, w, r, s, o, O, S]");
         System.out.println("t: Print the tokens");
         System.out.println("p: Print the parse tree");
         System.out.println("a: Print the abstract syntax tree");
@@ -249,6 +299,8 @@ public class SCC {
         System.out.println("r: Read in an IR specified instead of a source file");
         System.out.println("s: Print the symbol table");
         System.out.println("o: Save all printing to a file named 'FILENAME.out'");
+        System.out.println("S: Output a final assembly file");
+        System.out.println("O: Turn on optimizations");
         System.out.println("FILENAME: file path");
     }
 }

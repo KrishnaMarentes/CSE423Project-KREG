@@ -1,12 +1,15 @@
-double global_var;
+int main()
+{
+    int g, k;
+    g = 33;
+    k = g * g + 4;
+    while(k < 22) {
+        if(g < 6) {
+            ++k;
+        } else {
+            k += 6 * k + 1;
+        }
+    }
 
-char foo() {
-	char i;
-	return i;
-}
-
-int main() {
-	int i;
-	char j;
-	return i;
+    return k * 14;
 }

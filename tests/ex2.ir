@@ -1,0 +1,31 @@
+function foo(int t,int g)
+{
+int f;
+int k;
+int m;
+int i;
+int KREG.0;
+int KREG.1;
+int KREG.2;
+
+f = 2;
+k = 1;
+m = 3;
+i = 3;
+KREG.0 = 2 * t;
+KREG.1 = KREG.0 + 3;
+KREG.2 = KREG.1 - g;
+return KREG.2;
+}
+
+function main()
+{
+int i;
+int KREG.3;
+
+KREG.3 = foo(5,22);
+i = KREG.3;
+return i;
+}
+
+

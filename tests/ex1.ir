@@ -1,0 +1,35 @@
+function main()
+{
+int g;
+int k;
+int KREG.6;
+int KREG.7;
+int KREG.11;
+int KREG.12;
+int KREG.13;
+int KREG.14;
+
+g = 33;
+KREG.6 = 1089;
+KREG.7 = 1093;
+k = 1093;
+goto <KREG.3>;
+<KREG.4>:
+if g < 6 goto <KREG.8> else goto <KREG.9>;
+<KREG.8>:
+k = k + 1;
+goto <KREG.10>;
+<KREG.9>:
+KREG.12 = 6 * k;
+KREG.13 = KREG.12 + 1;
+k = k + KREG.13;
+<KREG.10>:
+<KREG.3>:
+if k < 22 goto <KREG.4>;
+<KREG.5>:
+
+KREG.14 = k * 14;
+return KREG.14;
+}
+
+

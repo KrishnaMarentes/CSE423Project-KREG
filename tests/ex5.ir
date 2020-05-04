@@ -1,0 +1,49 @@
+function main()
+{
+int a;
+int b;
+int c;
+int KREG.2;
+int KREG.5;
+int KREG.9;
+int KREG.10;
+int KREG.11;
+int KREG.14;
+int KREG.15;
+
+a = 5;
+b = 20;
+if 5 == b goto <KREG.0> else goto <KREG.1>;
+<KREG.0>:
+KREG.2 = a + b;
+c = KREG.2;
+goto <KREG.1>;
+<KREG.1>:
+if a <= b goto <KREG.3> else goto <KREG.4>;
+<KREG.3>:
+KREG.5 = a * b;
+c = KREG.5;
+goto <KREG.4>;
+<KREG.4>:
+a = 0;
+b = 10;
+if 0 > b goto <KREG.6> else goto <KREG.7>;
+<KREG.6>:
+KREG.9 = c;
+c = c + 1;
+KREG.10 = c;
+goto <KREG.8>;
+<KREG.7>:
+KREG.11 = a - b;
+c = KREG.11;
+<KREG.8>:
+if a == b goto <KREG.12> else goto <KREG.13>;
+<KREG.12>:
+KREG.14 = c;
+c = c + 1;
+KREG.15 = c;
+goto <KREG.13>;
+<KREG.13>:
+}
+
+

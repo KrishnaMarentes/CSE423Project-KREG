@@ -7,7 +7,7 @@ int foobar() {
     return 12 + 8 * 130;
 }
 
-int main(int argc) {
+int main() {
     int i = 8, j = 2;
     int k = 3;
     int f = 100;

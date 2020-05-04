@@ -1,0 +1,48 @@
+function get_curvedgrade(int grade)
+{
+int t;
+int KREG.6;
+
+KREG.6 = grade + 10;
+t = KREG.6;
+return t;
+}
+
+function main()
+{
+int grade;
+int num;
+int curved_grade;
+int KREG.14;
+int KREG.15;
+
+grade = 66;
+if 66 == 65 goto <KREG.7> else goto <KREG.8>;
+<KREG.7>:
+num = 90;
+goto <KREG.13>;
+<KREG.8>:
+if grade == 66 goto <KREG.9> else goto <KREG.10>;
+<KREG.9>:
+num = 80;
+goto <KREG.13>;
+<KREG.10>:
+if grade == 67 goto <KREG.11> else goto <KREG.12>;
+<KREG.11>:
+num = 70;
+goto <KREG.13>;
+<KREG.12>:
+num = 60;
+<KREG.13>:
+KREG.14 = get_curvedgrade(grade);
+curved_grade = KREG.14;
+goto <KREG.3>;
+<KREG.4>:
+grade = grade + 1;
+<KREG.3>:
+if grade < curved_grade goto <KREG.4>;
+<KREG.5>:
+return grade;
+}
+
+
