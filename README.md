@@ -30,7 +30,7 @@ A Complete C Compiler! (to assembly)
   i: Print the linear IR <br />
   w: Write the IR to a given filename. Ex: -w file.c output.ir <br />
   r: Read in an IR instead of C code; **MUST** have ".ir" extension <br />
-  O: Perform optimizations
+  O: Perform optimizations <br />
   S: Generate assembly code. Will be saved in SOURCEFILE.s (Cannot specify file name) 
   * Do not use -w or -r together <br />
   * -r cannot be used with options that require C code: t, p, a, s
