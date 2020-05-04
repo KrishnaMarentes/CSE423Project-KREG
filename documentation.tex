@@ -7,13 +7,17 @@
 \author{\textbf{K}rishna Marentes\\\textbf{R}ebecca Castillo\\\textbf{E}lijah Orozco\\\textbf{G}eoff Knox}
 \date{May 3, 2020}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setlength\parindent{0pt}
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \begin{document}
 
 \maketitle
 \tableofcontents
 
 \section{Program Overview}
-\text{This file serves as the documentation for our compiler, which currently can scan and parse C code and generate a linear IR. Our user guide can be found in ``usage.pdf". Our compiler is written in Java and consists of three parts:}
+This file serves as the documentation for our compiler, which currently can scan and parse C code and generate a linear IR. Our user guide can be found in ``usage.pdf". Our compiler is written in Java and consists of three parts:
 \begin{itemize}
     \item Phase 1: Scanning/Parsing with C Grammar
     \begin{itemize}
@@ -31,7 +35,7 @@
         \item Output: Optimized IR, x86 AT\&T assembly
     \end{itemize}
 \end{itemize}
-\text{A third-party tool, ``Antlr," serves as the scanner/parser generator that takes our Grammar (stored in the .g4 file) as input. Antlr is prompted to generate and run scanning and parsing files with the specified grammar from the Driver file, which handles command line arguments, the compiler/Antlr interface, and general ``main" function duties.}
+A third-party tool, ``Antlr," serves as the scanner/parser generator that takes our Grammar (stored in the .g4 file) as input. Antlr is prompted to generate and run scanning and parsing files with the specified grammar from the Driver file, which handles command line arguments, the compiler/Antlr interface, and general ``main" function duties.
 
 \section{Scanning and Parsing - Antlr}
 \subsection{Overview}
@@ -52,7 +56,7 @@ To aid IR generation, each AST node is resolved into the a certain subclass node
 \subsection{Advantages}
 The advantages of this design center on the ease of AST printing and IR generation. IR generation routines are customized for each subclass, so that IR generation can be successfully performed by recursively walking the tree and checking for what instance each node belongs to. This design is also useful when using an IDE debugger, since each node will have relevant members directly in the object, rather then needing to look through layers of child and parent nodes.\\
 \subsection{Disadvantages}
-For all the advantages, disadvantages do exist for our approach. For one, the overall design is somewhat complex. Using the AST requires fairly deep knowledge of each subclass as well as the grammar itself. In addition, it can be confusing to know when to look for information in a node's members or in its children. However, we've found the current design to be sufficiently helpful for IR 
+For all the advantages, disadvantages do exist for our approach. For one, the overall design is somewhat complex. Using the AST requires fairly deep knowledge of each subclass as well as the grammar itself. In addition, it can be confusing to know when to look for information in a node's members or in its children. However, we've found the current design to be sufficiently helpful for IR
 
 \section{Language Specification}
 \subsection{Introduction}
@@ -69,16 +73,16 @@ The grammar also uses standard regex terms. Symbols indicating regex rules are n
 Single-line comments (denoted by ``//") and block comments (denoted by ``/* */") are successfully ignored by the grammar.
 \subsection{Tokens}
 \begin{itemize}
-\item ID $\rightarrow$ 
+\item ID $\rightarrow$
     (\textbf{\_} $|$ [a-zA-Z])+ ([a-zA-Z] $|$ DIGIT $|$ \textbf{\_})*
-    
-\item CHARCONST $\rightarrow$ 
+
+\item CHARCONST $\rightarrow$
     \textbf{\textquotesingle} CHARCHARS+ \textbf{\textquotesingle}
-    
-\item STRINGCONST $\rightarrow$ 
+
+\item STRINGCONST $\rightarrow$
     \textbf{\textquotesingle\textquotesingle} STRINGCHARS* \textbf{\textquotesingle\textquotesingle}
-    
-\item INT $\rightarrow$ 
+
+\item INT $\rightarrow$
     DIGIT+ \\
     $|$ (\textbf{0x} $|$ \textbf{0X})HEXDIGIT+ \\
     $|$ \textbf{0}OCTALDIGIT+ \\
@@ -96,27 +100,27 @@ The following are ``helper tokens" that are not strictly considered tokens by ou
 \item HEXDIGIT $\rightarrow$ [\textbf{0-9A-Fa-f}]
 \item OCTALDIGIT $\rightarrow$ [\textbf{0-7}]
 \item BINARYDIGIT $\rightarrow$ [\textbf{0-1}]
-\item FLOAT $\rightarrow$ 
+\item FLOAT $\rightarrow$
     [\textbf{0-9}]+ \textbf{.} [\textbf{0-9}]+ EXP?(\textbf{f}$|$\textbf{F})?\\
     $|$   \textbf{.} [\textbf{0-9}]+ EXP?(\textbf{f}$|$\textbf{F})?\\
     $|$   [\textbf{0-9}]+ EXP(\textbf{f}$|$\textbf{F})?\\
     $|$ [\textbf{0-9}]+ (\textbf{f}$|$\textbf{F})?
-    
-\item EXP $\rightarrow$ 
+
+\item EXP $\rightarrow$
     (\textbf{e}$|$\textbf{E}) (\textbf{+}$|$\textbf{-})? [\textbf{0-9}]+
 \end{itemize}
 
 \subsection{The Grammar}
 \begin{enumerate}
-\item program $\rightarrow$ 
+\item program $\rightarrow$
     declarationList \textbf{EOF}
-    
-\item declarationList $\rightarrow$ 
-    declarationList declaration 
+
+\item declarationList $\rightarrow$
+    declarationList declaration
     $|$ declaration
-    
-\item declaration $\rightarrow$ 
-    varDeclaration 
+
+\item declaration $\rightarrow$
+    varDeclaration
     $|$ funDeclaration
     $|$ structDeclaration
     $|$ enumDeclaration
@@ -130,12 +134,12 @@ The following are ``helper tokens" that are not strictly considered tokens by ou
 
 \item enumDeclaration $\rightarrow$
     \textbf{enum} ID \textbf{\{} enumDeclList \textbf{\}} ID? \textbf{;}
-    
+
 \item enumDeclList $\rightarrow$
     enumDeclList \textbf{,} enumId
     $|$ enumId
     $|$ $\epsilon$
-    
+
 \item enumId $\rightarrow$
     ID ASSIGNMENT enumExpression
     $|$ ID
@@ -143,7 +147,7 @@ The following are ``helper tokens" that are not strictly considered tokens by ou
 \item enumInit $\rightarrow$
     \textbf{enum} ID ID \textbf{;}
     $|$ \textbf{enum} ID ID \textbf{=} expression \textbf{;}
-    
+
 \item unInitVarDecl $\rightarrow$
     typeSpecifier unInitVarDeclList \textbf{;}
 
@@ -152,60 +156,60 @@ The following are ``helper tokens" that are not strictly considered tokens by ou
     $|$ varDeclId
     $|$ $\epsilon$
 
-\item varDeclaration $\rightarrow$ 
+\item varDeclaration $\rightarrow$
     typeSpecifier varDecList \textbf{;}
     $|$ scopedVarDeclaration \textbf{;}
     $|$ structInit
     $|$ enumInit
-    
-\item scopedVarDeclaration $\rightarrow$ 
+
+\item scopedVarDeclaration $\rightarrow$
     scopedTypeSpecifier varDeclList
-    
+
 \item forLoopVars
     typeSpecifier varDeclList
     $|$ expression List
-    
-\item varDeclList $\rightarrow$ 
-    varDeclList \textbf{,} varDeclInitialize 
+
+\item varDeclList $\rightarrow$
+    varDeclList \textbf{,} varDeclInitialize
     $|$ varDeclInitialize
-    
-\item varDeclInitialize $\rightarrow$ 
-    varDeclId 
+
+\item varDeclInitialize $\rightarrow$
+    varDeclId
     $|$ varDeclId \textbf{=} (expression $|$ \textbf{\{} expressionList \textbf{\}})
 
-\item varDeclId $\rightarrow$ 
+\item varDeclId $\rightarrow$
     ID (\textbf{[} expression? \textbf{]})*
-    
-\item scopedTypeSpecifier $\rightarrow$ 
-    \textbf{static} typeSpecifier 
+
+\item scopedTypeSpecifier $\rightarrow$
+    \textbf{static} typeSpecifier
     $|$ typeSpecifier
-    
-\item typeSpecifier $\rightarrow$ 
+
+\item typeSpecifier $\rightarrow$
     (\textbf{int} $|$ \textbf{float} $|$ \textbf{double} $|$ \textbf{char} $|$ \textbf{long} $|$ \textbf{unsigned} $|$ \textbf{signed} $|$ \textbf{void} $|$ \textbf{short})(\textbf{*})*
 
-\item funDeclaration $\rightarrow$ 
+\item funDeclaration $\rightarrow$
     typeSpecifier ID \textbf{(} params \textbf{)} (compoundStmt $|$ \textbf{;})
 
-\item params $\rightarrow$ 
-    params \textbf{,} parameter 
-    $|$ parameter 
+\item params $\rightarrow$
+    params \textbf{,} parameter
+    $|$ parameter
     $|$ $\epsilon$
 
-\item parameter $\rightarrow$ 
+\item parameter $\rightarrow$
     typeSpecifier paramId
 
-\item paramId $\rightarrow$ 
+\item paramId $\rightarrow$
     ID (\textbf{[]})*
 
-\item statement $\rightarrow$ 
-    expressionStmt 
-    $|$ compoundStmt 
-    $|$ selectionStmt 
-    $|$ iterationStmt 
-    $|$ returnStmt 
-    $|$ breakStmt 
-    $|$ gotoStmt 
-    $|$ labelStmt 
+\item statement $\rightarrow$
+    expressionStmt
+    $|$ compoundStmt
+    $|$ selectionStmt
+    $|$ iterationStmt
+    $|$ returnStmt
+    $|$ breakStmt
+    $|$ gotoStmt
+    $|$ labelStmt
 
 \item structExpressionList $\rightarrow$
     expressionList \textbf{,} \textbf{.}? expression
@@ -217,32 +221,32 @@ The following are ``helper tokens" that are not strictly considered tokens by ou
     $|$ expression
     $|$ $\epsilon$
 
-\item expressionStmt $\rightarrow$ 
+\item expressionStmt $\rightarrow$
     expression \textbf{;}
     $|$ \textbf{;}
 
-\item compoundStmt $\rightarrow$ 
+\item compoundStmt $\rightarrow$
     \textbf{\{} statementList \textbf{\}}
 
-\item statementList $\rightarrow$ 
+\item statementList $\rightarrow$
     statementList (statement $|$ varDelcaration)
     $|$ \textbf{EPS}
-    
+
 \item defaultList $\rightarrow$
     statementList (statement $|$ varDeclaration)
     $|$ statement
 
-\item elsifList $\rightarrow$ 
-    elsifList \textbf{else if (} expression \textbf{)} statement 
+\item elsifList $\rightarrow$
+    elsifList \textbf{else if (} expression \textbf{)} statement
     $|$ \textbf{EPS}
 
-\item selectionStmt $\rightarrow$ 
+\item selectionStmt $\rightarrow$
     \textbf{if (} expression \textbf{)} statement elsifList \\
     $|$ \textbf{if (} expression \textbf{)} statement elsifList \textbf{else} statement\\
     $|$ \textbf{switch (} expression \textbf{)} switchCase defaultList\\
     $|$ \textbf{switch (} expression \textbf{)} \textbf{default :} defaultList\\
-    $|$ \textbf{switch (} expression \textbf{) \{} switchList (\textbf{default :} defaultList)? \textbf{\}} 
-    
+    $|$ \textbf{switch (} expression \textbf{) \{} switchList (\textbf{default :} defaultList)? \textbf{\}}
+
 \item switchList $\rightarrow$
     switchList switchCase
     $|$ switchCase
@@ -251,35 +255,35 @@ The following are ``helper tokens" that are not strictly considered tokens by ou
 \item switchCase $\rightarrow$
     \textbf{case} (\textbf{INT $|$ CHARCONST}) \textbf{:} (defaultList $|$ statementList)
 
-\item iterationStmt $\rightarrow$ 
+\item iterationStmt $\rightarrow$
     \textbf{while (} expression \textbf{)} statement \\
     $|$ \textbf{do} statement \textbf{while (} expression \textbf{);}\\
     $|$ \textbf{for (} forLoopVars \textbf{;} expressionList \textbf{;} expressionList \textbf{)} statement
 
-\item returnStmt $\rightarrow$ 
-    \textbf{return ;} 
+\item returnStmt $\rightarrow$
+    \textbf{return ;}
     $|$ \textbf{return} expression \textbf{;}
 
-\item breakStmt $\rightarrow$ 
+\item breakStmt $\rightarrow$
     \textbf{break ;}
 
-\item gotoStmt $\rightarrow$ 
+\item gotoStmt $\rightarrow$
     \textbf{goto} labelId \textbf{;}
 
-\item labelStmt $\rightarrow$ 
+\item labelStmt $\rightarrow$
     labelId \textbf{:}
 
-\item labelId $\rightarrow$ 
+\item labelId $\rightarrow$
     ID
 
-\item expression $\rightarrow$ 
+\item expression $\rightarrow$
     mutable \textbf{=} expression \\
-    $|$ mutable \textbf{+=} expression\\ 
+    $|$ mutable \textbf{+=} expression\\
     $|$ mutable \textbf{-=} expression \\
     $|$ mutable \textbf{*=} expression \\
     $|$ mutable \textbf{/=} expression \\
     $|$ mutable \textbf{\%=} expression\\
-    $|$ mutable \textbf{$<<$=} expression\\ 
+    $|$ mutable \textbf{$<<$=} expression\\
     $|$ mutable \textbf{$>>$=} expression\\
     $|$ mutable \textbf{\&=} expression\\
     $|$ mutable \textbf{$|$=} expression\\
@@ -311,60 +315,60 @@ The following are ``helper tokens" that are not strictly considered tokens by ou
 \item properUnaryOps $\rightarrow$
     (\textbf{-} $|$ \textbf{\~} $|$ \textbf{!})*
 
-\item simpleExpression $\rightarrow$ 
+\item simpleExpression $\rightarrow$
     (simpleExpression \textbf{$||$} andExpression )
     $|$ andExpression
 
-\item andExpression $\rightarrow$ 
-    andExpression \textbf{\&\&} unaryRelExpression 
+\item andExpression $\rightarrow$
+    andExpression \textbf{\&\&} unaryRelExpression
     $|$ unaryRelExpression
 
-\item unaryRelExpression $\rightarrow$ 
-    \textbf{!} unaryRelExpression 
+\item unaryRelExpression $\rightarrow$
+    \textbf{!} unaryRelExpression
     $|$ relExpression
 
-\item relExpression $\rightarrow$ 
-    sumExpression relop sumExpression 
-    $|$ relExpression relop relExpression 
+\item relExpression $\rightarrow$
+    sumExpression relop sumExpression
+    $|$ relExpression relop relExpression
     $|$ sumExpression
 
-\item relop $\rightarrow$ 
-    \textbf{$<$=} 
-    $|$ \textbf{$<$} 
-    $|$ \textbf{$>$} 
-    $|$ \textbf{$>$=} 
-    $|$ \textbf{==} 
+\item relop $\rightarrow$
+    \textbf{$<$=}
+    $|$ \textbf{$<$}
+    $|$ \textbf{$>$}
+    $|$ \textbf{$>$=}
+    $|$ \textbf{==}
     $|$ \textbf{!=}
 
-\item sumExpression $\rightarrow$ 
-    sumExpression sumop mulExpression 
+\item sumExpression $\rightarrow$
+    sumExpression sumop mulExpression
     $|$ mulExpression
 
-\item sumop $\rightarrow$ 
+\item sumop $\rightarrow$
     \textbf{+} $|$ \textbf{-}
 
-\item mulExpression $\rightarrow$ 
-    mulExpression mulop unaryExpression 
+\item mulExpression $\rightarrow$
+    mulExpression mulop unaryExpression
     $|$ unaryExpression
 
-\item mulop $\rightarrow$ 
+\item mulop $\rightarrow$
     \textbf{*} $|$ \textbf{/} $|$ \textbf{\%}
 
-\item unaryExpression $\rightarrow$ 
-    unaryop unaryExpression 
-    $|$ mutable \textbf{++} 
-    $|$ mutable \textbf{--} 
-    $|$ \textbf{--} mutable 
-    $|$ \textbf{++} mutable 
-    $|$ factor 
+\item unaryExpression $\rightarrow$
+    unaryop unaryExpression
+    $|$ mutable \textbf{++}
+    $|$ mutable \textbf{--}
+    $|$ \textbf{--} mutable
+    $|$ \textbf{++} mutable
+    $|$ factor
 
-\item unaryop $\rightarrow$ 
+\item unaryop $\rightarrow$
     \textbf{-} $|$ \textbf{*} $|$ \textbf{!} $|$ \textbf{\&} $|$ \textbf{\~}
 
-\item factor$|$ $\rightarrow$ 
+\item factor$|$ $\rightarrow$
     immutable $|$ mutable
 
-\item mutable $\rightarrow$ 
+\item mutable $\rightarrow$
     (\textbf{*})* ID \\
     $|$ mutable \textbf{[} expression \textbf{]}\\
     $|$ mutable (\textbf{.} $|$ \textbf{-$>$}) mutable\\
@@ -372,22 +376,22 @@ The following are ``helper tokens" that are not strictly considered tokens by ou
     $|$ \textbf{(} expression \textbf{)} (\textbf{.} $|$ \textbf{-$>$}) mutable\\
     $|$ (\textbf{*})* \textbf{(} expression \textbf{)}
 
-\item immutable $\rightarrow$ 
-    \textbf{(} expression \textbf{)} 
-    $|$ call 
+\item immutable $\rightarrow$
+    \textbf{(} expression \textbf{)}
+    $|$ call
     $|$ constant
 
-\item call $\rightarrow$ 
+\item call $\rightarrow$
     ID \textbf{(} args \textbf{)}
     $|$ \textbf{sizeof (} (\textbf{struct} ID (\textbf{*})* $|$ typeSpecifier $|$ ID) \textbf{)}
 
-\item args $\rightarrow$ 
+\item args $\rightarrow$
     argList $|$ $\epsilon$
 
-\item argList $\rightarrow$ 
+\item argList $\rightarrow$
     argList \textbf{,} expression $|$ expression
 
-\item constant $\rightarrow$ 
+\item constant $\rightarrow$
     INT $|$ CHARCONST $|$ STRINGCONST
 \end{enumerate}
 
@@ -431,12 +435,12 @@ The ``Name" field of our symbol table can be of two different types: a plain \ve
 For example, the following C code
 \begin{verbatim}
     int global_var;
-    char foo() { 
-        char i; 
+    char foo() {
+        char i;
         return i;
     }
-    int main() { 
-        int i; 
+    int main() {
+        int i;
         char j;
         return i;
     }
@@ -453,7 +457,7 @@ produces the following symbol table:
          \begin{tabular}{c|c}
             Name & Type\\
             \hline \hline
-              i & char 
+              i & char
          \end{tabular} &\\
          \hline
          main & int\\
@@ -462,7 +466,7 @@ produces the following symbol table:
             \hline \hline
              i & int\\
              j & char
-         \end{tabular} 
+         \end{tabular}
     \end{tabular}
 \end{center}
 
@@ -500,7 +504,7 @@ then our IR would produce
 \end{verbatim}
 which correctly assigns the un-incremented value of \verb|i| to \verb|x|.\\
 \\
-Currently, the IR is stored as a single string, which each line delineated by the running system's \textit{End of Line} marker. 
+Currently, the IR is stored as a single string, which each line delineated by the running system's \textit{End of Line} marker.
 
 \subsection{Limitations}
 The following features, in addition to those not supported by the grammar, are not supported by our IR:
@@ -510,7 +514,7 @@ The following features, in addition to those not supported by the grammar, are n
     \item Strings
     \item Structures and Enums
     \item Arrays
-    \item Multiple boolean expressions in \verb|if| statements and \verb|while| loops. E.g. 
+    \item Multiple boolean expressions in \verb|if| statements and \verb|while| loops. E.g.
     \begin{verbatim}
         while (i < 10 && j > 10)
     \end{verbatim}
@@ -529,18 +533,86 @@ Basic blocks are identified as blocks with only one entry point and one exit poi
 \\
 Entry and exit points are not included in the basic block, with the exception of if statements because the conditional in an if statement has the opportunity for optimization.
 
-\subsection{Details}
-The extent of each optimization's utility is described below:\\
-\\
-Constant Folding: %DESCRIBE HERE \\
-Constant Propagation: %DESCRIBE HERE% \\
-Algebraic Simplification: %DESCRIBE HERE% \\
-Identity Removal: %DESCRIBE HERE% \\
-Dead Code Removal: %DESCRIBE HERE% \\
-\\
-Unfortunately, the current dead code removal scheme cannot be used in the current version due to complications in the optimization design. In the current design, return statements are not included in a basic block, so a variable that is used only in a return statement could be removed by this optimization, which is incorrect.\\
+\subsection{Methods}
+The following methods perform optimizations on the Three-Address-Code lines generated by the IR.
+These Three-Address-Code lines are then converted to instructions that are in the following format,
+\begin{verbatim}
+LHS = RHS
+LHS = R1 OP R2
+RHS = R1 OP R2
+\end{verbatim}
+Each optimization method uses these instructions to return an optimized RHS.
+The extent of each optimization's utility is described below:
+\begin{itemize}
+\item[$\circ$] Constant Folding: Method that evaluates the RHS of an assignment. \\
+For example,
+\begin{verbatim}
+RHS = R1 OP R2
+w = 3 + 5
+\end{verbatim}
+After one pass,
+\begin{verbatim}
+w = 8
+\end{verbatim}
+\item[$\circ$] Constant Propagation: Method that substitutes the value of known variables. \\
+For example,
+\begin{verbatim}
+x = 5
+y = 9 - x
+\end{verbatim}
+After one pass,
+\begin{verbatim}
+x = 5
+y = 9 - 5
+\end{verbatim}
+\item[$\circ$] Algebraic Simplification: This method simplifies the "algebra" in the RHS of the 3-Address code.
+For example:
+\begin{itemize}
+\item If OP = * and R1 or R2 = 0
+\begin{verbatim}
+x = 0 * 5       x = 5 * 0
+x = 0           x = 0
+\end{verbatim}
+\item If OP = - and R1 = R2
+\begin{verbatim}
+x = 7 - 7
+x = 0
+\end{verbatim}
+\item If OP = / and R1 = R2
+\begin{verbatim}
+x = 3 / 3
+x = 1
+\end{verbatim}
+\end{itemize}
+\item[$\circ$] Identity Removal: This method also simplifies the RHS of the expression but where there are variables.
+For example:
+\begin{itemize}
+\item If OP = + or - and R1 or R2 = 0
+\begin{verbatim}
+x = y - 0       x = 0 + y
+x = y           x = y
+\end{verbatim}
+\item If OP = * or / and R1 or R2 = 1
+\begin{verbatim}
+x = y / 1       x = 1 * y
+x = y           x = y
+\end{verbatim}
+\item If OP = / and R1 = R2
+\begin{verbatim}
+x = 3 / 3
+x = 1
+\end{verbatim}
+\end{itemize}
+\item[$\circ$] Dead Code Removal: Removes lines that assign to a variable that is never used in the RHS of any of the 3-Address code lines.
+\end{itemize}
 
-It should be noted that, while these optimizations do apply to if statement conditionals, the conditionals themselves are limited. For example, if "i < 10" were optimized to "0 < 10", the conditional would be left in this state.
+Unfortunately, the current dead code removal scheme cannot be used in the current version due to complications in the optimization design.
+In the current design, return statements are not included in a basic block, so a variable that is used only in a return statement could be
+removed by this optimization, which is incorrect. \\
+
+It should be noted that, while these optimizations do apply to if statement conditionals, the conditionals themselves are limited.
+For example, if "i $<$ 10" were optimized to \\
+"0 $<$ 10", the conditional would be left in this state.
 
 \section{Assembly Generation}
 % Specify x86, AT&T, uses cdecl, right?
