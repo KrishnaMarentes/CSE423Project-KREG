@@ -33,7 +33,7 @@ A Complete C Compiler! (to assembly)
   O: Perform optimizations <br />
   S: Generate assembly code. Will be saved in SOURCEFILE.s (Cannot specify file name) 
   * Do not use -w or -r together <br />
-  * -r cannot be used with options that require C code: t, p, a, s
+  * -r cannot be used with options that require C code: t, p, a, s <br />
   SOURCEFILE: file path of input C source code (or IR file) <br />
   
   **Run instructions** <br />
