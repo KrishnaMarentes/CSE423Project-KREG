@@ -4,11 +4,11 @@ int foo(int t, int g)
     int k = 1;
     int m = 3;
     int i = m;
-    return f;
+    return f * t + i - g;
 }
 
 int main()
 {
-    int i = foo();
+    int i = foo(5, 22);
     return i;
 }

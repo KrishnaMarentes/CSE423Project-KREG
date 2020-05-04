@@ -1,19 +1,29 @@
+int get_curvedgrade(int grade) {
+    int t = grade + 10;
+    return t;
+}
+
 int main()
 {
-    char grade = 'B';
-    int num, curvedgrade;
+    int grade = 66;
+    int num;
 
-    if(grade == 'A') {
+    if(grade == 65) {
         num = 90;
-    } else if(grade == 'B') {
+    } else if(grade == 66) {
         num = 80;
-    } else if(grade == 'C') {
+    } else if(grade == 67) {
         num = 70;
     } else {
         num = 60;
     }
 
-    curvedgrade = num + 10;
+    int curved_grade = get_curvedgrade(grade);
 
-    return 0;
+    while(grade < curved_grade) {
+        ++grade;
+    }
+
+
+    return grade;
 }

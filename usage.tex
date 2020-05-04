@@ -50,4 +50,20 @@ Ensure that the repository is cloned and unzipped then navigate into the folder.
         \subitem Print tokens: java -cp ``.:antlr-4.8-complete.jar:out" SCC -t tests/ex1.c
 \end{itemize}
 
+\subsection{Further Run examples}
+\begin{itemize}
+	\item Windows \\
+		{\bf Save IR to file:} java -cp ``.;antlr-4.8-complete.jar;out" SCC -w tests\textbackslash ex1.c ex1.ir\\\\
+		{\bf Output asm file:} java -cp ``.;antlr-4.8-complete.jar;out" SCC -S tests\textbackslash ex1.c\\\\
+		{\bf Output asm with optimizations:} java -cp ``.;antlr-4.8-complete.jar;out" SCC -SO tests\textbackslash ex1.c\\\\
+		{\bf Read in IR, output ASM:} java -cp ``.;antlr-4.8-complete.jar;out" SCC -r tests\textbackslash ex1.ir\\
+	\item Mac / Linux \\
+		{\bf Save IR to file:} java -cp ``.:antlr-4.8-complete.jar:out" SCC -w tests/ex1.c ex1.ir\\\\
+		{\bf Output asm file:} java -cp ``.:antlr-4.8-complete.jar:out" SCC -S tests/ex1.c\\\\		
+		{\bf Output asm with optimizations:} java -cp ``.:antlr-4.8-complete.jar:out" SCC -SO tests/ex1.c\\\\
+		{\bf Read in IR, output ASM:} java -cp ``.:antlr-4.8-complete.jar:out" SCC -r tests/ex1.ir\\\\
+\end{itemize}
+
+All examples in the src/tests folder work for all options, and have their generated .ir and .s files to accompany them.
+
 \end{document}

@@ -1,9 +1,24 @@
 .section .text
-	.global _start
 
+.global calc
 calc:
-	movl %esp, %ebp
-	popl %ebp
+	push %ebp
+	mov %esp, %ebp
+	sub $4, %esp
+	movl $0, -4(%ebp)
+	mov -4(%ebp), %eax
+	leave
 	ret
-_start: 
+.global main
+main:
+	push %ebp
+	mov %esp, %ebp
+	sub $12, %esp
+	movl $4, -4(%ebp)
 	call calc
+	mov %eax, %ecx
+	mov $2, %edx
+	add %ecx, %edx
+	mov %edx, %eax
+	leave
+	ret

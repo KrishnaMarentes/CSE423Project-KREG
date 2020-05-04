@@ -1,0 +1,56 @@
+function foo(int a,int b)
+{
+int j;
+int KREG.0;
+int KREG.1;
+
+j = 100;
+KREG.0 = a + b;
+KREG.1 = 100 * KREG.0;
+return KREG.1;
+}
+
+function foobar()
+{
+int KREG.2;
+int KREG.3;
+KREG.2 = 1040;
+KREG.3 = 1052;
+return KREG.3;
+}
+
+function main()
+{
+int i;
+int j;
+int k;
+int f;
+int a;
+int b;
+int c;
+int KREG.4;
+int KREG.5;
+int KREG.6;
+int KREG.7;
+int KREG.8;
+int KREG.9;
+int KREG.10;
+
+i = 8;
+j = 2;
+k = 3;
+f = 100;
+KREG.4 = 300;
+KREG.5 = 302;
+KREG.6 = 2416;
+a = 2416;
+KREG.7 = foobar();
+b = KREG.7;
+KREG.8 = foo(a,b);
+c = KREG.8;
+KREG.9 = KREG.8 * KREG.7;
+KREG.10 = KREG.9 + 2416;
+return KREG.10;
+}
+
+

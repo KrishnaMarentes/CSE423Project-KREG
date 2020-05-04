@@ -42,7 +42,7 @@ public class ASM {
     public ASM(String ir) {
 
         String[] lines = ir.split(EOL);
-        ir_lines = new ArrayList(Arrays.asList(lines));
+        ir_lines = new ArrayList<String>(Arrays.asList(lines));
         ir_lines.removeAll(Collections.singleton(""));
     }
 
@@ -345,20 +345,6 @@ public class ASM {
                 }
             }
         }
-
-//        for(int i = 0; i <= maxIndex; ++i) {
-//                if(i + 1 <= maxIndex && lines.get(i).startsWith("\tmov") && lines.get(i + 1).startsWith("\tmov")) {
-//                    String[] line1 = lines.get(i).replace(",", "").split(" ");
-//                    String[] line2 = lines.get(i + 1).replace(",", "").split(" ");
-//                    String src1 = line1[1];
-//                    String dest1 = line1[2];
-//                    String src2 = line2[1];
-//                    String dest2 = line2[2];
-//
-//
-//                }
-//            }
-
 
         for(String line : lines) {
             ret.append(line).append(EOL);

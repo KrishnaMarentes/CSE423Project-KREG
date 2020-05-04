@@ -1,0 +1,53 @@
+function foo(int m,int f)
+{
+int KREG.2;
+KREG.2 = m + f;
+return KREG.2;
+}
+
+function main(int argc,char* argv)
+{
+int m;
+int a;
+float t;
+float f;
+int unreachable;
+int KREG.3;
+int KREG.4;
+int KREG.5;
+int KREG.6;
+int KREG.7;
+int KREG.8;
+int KREG.9;
+int KREG.10;
+int KREG.11;
+int KREG.12;
+int KREG.13;
+int KREG.14;
+int KREG.15;
+int KREG.16;
+goto <KREG.1>;
+KREG.3 = 10 * 10;
+unreachable = KREG.3;
+<KREG.1>:
+a = a + 1;
+KREG.5 = a;
+a = a + 1;
+KREG.6 = a;
+KREG.7 = foo();
+KREG.8 = foo(KREG.7);
+KREG.9 = KREG.8 * 2;
+m = KREG.9;
+KREG.10 = KREG.9 * a;
+a = KREG.10;
+KREG.11 = KREG.9 * 5;
+KREG.12 = foo(KREG.11,f);
+KREG.13 = KREG.9 * KREG.12;
+t = KREG.13;
+KREG.14 = KREG.9 + 4;
+KREG.15 = 594;
+KREG.16 = KREG.14 + 594;
+return KREG.16;
+}
+
+

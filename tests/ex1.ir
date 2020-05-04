@@ -1,30 +1,35 @@
 function main()
 {
-int i;
-int j;
+int g;
+int k;
 int KREG.6;
-int KREG.10;
+int KREG.7;
 int KREG.11;
 int KREG.12;
+int KREG.13;
+int KREG.14;
 
-i = 3;
-KREG.6 = i - 1;
-j = KREG.6;
+g = 33;
+KREG.6 = 1089;
+KREG.7 = 1093;
+k = 1093;
 goto <KREG.3>;
 <KREG.4>:
-if i < j goto <KREG.7> else goto <KREG.8>;
-<KREG.7>:
-i = i + 1;
-goto <KREG.9>;
+if g < 6 goto <KREG.8> else goto <KREG.9>;
 <KREG.8>:
-KREG.11 = j + 30;
-KREG.12 = KREG.11 / i;
-j = KREG.12;
+k = k + 1;
+goto <KREG.10>;
 <KREG.9>:
+KREG.12 = 6 * k;
+KREG.13 = KREG.12 + 1;
+k = k + KREG.13;
+<KREG.10>:
 <KREG.3>:
-if i < 7 goto <KREG.4>;
+if k < 22 goto <KREG.4>;
 <KREG.5>:
 
-return i;
+KREG.14 = k * 14;
+return KREG.14;
 }
+
 

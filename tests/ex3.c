@@ -1,5 +1,3 @@
-int global_var;
-
 int foo(int m, int f) {
     return m + f;
 }

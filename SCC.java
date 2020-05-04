@@ -74,6 +74,8 @@ public class SCC {
                                 break;
                             case 'r': /* read in an IR specified instead of a source file */
                                 readfile = true;
+                                print_asm = true;
+                                save_output = true;
                                 if (args.length < 2) {
                                     System.out.println("Option -r used but no source file given.");
                                     usage();
@@ -199,11 +201,17 @@ public class SCC {
 
         if (print_ir) {
             System.out.println("printing IR...");
-            if (writefile)
+            if (writefile) {
                 printIR(ir, write_filename);
+                writefile = false;
+            }
             else
                 printIR(ir,null);
         }
+
+        //if you want to write an ir to a file without printing it
+        if (writefile)
+            printIR(ir, write_filename);
 
         if(print_asm) {
             printASM(ir, output);
@@ -275,7 +283,7 @@ public class SCC {
             String t = ts.get(i).getText();
             int line = ts.get(i).getLine(); //get line that token is on
             String type = ruleNames[ts.get(i).getType() - 1]; //type of token, integer only
-            output.append("< ").append(t).append(" , ").append(type).append(" >");
+            output.append("< ").append(t).append(" , ").append(type).append(" >").append(EOL);
         }
         System.out.println(output);
     }

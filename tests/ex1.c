@@ -1,14 +1,15 @@
 int main()
 {
-    int i, j;
-    i = 3;
-    j = i - 1;
-    while(i < 7) {
-        if(i < j) {
-            ++i;
+    int g, k;
+    g = 33;
+    k = g * g + 4;
+    while(k < 22) {
+        if(g < 6) {
+            ++k;
         } else {
-            j = (j + 30) / i;
+            k += 6 * k + 1;
         }
     }
-    return i;
+
+    return k * 14;
 }
