@@ -4,28 +4,39 @@
 
 \title{SCC by KREG - Usage}
 \author{\textbf{K}rishna Marentes\\\textbf{R}ebecca Castillo\\\textbf{E}lijah Orozco\\\textbf{G}eoff Knox}
-\date{April 6 2020}
+\date{May 3, 2020}
 
 \begin{document}
 
 \maketitle
 
 \section{Usage}
-At present, our compiler takes input from a .c file, and can output user-specified results to the terminal. Those results include:
+The basic usage format for the SCC compiler is as follows:
+\begin{verbatim}
+    [options] SOURCEFILE.[c|ir] [OUTPUTFILE]
+\end{verbatim}
+\\
+The compiler takes input from a .c file and can output user-specified results to the terminal. Those results include:
 \begin{itemize}
     \item -t Print tokens
     \item -p Print parse tree
     \item -a Print abstract syntax tree
     \item -s Print symbol table
     \item -i Print intermediate representation
-    \item -w [filename] Write the IR to <filename>
-    \item -r [filename] Read in a given IR instead of source code
+    \item -w Write the IR to OUTPUTFILE (will fail if no OUTPUTFILE given)
+    \item -r Read in a given IR from SOURCEFILE.ir instead of C
+    code. This file MUST have a ``.ir" file extension.
+    \item -O Perform optimizations
+    \item -S Generate assembly code and save it in SOURCEFILE.s
 \end{itemize}
-Note that options -w and -r should not be used together
+Only one dash is required. Multiple options can be entered as ``-xyz".\\
+\\
+It should be noted that options t, p, a, and s cannot be used with the ``-r" option because they require C source code.
+If any of these options are used with ``-r", they will be ignored.
+
 
 \subsection{Run instructions:}
 Ensure that the repository is cloned and unzipped then navigate into the folder.
-Library \textbf{Javafx} must be installed in order to support the Pair data structure.
 \begin{itemize}
     \item Windows
         \subitem Compile .g4: java -jar antlr-4.8-complete.jar kregGrammar.g4 -o out
