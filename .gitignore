@@ -3,3 +3,5 @@
 *.tokens
 kregGrammar*.java
 .DS_Store
+*.gz
+*.log

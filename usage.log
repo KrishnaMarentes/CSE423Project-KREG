@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (MiKTeX 2.9.6500 64-bit) (preloaded format=pdflatex 2018.1.22)  3 MAY 2020 20:34
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (MiKTeX 2.9.6500 64-bit) (preloaded format=pdflatex 2018.1.22)  3 MAY 2020 20:47
 entering extended mode
 **./usage.tex
 (usage.tex
@@ -545,103 +545,103 @@ Underfull \hbox (badness 10000) in paragraph at lines 32--36
 [1
 
 {C:/Users/ryan1/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 44.
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 45.
 
 ("C:\Program Files\MiKTeX 2.9\tex\latex\base\omscmr.fd"
 File: omscmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 44.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 45.
 
-Overfull \hbox (2.33281pt too wide) in paragraph at lines 45--46
+Overfull \hbox (2.33281pt too wide) in paragraph at lines 46--47
 []| \OT1/cmr/m/n/10 Print to-kens: java -cp ``.;antlr-4.8-complete.jar;out" SCC
  -t tests\OMS/cmsy/m/n/10 n\OT1/cmr/m/n/10 ex1.c 
  []
 
 
-Overfull \hbox (2.33281pt too wide) in paragraph at lines 50--51
+Overfull \hbox (2.33281pt too wide) in paragraph at lines 51--52
 []| \OT1/cmr/m/n/10 Print to-kens: java -cp ``.:antlr-4.8-complete.jar:out" SCC
  -t tests/ex1.c 
  []
 
 
-Overfull \hbox (1.76854pt too wide) in paragraph at lines 55--60
+Overfull \hbox (1.76854pt too wide) in paragraph at lines 56--61
 \OT1/cmr/bx/n/10 Save IR to file: \OT1/cmr/m/n/10 java -cp ``.;antlr-4.8-comple
 te.jar;out" SCC -w tests\OMS/cmsy/m/n/10 n\OT1/cmr/m/n/10 ex1.c
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 55--60
+Underfull \hbox (badness 10000) in paragraph at lines 56--61
 
  []
 
 
-Overfull \hbox (8.11726pt too wide) in paragraph at lines 55--60
+Overfull \hbox (8.11726pt too wide) in paragraph at lines 56--61
 \OT1/cmr/bx/n/10 Output asm file: \OT1/cmr/m/n/10 java -cp ``.;antlr-4.8-comple
 te.jar;out" SCC -S tests\OMS/cmsy/m/n/10 n\OT1/cmr/m/n/10 ex1.c 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 55--60
+Underfull \hbox (badness 10000) in paragraph at lines 56--61
 
  []
 
 
-Overfull \hbox (3.19669pt too wide) in paragraph at lines 55--60
+Overfull \hbox (3.19669pt too wide) in paragraph at lines 56--61
 \OT1/cmr/bx/n/10 Output asm with op-ti-miza-tions: \OT1/cmr/m/n/10 java -cp ``.
 ;antlr-4.8-complete.jar;out"
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 55--60
+Underfull \hbox (badness 10000) in paragraph at lines 56--61
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 55--60
+Underfull \hbox (badness 10000) in paragraph at lines 56--61
 
  []
 
 
-Overfull \hbox (1.76854pt too wide) in paragraph at lines 60--65
+Overfull \hbox (1.76854pt too wide) in paragraph at lines 61--66
 \OT1/cmr/bx/n/10 Save IR to file: \OT1/cmr/m/n/10 java -cp ``.:antlr-4.8-comple
 te.jar:out" SCC -w tests/ex1.c
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 60--65
+Underfull \hbox (badness 10000) in paragraph at lines 61--66
 
  []
 
 
-Overfull \hbox (8.11726pt too wide) in paragraph at lines 60--65
+Overfull \hbox (8.11726pt too wide) in paragraph at lines 61--66
 \OT1/cmr/bx/n/10 Output asm file: \OT1/cmr/m/n/10 java -cp ``.:antlr-4.8-comple
 te.jar:out" SCC -S tests/ex1.c 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 60--65
+Underfull \hbox (badness 10000) in paragraph at lines 61--66
 
  []
 
 
-Overfull \hbox (3.19669pt too wide) in paragraph at lines 60--65
+Overfull \hbox (3.19669pt too wide) in paragraph at lines 61--66
 \OT1/cmr/bx/n/10 Output asm with op-ti-miza-tions: \OT1/cmr/m/n/10 java -cp ``.
 :antlr-4.8-complete.jar:out"
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 60--65
+Underfull \hbox (badness 10000) in paragraph at lines 61--66
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 60--65
+Underfull \hbox (badness 10000) in paragraph at lines 61--66
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 60--65
+Underfull \hbox (badness 10000) in paragraph at lines 61--66
 
  []
 
@@ -649,7 +649,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 60--65
 Here is how much of TeX's memory you used:
  1077 strings out of 493312
  12860 string characters out of 3138899
- 62677 words of memory out of 3000000
+ 61677 words of memory out of 3000000
  4668 multiletter control sequences out of 15000+200000
  8398 words of font info for 30 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -662,7 +662,7 @@ amsfonts/cm/cmbx10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts
 /Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr17.pfb><C:/Program 
 Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/Mi
 KTeX 2.9/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
-Output written on usage.pdf (3 pages, 96776 bytes).
+Output written on usage.pdf (3 pages, 99015 bytes).
 PDF statistics:
  45 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
